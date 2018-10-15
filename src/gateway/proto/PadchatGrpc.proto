@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package GrpcPadchat;
+
+// Pack Long request to wechat
+message PackLongRequest {
+  string token = 1;
+  string apiName = 2;
+  string params = 3;
+}
+
+message PackLongResponse {
+  bytes buffer = 2;
+}
+
+// Pack Short request to wechat
+message PackShortRequest {
+  string token = 1;
+  string apiName = 2;
+  string params = 3;
+}
+
+message PackShortResponse {
+  string commandUrl = 1;
+  bytes payload = 2;
+}
+
+// Parse results from wechat
+message ParseRequest {
+  string token = 1;
+  string apiName = 2;
+  bytes payload = 3;
+}
+
+message ParsedResponse {
+  string payload = 1;
+}
+
+// Grpc Service for authorization, pack and unpack message usages
+service PadchatGrpc {
+  rpc PackLong (PackLongRequest) returns (PackLongResponse) {}
+  rpc PackShort (PackShortRequest) returns (PackShortResponse) {}
+  rpc Parse (ParseRequest) returns (ParsedResponse) {}
+}
