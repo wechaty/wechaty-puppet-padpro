@@ -174,7 +174,6 @@ export class WechatGateway extends EventEmitter {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': res.payload.length
-        // 'Cookie': ret.baseMsg.user.cookies
       }
     }
 
