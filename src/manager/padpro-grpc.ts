@@ -1,15 +1,16 @@
 import { EventEmitter } from 'events'
-
+import { ThrottleQueue } from 'rx-queue'
+import { Subscription } from 'rxjs'
 
 import {
-  GrpcQrcodeLoginType,
-  GrpcMessagePayload,
+  GrpcCheckQRCode,
+  GrpcContactOperationOption,
   GrpcContactRawPayload,
+  GrpcGetQRCodeType,
+  GrpcQrcodeLoginType,
+  GrpcRoomMemberRawPayload,
   GrpcRoomRawPayload,
   GrpcSyncContactPayload,
-  GrpcCheckQRCode,
-  GrpcGetQRCodeType,
-  GrpcRoomMemberRawPayload,
 } from '../schemas/grpc-schemas'
 
 import {
@@ -19,8 +20,11 @@ import {
 import { log } from '../config'
 
 import { WechatGateway } from '../gateway/wechat-gateway'
-import { ThrottleQueue } from 'rx-queue';
-import { Subscription } from 'rxjs';
+import {
+  ContactOperationBitVal,
+  ContactOperationCmdId,
+  SearchContactTypeStatus,
+} from '../schemas'
 
 export const DISCONNECTED = 'DISCONNECTED'
 export const CONNECTING = 'CONNECTING'
@@ -80,7 +84,7 @@ export class PadproGrpc extends EventEmitter {
     })
   }
 
-  private async syncMessage() {
+  private async syncMessage () {
     const messages = await this.wechatGateway.callApi('GrpcSyncMessage')
     console.log(messages)
   }
@@ -111,7 +115,8 @@ export class PadproGrpc extends EventEmitter {
 
     let result = await this.wechatGateway.callApi('GrpcAutoLogin')
     if (result.status === -301) {
-      this.wechatGateway.switchHost({ shortHost: result.shothost, longHost: result.longhost })
+      log.silly(PRE, `GrpcAutoLogin() redirect host ${JSON.stringify(result)}`)
+      this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
       result = await this.wechatGateway.callApi('GrpcAutoLogin')
     } else if (result.status !== 0) {
       throw Error('Auto login failed')
@@ -133,7 +138,7 @@ export class PadproGrpc extends EventEmitter {
 
   public async GrpcCheckQRCode (): Promise<GrpcCheckQRCode> {
     log.info(PRE, `GrpcCheckQRCode()`)
-    return await this.wechatGateway.callApi('GrpcCheckQRCode')
+    return this.wechatGateway.callApi('GrpcCheckQRCode')
   }
 
   protected reset (reason = 'unknown reason'): void {
@@ -220,8 +225,8 @@ export class PadproGrpc extends EventEmitter {
   ): Promise<GrpcSyncContactPayload> {
     log.silly(PRE, `GrpcSyncContact(contactSeq: ${contactSeq}, roomSeq: ${roomSeq})`)
     const result: GrpcSyncContactPayload = await this.wechatGateway.callApi('GrpcSyncContact', {
+      CurrentChatRoomContactSeq: roomSeq,
       CurrentWxcontactSeq      : contactSeq,
-      CurrentChatRoomContactSeq: roomSeq
     })
     // log.silly(PRE, `GrpcSyncContact() result: ${JSON.stringify(result)}`)
     return result
@@ -231,12 +236,190 @@ export class PadproGrpc extends EventEmitter {
    * Get room member list for a given room id
    * @param roomId room id
    */
-  protected async GrpcGetChatRoomMember (roomId: string): Promise<GrpcRoomMemberRawPayload> {
+  public async GrpcGetChatRoomMember (roomId: string): Promise<GrpcRoomMemberRawPayload> {
     log.silly(PRE, `GrpcGetChatRoomMember(${roomId})`)
     const result: GrpcRoomMemberRawPayload = await this.wechatGateway.callApi('GrpcGetChatRoomMember', {
       Chatroom: roomId
     })
     // log.silly(PRE, `GrpcGetChatRoomMember() result: ${JSON.stringify(result)}`)
     return result
+  }
+
+  /**
+   * Log out wechat
+   */
+  public async GrpcLogout () {
+    log.silly(PRE, `GrpcLogout()`)
+    await this.wechatGateway.callApi('GrpcLogout')
+  }
+
+  /**
+   * Set an alias for a given contact
+   * @param contactId contact id
+   * @param alias new alias
+   */
+  public async GrpcSetContactAlias (contactId: string, alias: string) {
+    log.silly(PRE, `GrpcSetContactAlias(${contactId}, ${alias})`)
+    const contactOperationOption: GrpcContactOperationOption = {
+      bitVal: ContactOperationBitVal.Remark,
+      cmdid: ContactOperationCmdId.Operation,
+      remark: alias,
+      userId: contactId,
+    }
+    await this.GrpcContactOperation(contactOperationOption)
+  }
+
+  /**
+   * Get qrcode for given contact. This api is able to get qrcode for self or
+   * rooms that already joined
+   * @param contactId contact id
+   */
+  public async GrpcGetContactQrcode (contactId: string) {
+    log.silly(PRE, `GrpcGetContactQrcode(${contactId})`)
+    const result = await this.wechatGateway.callApi('GrpcGetContactQrcode', {
+      Style: 0,
+      Useranme: contactId,
+    })
+    return result
+  }
+
+  /**
+   * Set user info for self
+   * @param nickName nick name
+   * @param signature signature
+   * @param sex sex
+   * @param country country
+   * @param province province
+   * @param city city
+   */
+  public async GrpcSetUserInfo (
+    nickName: string,
+    signature: string,
+    sex: string,
+    country: string,
+    province: string,
+    city: string
+  ) {
+    log.silly(PRE, `GrpcSetUserInfo(${nickName}, ${signature}, ${sex}, ${country}, ${province}, ${city})`)
+    await this.wechatGateway.callApi('GrpcSetUserInfo', {
+      City     : city,
+      Country  : country,
+      NickName : nickName,
+      Province : province,
+      Sex      : sex,
+      Signature: signature,
+    })
+  }
+
+  /**
+   * Add friend with contact's stranger and ticket value
+   * @param stranger stranger, v1_
+   * @param ticket ticket, v2_
+   * @param type search contact type status
+   * @param content content used for add friend
+   */
+  public async GrpcAddFriend (
+    stranger: string,
+    ticket: string,
+    type: SearchContactTypeStatus,
+    content: string,
+  ) {
+    log.silly(PRE, `GrpcAddFriend(${stranger}, ${ticket}, ${type}, ${content})`)
+    await this.wechatGateway.callApi('GrpcAddFriend', {
+      Content: content,
+      Encryptusername: stranger,
+      Sence: type,
+      Ticket: ticket,
+      Type: type,
+    })
+  }
+
+  /**
+   * Accept friend request
+   * @param stranger stranger, v1_
+   * @param ticket ticket, v2_
+   */
+  public async GrpcAcceptFriend (
+    stranger: string,
+    ticket: string,
+  ) {
+    log.silly(PRE, `GrpcAcceptFriend(${stranger}, ${ticket})`)
+    await this.wechatGateway.callApi('GrpcAcceptFriend', {
+      Content: '',
+      Encryptusername: stranger,
+      Sence: 3,
+      Ticket: ticket,
+      Type: 3,
+    })
+  }
+
+  /**
+   * Search contact
+   * @param contactId contact id
+   */
+  public async GrpcSearchContact (contactId: string) {
+    log.silly(PRE, `GrpcSearchContact(${contactId})`)
+    const result = await this.wechatGateway.callApi('GrpcSearchContact', {
+      Username: contactId,
+    })
+    return result
+  }
+
+  /**
+   * Send message
+   * @param contactId contact id
+   * @param content content
+   * @param atUserList at user list
+   */
+  public async GrpcSendMessage (
+    contactId: string,
+    content: string,
+    atUserList?: string,
+  ) {
+    log.silly(PRE, `GrpcSendMessage(${contactId}, ${content}, ${atUserList})`)
+
+    await this.wechatGateway.callApi('GrpcSendMessage', {
+      Content: content,
+      MsgSource: atUserList ? atUserList : '',
+      ToUserName: contactId,
+    })
+  }
+
+  /**
+   * Send image
+   * @param contactId contact id to send image
+   * @param data image data
+   * TODO: check usage of StartPos etc and the limit of photo size
+   */
+  public async GrpcSendImage (
+    contactId: string,
+    data: string,
+  ) {
+    log.silly(PRE, `GrpcSendImage()`)
+    await this.wechatGateway.callApi('GrpcSendImage', {
+      ClientImgId: contactId + new Date().getTime().toString(),
+      Data: data,
+      DataLen: data.length,
+      StartPos: 0,
+      ToUserName: contactId,
+      TotalLen: data.length,
+    })
+  }
+
+  /**
+   * Underlying function to do contact operations
+   * @param option Contact operation option
+   */
+  private async GrpcContactOperation (option: GrpcContactOperationOption) {
+    const params: any = {}
+    params.Cmdid = option.cmdid
+    params.CmdBuf = option.userId
+    if (option.bitVal) {
+      params.BitVal = option.bitVal
+    }
+    if (option.remark) {
+      params.Remark = option.remark
+    }
+    await this.wechatGateway.callApi('GrpcContactOperation', params)
   }
 }
