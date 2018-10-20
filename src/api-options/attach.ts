@@ -1,4 +1,3 @@
-import { ApiOption } from "./interface";
+import { ApiOption } from './interface'
 
-export const GrpcUploadAppAttach: ApiOption = {
-}
+export const GrpcUploadAppAttach: ApiOption = {}

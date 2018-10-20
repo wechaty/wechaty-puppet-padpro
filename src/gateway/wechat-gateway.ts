@@ -1,15 +1,23 @@
-import EventEmitter from 'events';
-import http, { RequestOptions, IncomingMessage, ClientRequest } from 'http';
+import EventEmitter from 'events'
+import http, {
+  ClientRequest,
+  IncomingMessage,
+  RequestOptions,
+} from 'http'
 import HttpProxyAgent from 'http-proxy-agent'
-import net, { Socket } from 'net';
+import net, { Socket } from 'net'
 
-import { WX_LONG_HOST, WX_SHORT_HOST } from '../consts'
-import { 
+import { ApiOptions } from '../api-options'
+import {
   log,
 } from '../config'
+import { WX_LONG_HOST, WX_SHORT_HOST } from '../consts'
 
-import { GrpcGateway, ApiParams, PackShortRes } from './grpc-gateway';
-import { ApiOptions } from '../api-options'
+import {
+  ApiParams,
+  GrpcGateway,
+  PackShortRes,
+} from './grpc-gateway'
 
 export interface CallBackBuffer {
   [id: string]: (buf: any) => void
@@ -50,11 +58,9 @@ export class WechatGateway extends EventEmitter {
       this.proxyAgent = new HttpProxyAgent(proxyEndpoint)
     }
   }
-  public emit (event: 'newMessage', message: Buffer): boolean
-  public emit (event: 'socketClose'): boolean
+  public emit (event: 'newMessage' | 'rawMessage', message: Buffer): boolean
+  public emit (event: 'socketClose' | 'socketEnd'): boolean
   public emit (event: 'socketError', err: Error): boolean
-  public emit (event: 'socketEnd'): boolean
-  public emit (event: 'rawMessage', message: Buffer): boolean
 
   public emit (event: never, listener: never): never
 
@@ -64,11 +70,9 @@ export class WechatGateway extends EventEmitter {
   ): boolean {
     return super.emit(event, ...args)
   }
-  public on (event: 'newMessage', listener: ((this: WechatGateway, message: Buffer) => void)): this
-  public on (event: 'socketClose', listener: ((this: WechatGateway) => void)): this
+  public on (event: 'newMessage' | 'rawMessage', listener: ((this: WechatGateway, message: Buffer) => void)): this
+  public on (event: 'socketClose' | 'socketEnd', listener: ((this: WechatGateway) => void)): this
   public on (event: 'socketError', listener: ((this: WechatGateway, err: Error) => void)): this
-  public on (event: 'socketEnd', listener: ((this: WechatGateway) => void)): this
-  public on (event: 'rawMessage', listener: ((this: WechatGateway, message: Buffer) => void)): this
 
   public on (event: never, listener: never): never
 
@@ -86,11 +90,12 @@ export class WechatGateway extends EventEmitter {
     return this
   }
 
-  public async start() {
+  public async start () {
     await this.initLongSocket()
   }
 
   public async switchHost ({ shortHost, longHost }: SwitchHostOption) {
+    log.silly(PRE, `switchHost({ shortHost: ${shortHost}, longHost: ${longHost} })`)
     if (this.shortHost !== shortHost) {
       this.shortHost = shortHost
     }
@@ -156,25 +161,25 @@ export class WechatGateway extends EventEmitter {
     if (longRequest) {
       const buffer = await this.grpcGateway.packLong(apiName, params)
       const wxResponse = await this.sendLong(buffer, noParse)
-      return noParse ? wxResponse : await this.grpcGateway.parse(apiName, wxResponse)
+      return noParse ? wxResponse : this.grpcGateway.parse(apiName, wxResponse)
     } else {
       const res = await this.grpcGateway.packShort(apiName, params)
       const wxResponse = await this.sendShort(res, noParse)
-      return await this.grpcGateway.parse(apiName, wxResponse)
+      return this.grpcGateway.parse(apiName, wxResponse)
     }
   }
 
   private async sendShort (res: PackShortRes, noParse?: boolean): Promise<Buffer> {
-    log.silly('WechatGateway', `sendShort() res: commandUrl: ${res.commandUrl}, payload: ${res.payload.slice(0, 100)}...`)
+    log.silly('WechatGateway', `sendShort() res: commandUrl: ${res.commandUrl}`)
     const options: RequestOptions = {
-      hostname: this.shortHost,
-      port: 80,
-      path: res.commandUrl,
-      method: 'POST',
       headers: {
+        'Content-Length': res.payload.length,
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': res.payload.length
-      }
+      },
+      hostname: this.shortHost,
+      method: 'POST',
+      path: res.commandUrl,
+      port: 80,
     }
 
     if (this.proxyAgent) {
@@ -182,25 +187,25 @@ export class WechatGateway extends EventEmitter {
     }
 
     return new Promise<Buffer>((resolve, reject) => {
-      const req: ClientRequest = http.request(options, async (res: IncomingMessage) => {
-        let rawData: any = []
+      const req: ClientRequest = http.request(options, async (response: IncomingMessage) => {
+        const rawData: any = []
         let dataLen = 0
 
         const timeoutTimer = setTimeout(() => {
           reject(`sendShort failed: timeout.`)
         }, 10000)
 
-        if (res.statusCode !== 200) {
-          reject(`sendShort failed, status code: ${res.statusCode}, status message: ${res.statusMessage}`)
+        if (response.statusCode !== 200) {
+          reject(`sendShort failed, status code: ${response.statusCode}, status message: ${response.statusMessage}`)
         }
-        res.on('data', (chunk: any) => {
+        response.on('data', (chunk: any) => {
           rawData.push(chunk)
           dataLen += chunk.length
         })
-        res.on('error', (error: Error) => {
+        response.on('error', (error: Error) => {
           reject(error)
         })
-        res.on('end', () => {
+        response.on('end', () => {
           const buffer = Buffer.concat(rawData, dataLen)
           clearTimeout(timeoutTimer)
           // Short request parse judgement

@@ -1,4 +1,4 @@
-import { ApiOption } from "./interface";
+import { ApiOption } from './interface'
 
 export const GrpcNewInit: ApiOption = {}
 
@@ -22,3 +22,7 @@ export const GrpcQRCodeLogin: ApiOption = {
 export const GrpcAutoLogin: ApiOption = {
   longRequest: true,
 }
+
+export const GrpcLogout: ApiOption = {}
+
+export const GrpcSetUserInfo: ApiOption = {}
