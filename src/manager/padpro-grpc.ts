@@ -1,12 +1,11 @@
 import { EventEmitter } from 'events'
-import { ThrottleQueue } from 'rx-queue'
-import { Subscription } from 'rxjs'
 
 import {
   GrpcCheckQRCode,
   GrpcContactOperationOption,
   GrpcContactRawPayload,
   GrpcGetQRCodeType,
+  GrpcMessagePayload,
   GrpcQrcodeLoginType,
   GrpcRoomMemberRawPayload,
   GrpcRoomRawPayload,
@@ -23,6 +22,7 @@ import { WechatGateway } from '../gateway/wechat-gateway'
 import {
   ContactOperationBitVal,
   ContactOperationCmdId,
+  GrpcVoiceFormat,
   SearchContactTypeStatus,
 } from '../schemas'
 
@@ -49,9 +49,7 @@ const PRE = 'PadproGrpc'
 export class PadproGrpc extends EventEmitter {
 
   protected userId?: string
-  private wechatGateway: WechatGateway
-  private syncThrottleQueue: ThrottleQueue<string>
-  private syncThrottleQueueSubscription: Subscription
+  protected wechatGateway: WechatGateway
 
   constructor (
     protected token: string,
@@ -61,32 +59,13 @@ export class PadproGrpc extends EventEmitter {
     super()
     this.token = token
     this.wechatGateway = new WechatGateway(token, endpoint, proxyEndpoint)
-    this.syncThrottleQueue = new ThrottleQueue(300)
-    this.syncThrottleQueueSubscription = this.syncThrottleQueue.subscribe(() => {
-      // TODO: un-comment this when finish debugging
-      // this.syncMessage()
-    })
-    this.initEvents()
+
     log.silly(PRE, `constructor(${token})`)
   }
 
-  public initEvents () {
-    this.wechatGateway.on('newMessage', msg => {
-      // Add throttle to sync message, otherwise,
-      // it will call the sync function multiple times
-      // within a short period of time, causing useless traffic
-      log.silly(PRE, `initEvents() newMessage event triggered with msg: ${msg.toString()}`)
-      this.syncThrottleQueue.next(msg.toString())
-    })
-    this.wechatGateway.on('rawMessage', () => {
-      // TODO: replace with watchdog or something
-      // this.GrpcHeartBeat()
-    })
-  }
-
-  private async syncMessage () {
-    const messages = await this.wechatGateway.callApi('GrpcSyncMessage')
-    console.log(messages)
+  protected async GrpcSyncMessage ()
+    : Promise<Array<GrpcMessagePayload | GrpcContactRawPayload | GrpcRoomRawPayload>> {
+    return this.wechatGateway.callApi('GrpcSyncMessage')
   }
 
   public async GrpcGetQRCode (): Promise<GrpcGetQRCodeType> {
@@ -100,15 +79,15 @@ export class PadproGrpc extends EventEmitter {
 
   public async start (): Promise<void> {
     log.verbose(PRE, 'start()')
-    this.initEvents()
     await this.wechatGateway.start()
   }
 
-  private async GrpcHeartBeat () {
+  protected async GrpcHeartBeat () {
     const payloads = await this.wechatGateway.callApi('GrpcHeartBeat')
     if (payloads[3] !== 20 || payloads[5] !== 16) {
       throw new Error()
     }
+    return payloads
   }
 
   public async GrpcAutoLogin (): Promise<string> {
@@ -116,11 +95,15 @@ export class PadproGrpc extends EventEmitter {
     let result = await this.wechatGateway.callApi('GrpcAutoLogin')
     if (result.status === -301) {
       log.silly(PRE, `GrpcAutoLogin() redirect host ${JSON.stringify(result)}`)
-      this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
+      await this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
       result = await this.wechatGateway.callApi('GrpcAutoLogin')
-    } else if (result.status !== 0) {
+    }
+
+    if (result.status !== 0) {
+      log.verbose(PRE, `GrpcAutoLogin() login failed with result: ${JSON.stringify(result)}`)
       throw Error('Auto login failed')
     }
+    log.verbose(PRE, `GrpcAutoLogin() success with result: ${JSON.stringify(result)}`)
     return result.userName
   }
 
@@ -148,8 +131,6 @@ export class PadproGrpc extends EventEmitter {
   }
 
   public stop (): void {
-    this.syncThrottleQueueSubscription.unsubscribe()
-
     log.verbose(PRE, 'stop()')
   }
 
@@ -403,6 +384,207 @@ export class PadproGrpc extends EventEmitter {
       StartPos: 0,
       ToUserName: contactId,
       TotalLen: data.length,
+    })
+  }
+
+  /**
+   * Send voice message
+   * @param contactId contact id
+   * @param data voice data
+   * @param voiceLength voice length, in millisecond
+   */
+  public async GrpcSendVoice (
+    contactId: string,
+    data: string,
+    voiceLength: number,
+  ) {
+    log.silly(PRE, `GrpcSendVoice()`)
+    await this.wechatGateway.callApi('GrpcSendVoice', {
+      Data: data,
+      EndFlag: 1,
+      Length: data.length,
+      Offset: 0,
+      ToUserName: contactId,
+      VoiceFormat: GrpcVoiceFormat.Silk,
+      VoiceLength: voiceLength,
+    })
+  }
+
+  public async GrpcSendApp (
+    contactId: string,
+    content: string,
+  ) {
+    log.silly(PRE, `GrpcSendApp(${contactId})`)
+    await this.wechatGateway.callApi('GrpcSendApp', {
+      AppId: '',
+      Content: content,
+      ToUserName: contactId,
+      Type: 5,
+    })
+  }
+
+  /**
+   * Get image from the message
+   * @param content message content
+   */
+  public async GrpcGetMsgImage (
+    content: string,
+  ): Promise<any> {
+    log.silly(PRE, `GrpcGetMsgImage()`)
+    // TODO: This feature is not ready yet
+    // await this.wechatGateway.callApi('GrpcGetMsgImage')
+  }
+
+  /**
+   * Get video from the message
+   * @param content message content
+   */
+  public async GrpcGetMsgVideo (
+    content: string,
+  ): Promise<any> {
+    log.silly(PRE, `GrpcGetMsgVideo()`)
+    // TODO: This feature is not ready yet
+    // await this.wechatGateway.callApi('GrpcGetMsgVideo')
+  }
+
+  public async GrpcGetMsgVoice (
+    content: string,
+  ): Promise<any> {
+    log.silly(PRE, `GrpcGetMsgVoice()`)
+    // TODO: This feature is not ready yet
+    // await this.wechatGateway.callApi('GrpcGetMsgVoice')
+  }
+
+  /**
+   * Get request token for link
+   * @param contactId contact id
+   * @param url url
+   */
+  public async GrpcGetRequestToken (
+    contactId: string,
+    url: string,
+  ) {
+    log.silly(PRE, `GrpcGetRequestToken(${contactId}, ${url})`)
+    // TODO: what is the data structure of the return data?
+    return this.wechatGateway.callApi('GrpcGetRequestToken', {
+      fromUser: contactId,
+      url
+    })
+  }
+
+  /**
+   * Create room with given members
+   * @param contactIdList room member list
+   */
+  public async GrpcCreateRoom (
+    contactIdList: string[],
+  ) {
+    log.silly(PRE, `GrpcCreateRoom(${JSON.stringify(contactIdList)})`)
+    // TODO: what is the data structure of the return data?
+    const result = await this.wechatGateway.callApi('GrpcCreateRoom', {
+      Membernames: JSON.stringify(contactIdList)
+    })
+    return result
+  }
+
+  /**
+   * Set room name
+   * @param roomId room id
+   * @param name new room name
+   */
+  public async GrpcSetRoomName (
+    roomId: string,
+    name: string,
+  ) {
+    log.silly(PRE, `GrpcSetRoomName(${roomId}, ${name})`)
+    await this.wechatGateway.callApi('GrpcSetRoomName', {
+      ChatRoom: roomId,
+      Cmdid: 27,
+      Roomname: name,
+    })
+  }
+
+  /**
+   * Quit room with id
+   * @param roomId room id
+   */
+  public async GrpcQuitRoom (
+    roomId: string,
+  ) {
+    log.silly(PRE, `GrpcQuitRoom(${roomId})`)
+    await this.wechatGateway.callApi('GrpcQuitRoom', {
+      chatroom: roomId,
+    })
+  }
+
+  /**
+   * Add contact(s) into a given room
+   * @param roomId room id
+   * @param contactId contact id or a list of contact ids
+   */
+  public async GrpcAddRoomMember (
+    roomId: string,
+    contactId: string | string[]
+  ) {
+    log.silly(PRE, `GrpcAddChatRoomMember(${roomId}, ${contactId})`)
+    let Membernames = ''
+    if (typeof contactId === 'string') {
+      Membernames = contactId
+    } else {
+      Membernames = contactId.join(',')
+    }
+
+    await this.wechatGateway.callApi('GrpcAddChatRoomMember', {
+      Membernames,
+      Roomeid: roomId,
+    })
+  }
+
+  /**
+   * Invite a contact into a room
+   * @param roomId room id
+   * @param contactId contact id needs to be invited
+   */
+  public async GrpcInviteRoomMember (
+    roomId: string,
+    contactId: string,
+  ) {
+    log.silly(PRE, `GrpcInviteRoomMember(${roomId}, ${contactId})`)
+    await this.wechatGateway.callApi('GrpcInviteRoomMember', {
+      ChatRoom: roomId,
+      Username: contactId,
+    })
+  }
+
+  /**
+   * Remove a member from a room
+   * @param roomId room id
+   * @param contactId contact id needs to be removed
+   */
+  public async GrpcDeleteRoomMember (
+    roomId: string,
+    contactId: string,
+  ) {
+    log.silly(PRE, `GrpcDeleteRoomMember(${roomId}, ${contactId})`)
+    await this.wechatGateway.callApi('GrpcDeleteRoomMember', {
+      ChatRoom: roomId,
+      Username: contactId,
+    })
+  }
+
+  /**
+   * Set room announcement
+   * @param roomId room id
+   * @param announcement announcement
+   */
+  public async GrpcSetRoomAnnouncement (
+    roomId: string,
+    announcement: string,
+  ) {
+    log.silly(PRE, `GrpcSetRoomAnnouncement(${roomId}, ${announcement})`)
+    await this.wechatGateway.callApi('GrpcSetRoomAnnouncement', {
+      Announcement: announcement,
+      ChatRoomName: roomId,
     })
   }
 
