@@ -1,10 +1,17 @@
-import grpc from 'grpc';
+import grpc from 'grpc'
 
 import {
   log
 }                       from '../config'
-import { PadchatGrpcClient } from './proto-ts/PadchatGrpc_grpc_pb';
-import { PackLongRequest, PackLongResponse, PackShortRequest, PackShortResponse, ParseRequest, ParsedResponse } from './proto-ts/PadchatGrpc_pb';
+import { PadchatGrpcClient } from './proto-ts/PadchatGrpc_grpc_pb'
+import {
+  PackLongRequest,
+  PackLongResponse,
+  PackShortRequest,
+  PackShortResponse,
+  ParsedResponse,
+  ParseRequest,
+} from './proto-ts/PadchatGrpc_pb'
 
 export interface ApiParams {
   [ name: string ]: number | string
@@ -34,7 +41,7 @@ export class GrpcGateway {
     if (params) {
       request.setParams(JSON.stringify(params))
     }
-    
+
     return new Promise<Buffer>((resolve, reject) => {
       this.client.packLong(request, (err: Error | null, response: PackLongResponse) => {
         if (err !== null) {
@@ -54,7 +61,7 @@ export class GrpcGateway {
     if (params) {
       request.setParams(JSON.stringify(params))
     }
-    
+
     return new Promise<PackShortRes>((resolve, reject) => {
       this.client.packShort(request, (err: Error | null, response: PackShortResponse) => {
         if (err) {
@@ -80,10 +87,10 @@ export class GrpcGateway {
           reject(err)
           return
         }
-        const payload = response.getPayload()
+        const returnPayload = response.getPayload()
         try {
-          log.silly(PRE, `parse(${apiName}) get response: ${payload.slice(200)}`)
-          resolve(JSON.parse(payload))
+          log.silly(PRE, `parse(${apiName}) get response: ${returnPayload.slice(0, 200)}`)
+          resolve(JSON.parse(returnPayload))
         } catch (e) {
           reject(e)
         }

@@ -91,10 +91,10 @@ export class WechatGateway extends EventEmitter {
   }
 
   public async start () {
-    await this.initLongSocket()
+    this.initLongSocket()
   }
 
-  public async switchHost ({ shortHost, longHost }: SwitchHostOption) {
+  public switchHost ({ shortHost, longHost }: SwitchHostOption) {
     log.silly(PRE, `switchHost({ shortHost: ${shortHost}, longHost: ${longHost} })`)
     if (this.shortHost !== shortHost) {
       this.shortHost = shortHost
@@ -121,7 +121,6 @@ export class WechatGateway extends EventEmitter {
       log.verbose('WechatGateway', `initLongSocket() socket has already been created, quit initialize.`)
       return
     }
-
     this.longSocket = new Socket()
     this.longSocket.connect(80, this.longHost)
 
