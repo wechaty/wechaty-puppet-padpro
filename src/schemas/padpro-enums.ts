@@ -63,31 +63,12 @@ export enum SearchContactTypeStatus {
   QRCODE         = 30,   // search by scanning qrcode
 }
 
-export enum PadproRoomMemberStatus {
-  Zero = 0,
-  Todo,
-}
-
-export enum PadproMessageMsgType {
-  Five = 5,
-}
-
 export enum PadproMessageStatus {
   One = 1,
 }
 
 export enum PadproStatus {
   One  = 1,
-}
-
-export enum PadproContactMsgType {
-  Contact  = 2,
-  N11_2048 = 2048,
-}
-
-export enum PadproMsgType {
-  N11_2048  = 2048,  // 2048   = 1 << 11
-  N15_32768 = 32768, // 32768  = 1 << 15
 }
 
 export enum PadproContinue {
@@ -162,8 +143,10 @@ export enum PadproEmojiType {
  */
 export enum PadproMessageType {
   Text              = 1,
+  Contact           = 2,
   Image             = 3,
   Voice             = 34,
+  SelfAvatar        = 35,
   VerifyMsg         = 37,
   PossibleFriendMsg = 40,
   ShareCard         = 42,
@@ -176,29 +159,39 @@ export enum PadproMessageType {
   VoipNotify        = 52,
   VoipInvite        = 53,
   MicroVideo        = 62,
+  SelfInfo          = 101,
   SysNotice         = 9999,
   Sys               = 10000,
   Recalled          = 10002,
+  N11_2048          = 2048,  // 2048 = 1 << 11
+  N15_32768         = 32768, // 32768  = 1 << 15
 }
 
 // TODO: figure out the meaning of the enum values
 export enum PadproRoomMemberFlag {
-  Zero = 0,
-  One = 1,
+  Zero  = 0,
+  One   = 1,
   Eight = 8,
 }
 
 export enum ContactOperationCmdId {
-  Delete = 7,
-  Operation = 2,
+  Delete    = 7,
+  Operation =  2,
 }
 
 export enum ContactOperationBitVal {
-  SaveToContact = 2051,
+  SaveToContact     = 2051,
   RemoveFromContact = 2,
-  Star = 71,
-  UnStar = 7,
-  Remark = 7,
-  BlackList = 15,
-  UnBlackList = 7,
+  Star              = 71,
+  UnStar            = 7,
+  Remark            = 7,
+  BlackList         = 15,
+  UnBlackList       = 7,
+}
+
+export enum GrpcVoiceFormat {
+  Arm  = 1,
+  Mp3  = 2,
+  Wave = 3,
+  Silk = 4,
 }
