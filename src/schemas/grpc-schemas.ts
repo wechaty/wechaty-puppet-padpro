@@ -209,7 +209,7 @@ export interface GrpcRoomRawPayload {
 export interface GrpcRoomMemberRawPayload {
   ChatroomUsername: string,
   ServerVersion: number,
-  MemberDetails: GrpcRoomMemberDetail[],
+  MemberDetails: GrpcRoomMemberDetail[] | null,
 }
 
 export interface GrpcRoomMemberDetail {
@@ -227,4 +227,20 @@ export interface GrpcContactOperationOption {
   userId: string,
   bitVal?: ContactOperationBitVal,
   remark?: string,
+}
+
+// {
+//   "Roomeid": "8316342888@chatroom",
+//   "Members": [{
+//     "MemberName": "wxid_dz1jpaw94eo712",
+//     "MemberStatus": 4
+//   }]
+// }
+export interface GrpcCreateRoomMemberPayload {
+  MemberName: string,
+  MemberStatus: number,
+}
+export interface GrpcCreateRoomPayload {
+  Roomeid: string,
+  Members: GrpcCreateRoomMemberPayload[]
 }

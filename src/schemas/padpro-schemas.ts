@@ -64,7 +64,7 @@ export interface PadproMessagePayload {
   // Room Join:               "\"李佳芮\"邀请你加入了群聊，群聊参与人还有：小桔、桔小秘、小小桔、wuli舞哩客服、舒米"
 
   content: string,
-  data   : string | null,     // Stream Message has data, Text Message don't need data
+  data?  : string | null,     // Stream Message has data, Text Message don't need data
 
   // Room Message:      "5410625297@chatroom"
   // Private Message:   "qq512436430"
