@@ -168,6 +168,13 @@ export class WechatGateway extends EventEmitter {
     }
   }
 
+  public isAlive (): boolean {
+    // TODO: check wechat connections here
+    const wechatConnection = true
+
+    return wechatConnection && this.grpcGateway.isAlive()
+  }
+
   private async sendShort (res: PackShortRes, noParse?: boolean): Promise<Buffer> {
     log.silly('WechatGateway', `sendShort() res: commandUrl: ${res.commandUrl}`)
     const options: RequestOptions = {
@@ -283,7 +290,6 @@ export class WechatGateway extends EventEmitter {
       const seq: number = this.bufferToInt(bys, 12) // 12 - 16 sequence number
       if (this.backs[seq]) {
         this.backs[seq](bys)
-        // this.onMessage(bys)
       } else {
         this.emit('newMessage', bys)
       }

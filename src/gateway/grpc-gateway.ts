@@ -97,4 +97,9 @@ export class GrpcGateway {
       })
     })
   }
+
+  public isAlive (): boolean {
+    // TODO: check grpc connection status here
+    return true
+  }
 }
