@@ -4,6 +4,7 @@ import {
   GrpcCheckQRCode,
   GrpcContactOperationOption,
   GrpcContactRawPayload,
+  GrpcCreateRoomPayload,
   GrpcGetQRCodeType,
   GrpcMessagePayload,
   GrpcQrcodeLoginType,
@@ -430,7 +431,7 @@ export class PadproGrpc extends EventEmitter {
   public async GrpcGetMsgImage (
     content: string,
   ): Promise<any> {
-    log.silly(PRE, `GrpcGetMsgImage()`)
+    log.silly(PRE, `GrpcGetMsgImage(${content})`)
     // TODO: This feature is not ready yet
     // await this.wechatGateway.callApi('GrpcGetMsgImage')
   }
@@ -442,17 +443,37 @@ export class PadproGrpc extends EventEmitter {
   public async GrpcGetMsgVideo (
     content: string,
   ): Promise<any> {
-    log.silly(PRE, `GrpcGetMsgVideo()`)
+    log.silly(PRE, `GrpcGetMsgVideo(${content})`)
     // TODO: This feature is not ready yet
     // await this.wechatGateway.callApi('GrpcGetMsgVideo')
   }
 
+  /**
+   * Get voice from the message
+   * @param content message content
+   */
   public async GrpcGetMsgVoice (
     content: string,
   ): Promise<any> {
-    log.silly(PRE, `GrpcGetMsgVoice()`)
+    log.silly(PRE, `GrpcGetMsgVoice(${content})`)
     // TODO: This feature is not ready yet
     // await this.wechatGateway.callApi('GrpcGetMsgVoice')
+  }
+
+  /**
+   * Share a contact card to another contact
+   * @param toId contact id that receive this contact card
+   * @param contactId contact that in the contact card
+   * @param title the title of the card
+   */
+  public async GrpcShareCard (
+    toId     : string,
+    contactId: string,
+    title    : string,
+  ) {
+    log.silly(PRE, `GrpcShareCard(${toId}, ${contactId}, ${title})`)
+    // TODO: This feature is not ready yet
+    // await this.wechatGateway.callApi('GrpcShareCard')
   }
 
   /**
@@ -480,9 +501,8 @@ export class PadproGrpc extends EventEmitter {
     contactIdList: string[],
   ) {
     log.silly(PRE, `GrpcCreateRoom(${JSON.stringify(contactIdList)})`)
-    // TODO: what is the data structure of the return data?
-    const result = await this.wechatGateway.callApi('GrpcCreateRoom', {
-      Membernames: JSON.stringify(contactIdList)
+    const result: GrpcCreateRoomPayload = await this.wechatGateway.callApi('GrpcCreateRoom', {
+      Membernames: contactIdList.join(',')
     })
     return result
   }
@@ -511,6 +531,7 @@ export class PadproGrpc extends EventEmitter {
   public async GrpcQuitRoom (
     roomId: string,
   ) {
+    // TODO: not working right now, need to fix this
     log.silly(PRE, `GrpcQuitRoom(${roomId})`)
     await this.wechatGateway.callApi('GrpcQuitRoom', {
       chatroom: roomId,

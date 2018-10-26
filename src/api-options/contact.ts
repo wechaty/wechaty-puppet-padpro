@@ -15,3 +15,5 @@ export const GrpcAcceptFriend: ApiOption = {}
 export const GrpcSearchContact: ApiOption = {
   longRequest: true,
 }
+
+export const GrpcShareCard: ApiOption = {}
