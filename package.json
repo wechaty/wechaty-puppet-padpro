@@ -12,7 +12,7 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm run clean && tsc",
+    "dist": "npm run clean && tsc && cp -R src/gateway/proto-ts/ dist/src/gateway/proto-ts/",
     "pack": "npm pack",
     "lint": "npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
@@ -49,7 +49,6 @@
     "@types/node": "^10.5.1",
     "@types/normalize-package-data": "^2.4.0",
     "@types/promise-retry": "^1.1.2",
-    "@types/protobufjs": "^6.0.0",
     "@types/qr-image": "^3.2.1",
     "@types/raven": "^2.5.1",
     "@types/read-pkg-up": "^3.0.1",
@@ -67,7 +66,7 @@
     "sinon": "^6.0.1",
     "ts-node": "^7.0.0",
     "tslint": "^5.11.0",
-    "tslint-config-standard": "^7.1.0",
+    "tslint-config-standard": "^8.0.1",
     "typescript": "^3.0.1",
     "wechaty-puppet": "^0.14.1"
   },
