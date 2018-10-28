@@ -6,7 +6,9 @@ export const GrpcSyncMessage: ApiOption = {
 
 export const GrpcSendMessage: ApiOption = {}
 
-export const GrpcSendImage: ApiOption = {}
+export const GrpcSendImage: ApiOption = {
+  longRequest: true,
+}
 
 export const GrpcSendVoice: ApiOption = {
   longRequest: true,
