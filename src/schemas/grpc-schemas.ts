@@ -28,7 +28,7 @@ export interface GrpcCheckQRCode {
 }
 
 export interface GrpcGetQRCodeType {
-  qr_code : string,
+  qrCode : string,
 }
 
 export interface GrpcQrcodeLoginType {
