@@ -89,10 +89,12 @@ export class GrpcGateway {
         }
         const returnPayload = response.getPayload()
         try {
+          const result = JSON.parse(returnPayload)
           log.silly(PRE, `parse(${apiName}) get response: ${returnPayload.slice(0, 200)}`)
-          resolve(JSON.parse(returnPayload))
+          resolve(result)
         } catch (e) {
-          reject(e)
+          log.verbose(PRE, `parse(${apiName}) get response that can not be parsed.
+          Response in hex: ${Buffer.from(returnPayload).toString('hex')}`)
         }
       })
     })
