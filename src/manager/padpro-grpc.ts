@@ -74,8 +74,7 @@ export class PadproGrpc extends EventEmitter {
       throw Error(`${PRE} GrpcGetQRCode() has no wechatyGateway.`)
     }
     const result = await this.wechatGateway.callApi('GrpcGetQRCode')
-
-    return { qr_code: result.ImgBuf }
+    return { qrCode: result.ImgBuf }
   }
 
   public async start (): Promise<void> {
@@ -126,6 +125,7 @@ export class PadproGrpc extends EventEmitter {
   }
 
   protected reset (reason = 'unknown reason'): void {
+    // TODO: do reset logic here
     log.verbose(PRE, 'reset(%s)', reason)
 
     this.emit('reset', reason)
@@ -273,6 +273,7 @@ export class PadproGrpc extends EventEmitter {
    * @param country country
    * @param province province
    * @param city city
+   * TODO: not working right now
    */
   public async GrpcSetUserInfo (
     nickName: string,
@@ -338,6 +339,7 @@ export class PadproGrpc extends EventEmitter {
   /**
    * Search contact
    * @param contactId contact id
+   * TODO: not working right now
    */
   public async GrpcSearchContact (contactId: string) {
     log.silly(PRE, `GrpcSearchContact(${contactId})`)
@@ -371,21 +373,35 @@ export class PadproGrpc extends EventEmitter {
    * Send image
    * @param contactId contact id to send image
    * @param data image data
-   * TODO: check usage of StartPos etc and the limit of photo size
+   * TODO: not working right now, can not send big pic
    */
   public async GrpcSendImage (
     contactId: string,
     data: string,
   ) {
-    log.silly(PRE, `GrpcSendImage()`)
-    await this.wechatGateway.callApi('GrpcSendImage', {
-      ClientImgId: contactId + new Date().getTime().toString(),
-      Data: data,
-      DataLen: data.length,
-      StartPos: 0,
-      ToUserName: contactId,
-      TotalLen: data.length,
-    })
+    log.silly(PRE, `GrpcSendImage() with total length ${data.length}`)
+    const imageId = contactId + new Date().getTime().toString()
+    const maxLength = 90000
+
+    let curPos = 0
+    while (curPos < data.length) {
+      log.silly(PRE, `GrpcSendImage() send message from pos ${curPos} to ${curPos + maxLength}`)
+      const tmp = data.slice(curPos, curPos + maxLength)
+      try {
+        await this.wechatGateway.callApi('GrpcSendImage', {
+          ClientImgId: imageId,
+          Data: tmp,
+          DataLen: tmp.length,
+          StartPos: curPos,
+          ToUserName: contactId,
+          TotalLen: data.length,
+        })
+      } catch (e) {
+        console.log(e)
+      }
+
+      curPos = curPos + maxLength
+    }
   }
 
   /**
@@ -427,36 +443,36 @@ export class PadproGrpc extends EventEmitter {
   /**
    * Get image from the message
    * @param content message content
+   * TODO: This feature is not ready yet
    */
   public async GrpcGetMsgImage (
     content: string,
   ): Promise<any> {
     log.silly(PRE, `GrpcGetMsgImage(${content})`)
-    // TODO: This feature is not ready yet
     // await this.wechatGateway.callApi('GrpcGetMsgImage')
   }
 
   /**
    * Get video from the message
    * @param content message content
+   * TODO: This feature is not ready yet
    */
   public async GrpcGetMsgVideo (
     content: string,
   ): Promise<any> {
     log.silly(PRE, `GrpcGetMsgVideo(${content})`)
-    // TODO: This feature is not ready yet
     // await this.wechatGateway.callApi('GrpcGetMsgVideo')
   }
 
   /**
    * Get voice from the message
    * @param content message content
+   * TODO: This feature is not ready yet
    */
   public async GrpcGetMsgVoice (
     content: string,
   ): Promise<any> {
     log.silly(PRE, `GrpcGetMsgVoice(${content})`)
-    // TODO: This feature is not ready yet
     // await this.wechatGateway.callApi('GrpcGetMsgVoice')
   }
 
@@ -465,6 +481,7 @@ export class PadproGrpc extends EventEmitter {
    * @param toId contact id that receive this contact card
    * @param contactId contact that in the contact card
    * @param title the title of the card
+   * TODO: This feature is not ready yet
    */
   public async GrpcShareCard (
     toId     : string,
@@ -472,7 +489,6 @@ export class PadproGrpc extends EventEmitter {
     title    : string,
   ) {
     log.silly(PRE, `GrpcShareCard(${toId}, ${contactId}, ${title})`)
-    // TODO: This feature is not ready yet
     // await this.wechatGateway.callApi('GrpcShareCard')
   }
 
@@ -480,13 +496,13 @@ export class PadproGrpc extends EventEmitter {
    * Get request token for link
    * @param contactId contact id
    * @param url url
+   * TODO: This is not working right now
    */
   public async GrpcGetRequestToken (
     contactId: string,
     url: string,
   ) {
     log.silly(PRE, `GrpcGetRequestToken(${contactId}, ${url})`)
-    // TODO: what is the data structure of the return data?
     return this.wechatGateway.callApi('GrpcGetRequestToken', {
       fromUser: contactId,
       url
@@ -527,11 +543,11 @@ export class PadproGrpc extends EventEmitter {
   /**
    * Quit room with id
    * @param roomId room id
+   * TODO: not working right now, need to fix this
    */
   public async GrpcQuitRoom (
     roomId: string,
   ) {
-    // TODO: not working right now, need to fix this
     log.silly(PRE, `GrpcQuitRoom(${roomId})`)
     await this.wechatGateway.callApi('GrpcQuitRoom', {
       chatroom: roomId,
@@ -547,7 +563,7 @@ export class PadproGrpc extends EventEmitter {
     roomId: string,
     contactId: string | string[]
   ) {
-    log.silly(PRE, `GrpcAddChatRoomMember(${roomId}, ${contactId})`)
+    log.silly(PRE, `GrpcAddRoomMember(${roomId}, ${contactId})`)
     let Membernames = ''
     if (typeof contactId === 'string') {
       Membernames = contactId
@@ -555,7 +571,7 @@ export class PadproGrpc extends EventEmitter {
       Membernames = contactId.join(',')
     }
 
-    await this.wechatGateway.callApi('GrpcAddChatRoomMember', {
+    await this.wechatGateway.callApi('GrpcAddRoomMember', {
       Membernames,
       Roomeid: roomId,
     })
@@ -597,6 +613,7 @@ export class PadproGrpc extends EventEmitter {
    * Set room announcement
    * @param roomId room id
    * @param announcement announcement
+   * TODO: not working, need future investigation
    */
   public async GrpcSetRoomAnnouncement (
     roomId: string,
