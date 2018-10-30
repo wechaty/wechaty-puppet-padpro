@@ -45,7 +45,7 @@ export class PadproGrpc extends EventEmitter {
   }
 
   protected async GrpcSyncMessage ()
-    : Promise<Array<GrpcMessagePayload | GrpcContactRawPayload | GrpcRoomRawPayload>> {
+    : Promise<Array<GrpcMessagePayload | GrpcContactRawPayload | GrpcRoomRawPayload> | null> {
     return this.wechatGateway.callApi('GrpcSyncMessage')
   }
 
