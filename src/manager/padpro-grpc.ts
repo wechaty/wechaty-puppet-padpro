@@ -13,9 +13,7 @@ import {
   GrpcSyncContactPayload,
 } from '../schemas/grpc-schemas'
 
-import {
-  isRoomId,
-}                       from '../pure-function-helpers'
+import { isRoomId } from '../pure-function-helpers'
 
 import { log } from '../config'
 
@@ -26,24 +24,6 @@ import {
   GrpcVoiceFormat,
   SearchContactTypeStatus,
 } from '../schemas'
-
-export const DISCONNECTED = 'DISCONNECTED'
-export const CONNECTING = 'CONNECTING'
-export const CONNECTED = 'CONNECTED'
-
-export interface ConnectionStatus {
-  status: string,
-  reconnectLeft: number,
-  interval: number
-}
-
-export interface PendingAPICall {
-  apiName: string,
-  params: Array<number | string>,
-  timestamp: number,
-  resolve: (value?: any | PromiseLike<any>) => void,
-  reject: (reason?: any) => void,
-}
 
 const PRE = 'PadproGrpc'
 
