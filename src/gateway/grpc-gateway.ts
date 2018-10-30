@@ -42,14 +42,22 @@ export class GrpcGateway {
       request.setParams(JSON.stringify(params))
     }
 
+    try {
+      return this._packLong(request)
+    } catch (e) {
+      return this._packLong(request)
+    }
+  }
+
+  private async _packLong (request: PackLongRequest): Promise<Buffer> {
     return new Promise<Buffer>((resolve, reject) => {
       this.client.packLong(request, (err: Error | null, response: PackLongResponse) => {
         if (err !== null) {
           reject(err)
-          return
+        } else {
+          const buffer = Buffer.from(response.getBuffer_asU8())
+          resolve(buffer)
         }
-        const buffer = Buffer.from(response.getBuffer_asU8())
-        resolve(buffer)
       })
     })
   }
@@ -62,15 +70,23 @@ export class GrpcGateway {
       request.setParams(JSON.stringify(params))
     }
 
+    try {
+      return this._packShort(request)
+    } catch (e) {
+      return this._packShort(request)
+    }
+  }
+
+  private async _packShort (request: PackShortRequest): Promise<PackShortRes> {
     return new Promise<PackShortRes>((resolve, reject) => {
       this.client.packShort(request, (err: Error | null, response: PackShortResponse) => {
         if (err) {
           reject(err)
-          return
+        } else {
+          const payload = Buffer.from(response.getPayload_asU8())
+          const commandUrl = response.getCommandurl()
+          resolve({ payload, commandUrl })
         }
-        const payload = Buffer.from(response.getPayload_asU8())
-        const commandUrl = response.getCommandurl()
-        resolve({ payload, commandUrl })
       })
     })
   }
@@ -81,20 +97,32 @@ export class GrpcGateway {
     request.setToken(this.token)
     request.setPayload(payload)
 
+    let response: ParsedResponse
+    try {
+      response = await this._parse(request)
+    } catch (e) {
+      response = await this._parse(request)
+    }
+
+    const returnPayload = response.getPayload()
+    try {
+      const result = JSON.parse(returnPayload)
+      log.silly(PRE, `parse(${apiName}) get response: ${returnPayload.slice(0, 200)}`)
+      return result
+    } catch (e) {
+      log.verbose(PRE, `parse(${apiName}) get response that can not be parsed.
+      Response in hex: ${Buffer.from(returnPayload).toString('hex')}`)
+      return ''
+    }
+  }
+
+  private async _parse (request: ParseRequest): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       this.client.parse(request, (err: Error | null, response: ParsedResponse) => {
         if (err) {
           reject(err)
-          return
-        }
-        const returnPayload = response.getPayload()
-        try {
-          const result = JSON.parse(returnPayload)
-          log.silly(PRE, `parse(${apiName}) get response: ${returnPayload.slice(0, 200)}`)
-          resolve(result)
-        } catch (e) {
-          log.verbose(PRE, `parse(${apiName}) get response that can not be parsed.
-          Response in hex: ${Buffer.from(returnPayload).toString('hex')}`)
+        } else {
+          resolve(response)
         }
       })
     })
