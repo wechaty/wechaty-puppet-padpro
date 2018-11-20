@@ -19,6 +19,7 @@ import { contactRawPayloadParser } from './contact-raw-payload-parser'
 
 test('contactRawPayloadParser', async t => {
   const PADCHAT_CONTACT_PAYLOAD_PERSONAL: PadproContactPayload = {
+    alias       : '',
     bigHeadUrl  : 'http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0',
     city        : 'Haidian',
     contactType : ContactType.Personal,
@@ -36,6 +37,7 @@ test('contactRawPayloadParser', async t => {
   }
 
   const PADCHAT_CONTACT_PAYLOAD_OFFICIAL: PadproContactPayload = {
+    alias       : '',
     bigHeadUrl  : 'http://wx.qlogo.cn/mmhead/ver_1/TR8EDh3MgMsu20pxjrDPBpaGySuEAGf3MUuoeUOV2LiaqvZxeMqb1U7hgiciaQZBC8LYN0boVLCKOIYg71pxdl1fQabiaxsn7CnNeGWVrK3jSIY/0',
     city        : 'Haidian',
     contactType : ContactType.Personal,
@@ -62,6 +64,7 @@ test('contactRawPayloadParser', async t => {
     province  : 'Beijing',
     signature : 'Stay Foolish',
     type      : ContactType.Personal,
+    weixin    : '',
   }
 
   const EXPECTED_CONTACT_PAYLOAD_OFFICIAL: ContactPayload = {
@@ -74,6 +77,7 @@ test('contactRawPayloadParser', async t => {
     province  : 'Beijing',
     signature : 'CARPE DIEM+-+if+not+us,+who?+if+not+now,+when?',
     type      : ContactType.Official,
+    weixin    : '',
   }
 
   const resultPersonal = contactRawPayloadParser(PADCHAT_CONTACT_PAYLOAD_PERSONAL)

@@ -63,6 +63,7 @@ export function contactRawPayloadParser (
     province  : rawPayload.province,
     signature : (rawPayload.signature).replace('+', ' '),          // Stay+Foolish
     type      : contactType,
+    weixin    : rawPayload.alias,
   }
 
   return payload

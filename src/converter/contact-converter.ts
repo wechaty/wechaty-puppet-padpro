@@ -9,6 +9,7 @@ export const convertContact = (input: GrpcContactRawPayload): PadproContactPaylo
     // TODO: Country is temporary unavailable in GRPC protocol, need more investigation
     // https://github.com/botorange/wechaty-puppet-padpro/issues/1
     return {
+      alias            : input.Alias,
       bigHeadUrl       : input.BigHeadImgUrl,
       city             : input.City,
       contactType      : input.ContactType,
@@ -22,7 +23,7 @@ export const convertContact = (input: GrpcContactRawPayload): PadproContactPaylo
       smallHeadUrl     : input.SmallHeadImgUrl,
       stranger         : input.EncryptUsername,
       ticket           : input.Ticket,
-      userName         : input.Alias || input.UserName,
+      userName         : input.UserName,
     }
   } catch (e) {
     log.error(PRE, `Convert contact failed, failed contact: ${JSON.stringify(input)}`)
