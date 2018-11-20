@@ -8,6 +8,7 @@ export const GrpcSendMessage: ApiOption = {}
 
 export const GrpcSendImage: ApiOption = {
   longRequest: true,
+  noParse: true,
 }
 
 export const GrpcSendVoice: ApiOption = {

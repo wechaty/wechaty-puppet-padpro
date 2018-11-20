@@ -257,6 +257,7 @@ export class PadproManager extends PadproGrpc {
 
     this.state.on('pending')
 
+    // await this.tryAutoLogin()
     const succeed = await this.tryAutoLogin()
     if (!succeed) {
       await this.startCheckScan()
@@ -497,6 +498,7 @@ export class PadproManager extends PadproGrpc {
       /**
        * Message emit here should all be valid message
        */
+      console.log(JSON.stringify(m))
       this.emit('message', convertMessage(m as GrpcMessagePayload))
     })
   }

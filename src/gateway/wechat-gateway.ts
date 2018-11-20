@@ -128,6 +128,8 @@ export class WechatGateway extends EventEmitter {
 
     this.longSocket.on('close', () => {
       log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} closed.`)
+      this.cleanLongSocket()
+      this.initLongSocket()
       this.emit('socketClose')
     })
 

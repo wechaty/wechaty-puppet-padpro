@@ -14,7 +14,7 @@ import {
 } from './proto-ts/PadchatGrpc_pb'
 
 export interface ApiParams {
-  [ name: string ]: number | string
+  [ name: string ]: number | string | Buffer
 }
 
 export interface PackShortRes {

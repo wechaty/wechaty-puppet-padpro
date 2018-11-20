@@ -32,7 +32,6 @@ import {
  * @interface PadproContactPayload
  */
 export interface PadproContactPayload {
-  alias            : string,
   contactType      : number,
   labelLists       : string,
   bigHeadUrl       : string,                     // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",

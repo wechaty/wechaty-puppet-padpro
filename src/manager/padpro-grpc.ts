@@ -22,6 +22,7 @@ import {
   ContactOperationBitVal,
   ContactOperationCmdId,
   GrpcVoiceFormat,
+  // PadproMessagePayload,
   SearchContactTypeStatus,
 } from '../schemas'
 
@@ -253,7 +254,6 @@ export class PadproGrpc extends EventEmitter {
    * @param country country
    * @param province province
    * @param city city
-   * TODO: not working right now
    */
   public async GrpcSetUserInfo (
     nickName: string,
@@ -266,10 +266,11 @@ export class PadproGrpc extends EventEmitter {
     log.silly(PRE, `GrpcSetUserInfo(${nickName}, ${signature}, ${sex}, ${country}, ${province}, ${city})`)
     await this.wechatGateway.callApi('GrpcSetUserInfo', {
       City     : city,
+      Cmdid    : 1,
       Country  : country,
       NickName : nickName,
       Province : province,
-      Sex      : sex,
+      Sex      : parseInt(sex, 10),
       Signature: signature,
     })
   }
@@ -319,7 +320,6 @@ export class PadproGrpc extends EventEmitter {
   /**
    * Search contact
    * @param contactId contact id
-   * TODO: not working right now
    */
   public async GrpcSearchContact (contactId: string) {
     log.silly(PRE, `GrpcSearchContact(${contactId})`)
@@ -350,10 +350,9 @@ export class PadproGrpc extends EventEmitter {
   }
 
   /**
-   * Send image
+   * Send image, might be really slow when the picture is huge
    * @param contactId contact id to send image
    * @param data image data
-   * TODO: not working right now, can not send big pic
    */
   public async GrpcSendImage (
     contactId: string,
@@ -361,23 +360,26 @@ export class PadproGrpc extends EventEmitter {
   ) {
     log.silly(PRE, `GrpcSendImage() with total length ${data.length}`)
     const imageId = contactId + new Date().getTime().toString()
-    const maxLength = 90000
+    const maxLength = 65535
 
     let curPos = 0
     while (curPos < data.length) {
       log.silly(PRE, `GrpcSendImage() send message from pos ${curPos} to ${curPos + maxLength}`)
-      const tmp = data.slice(curPos, curPos + maxLength)
+      const dataBuffer = Buffer.from(data, 'base64')
+      const tmp = dataBuffer.slice(curPos, curPos + maxLength)
+      const tmpData = tmp.toString('base64')
       try {
         await this.wechatGateway.callApi('GrpcSendImage', {
           ClientImgId: imageId,
-          Data: tmp,
+          Data: tmpData,
           DataLen: tmp.length,
           StartPos: curPos,
           ToUserName: contactId,
-          TotalLen: data.length,
+          TotalLen: dataBuffer.length,
         })
       } catch (e) {
-        console.log(e)
+        console.error(e)
+        throw new Error(`Send image failed.`)
       }
 
       curPos = curPos + maxLength
@@ -426,10 +428,17 @@ export class PadproGrpc extends EventEmitter {
    * TODO: This feature is not ready yet
    */
   public async GrpcGetMsgImage (
-    content: string,
+    // message: PadproMessagePayload,
   ): Promise<any> {
-    log.silly(PRE, `GrpcGetMsgImage(${content})`)
-    // await this.wechatGateway.callApi('GrpcGetMsgImage')
+    // log.silly(PRE, `GrpcGetMsgImage(${content})`)
+    // await this.wechatGateway.callApi('GrpcGetMsgImage', {
+    //   MsgId: message.messageId,
+    //   StartPos: 0,
+    //   ToUsername: message.toUser,
+    //   TotalLen,
+    //   DataLen,
+    //   CompressType,
+    // })
   }
 
   /**
@@ -523,14 +532,15 @@ export class PadproGrpc extends EventEmitter {
   /**
    * Quit room with id
    * @param roomId room id
-   * TODO: not working right now, need to fix this
    */
   public async GrpcQuitRoom (
     roomId: string,
   ) {
     log.silly(PRE, `GrpcQuitRoom(${roomId})`)
     await this.wechatGateway.callApi('GrpcQuitRoom', {
-      chatroom: roomId,
+      ChatRoom: roomId,
+      Cmdid: 16,
+      Username: this.userId || '',
     })
   }
 
@@ -593,7 +603,6 @@ export class PadproGrpc extends EventEmitter {
    * Set room announcement
    * @param roomId room id
    * @param announcement announcement
-   * TODO: not working, need future investigation
    */
   public async GrpcSetRoomAnnouncement (
     roomId: string,
