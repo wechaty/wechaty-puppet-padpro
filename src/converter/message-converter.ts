@@ -10,7 +10,7 @@ export const convertMessage = (input: GrpcMessagePayload): PadproMessagePayload 
       content      : input.Content,
       data         : input.ImgBuf,
       fromUser     : input.FromUserName,
-      messageId    : input.NewMsgId.toString(),
+      messageId    : input.MsgId.toString(),
       messageSource: input.MsgSource,
       messageType  : input.MsgType,
       status       : input.Status,

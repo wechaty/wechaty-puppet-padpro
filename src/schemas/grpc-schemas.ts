@@ -244,3 +244,7 @@ export interface GrpcCreateRoomPayload {
   Roomeid: string,
   Members: GrpcCreateRoomMemberPayload[]
 }
+
+export interface GrpcGetMsgImageType {
+  imageData: string,
+}

@@ -19,6 +19,7 @@ import {
   PadproContactPayload,
   PadproContinue,
   PadproMemberBrief,
+  PadproMessagePayload,
   PadproMessageType,
   PadproRoomInvitationPayload,
   PadproRoomInviteEvent,
@@ -43,6 +44,7 @@ import {
   convertRoom,
   convertRoomMember,
 } from '../converter'
+import { imagePayloadParser } from '../pure-function-helpers/message-image-payload-parser'
 
 export interface ManagerOptions {
   endpoint : string,
@@ -501,6 +503,33 @@ export class PadproManager extends PadproGrpc {
       console.log(JSON.stringify(m))
       this.emit('message', convertMessage(m as GrpcMessagePayload))
     })
+  }
+
+  /**
+   * Get image data in base64 string for a given message
+   * @param payload message payload which to retrieve the image data
+   */
+  public async getMsgImage (payload: PadproMessagePayload): Promise<string> {
+    const imagePayload = await imagePayloadParser(payload)
+    if (imagePayload === null) {
+      log.error(PRE, `Can not parse image message, content: ${payload.content}`)
+      return ''
+    }
+
+    if (imagePayload.cdnBigImgUrl && imagePayload.hdLength) {
+      /**
+       * High Definition image message
+       * Retrieve image data from server
+       */
+      const result = await this.GrpcGetMsgImage(payload, imagePayload)
+      return result
+    } else {
+      /**
+       * Low Definition image message
+       * Use image data stored in data field
+       */
+      return payload.data || ''
+    }
   }
 
   protected async tryAutoLogin (): Promise<boolean> {

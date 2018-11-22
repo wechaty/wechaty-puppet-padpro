@@ -111,7 +111,7 @@ export class GrpcGateway {
       return result
     } catch (e) {
       log.verbose(PRE, `parse(${apiName}) get response that can not be parsed.
-      Response in hex: ${Buffer.from(returnPayload).toString('hex')}`)
+      Response is ${Buffer.from(returnPayload).toString('utf-8')}`)
       return ''
     }
   }

@@ -5,6 +5,7 @@ import {
   GrpcContactOperationOption,
   GrpcContactRawPayload,
   GrpcCreateRoomPayload,
+  GrpcGetMsgImageType,
   GrpcGetQRCodeType,
   GrpcMessagePayload,
   GrpcQrcodeLoginType,
@@ -22,7 +23,8 @@ import {
   ContactOperationBitVal,
   ContactOperationCmdId,
   GrpcVoiceFormat,
-  // PadproMessagePayload,
+  PadproImageMessagePayload,
+  PadproMessagePayload,
   SearchContactTypeStatus,
 } from '../schemas'
 
@@ -362,6 +364,7 @@ export class PadproGrpc extends EventEmitter {
     const imageId = contactId + new Date().getTime().toString()
     const maxLength = 65535
 
+    // TODO: optimize the logic here to send multiple packages at the same time
     let curPos = 0
     while (curPos < data.length) {
       log.silly(PRE, `GrpcSendImage() send message from pos ${curPos} to ${curPos + maxLength}`)
@@ -425,20 +428,46 @@ export class PadproGrpc extends EventEmitter {
   /**
    * Get image from the message
    * @param content message content
-   * TODO: This feature is not ready yet
    */
   public async GrpcGetMsgImage (
-    // message: PadproMessagePayload,
-  ): Promise<any> {
-    // log.silly(PRE, `GrpcGetMsgImage(${content})`)
-    // await this.wechatGateway.callApi('GrpcGetMsgImage', {
-    //   MsgId: message.messageId,
-    //   StartPos: 0,
-    //   ToUsername: message.toUser,
-    //   TotalLen,
-    //   DataLen,
-    //   CompressType,
-    // })
+    message: PadproMessagePayload,
+    imagePayload: PadproImageMessagePayload,
+  ): Promise<string> {
+    log.silly(PRE, `GrpcGetMsgImage()`)
+
+    const MsgId = parseInt(message.messageId, 10)
+    const imageBufferArray: Buffer[] = []
+
+    let dataLen = 65536
+    let startPos = 0
+    let totalLength
+
+    if (imagePayload.length) {
+      totalLength = imagePayload.length
+
+    } else if (imagePayload.hdLength) {
+      totalLength = imagePayload.hdLength
+      log.error(PRE, `GrpcGetMsgImage() is trying to process low definition image message.`)
+    } else {
+      return ''
+    }
+
+    while (startPos < totalLength) {
+      dataLen = startPos + dataLen > totalLength ? totalLength - startPos : dataLen
+      const result: GrpcGetMsgImageType = await this.wechatGateway.callApi('GrpcGetMsgImage', {
+        CompressType: 0,
+        DataLen: dataLen,
+        MsgId,
+        StartPos: startPos,
+        ToUsername: message.toUser,
+        TotalLen: totalLength,
+      })
+
+      const bufferData = Buffer.from(result.imageData, 'base64')
+      imageBufferArray.push(bufferData)
+      startPos += bufferData.length
+    }
+    return Buffer.concat(imageBufferArray).toString('base64')
   }
 
   /**

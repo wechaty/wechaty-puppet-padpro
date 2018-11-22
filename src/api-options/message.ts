@@ -17,7 +17,9 @@ export const GrpcSendVoice: ApiOption = {
 
 export const GrpcSendApp: ApiOption = {}
 
-export const GrpcGetMsgImage: ApiOption = {}
+export const GrpcGetMsgImage: ApiOption = {
+  longRequest: true,
+}
 
 export const GrpcGetMsgVideo: ApiOption = {}
 

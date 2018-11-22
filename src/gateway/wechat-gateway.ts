@@ -236,6 +236,7 @@ export class WechatGateway extends EventEmitter {
     return new Promise<Buffer>((resolve, reject) => {
       this.backs[reqSeq] = (buffer: Buffer) => {
         // Long request parse judgement
+        log.silly(PRE, `sendLong() receive back package size: ${buffer.length}`)
         const judgeFlag = buffer[16]
         if (!noParse) {
           if (judgeFlag === 126) {

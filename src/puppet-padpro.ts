@@ -824,8 +824,8 @@ export class PuppetPadpro extends Puppet {
         }
 
       case MessageType.Image:
-        result = await this.padproManager.GrpcGetMsgImage()
-        return FileBox.fromBase64(result.image, `${attachmentName}.jpg`)
+        result = await this.padproManager.getMsgImage(rawPayload)
+        return FileBox.fromBase64(result, `${attachmentName}`)
 
       case MessageType.Video:
         result = await this.padproManager.GrpcGetMsgVideo(rawText)
