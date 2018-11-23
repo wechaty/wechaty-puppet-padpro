@@ -21,6 +21,7 @@ import {
   FriendshipType,
 }                 from 'wechaty-puppet'
 import {
+  GrpcVoiceFormat,
   PadproEmojiType,
   PadproMessageStatus,
   PadproMessageType,
@@ -195,6 +196,19 @@ export interface PadproImageMessagePayload {
   cdnBigImgUrl?: string,
   hdLength?: number,
   md5: string,
+}
+
+export interface PadproVoiceMessagePayload {
+  endFlag: number,
+  length: number,
+  voiceLength: number,
+  clientMsgId: string,
+  fromUsername: string,
+  downCount: number,
+  cancelFlag: number,
+  voiceFormat: GrpcVoiceFormat,
+  forwardFlag: number,
+  bufId: number,
 }
 
 export interface PadproFriendshipPayload {

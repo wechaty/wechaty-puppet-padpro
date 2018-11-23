@@ -6,6 +6,7 @@ import {
   GrpcContactRawPayload,
   GrpcCreateRoomPayload,
   GrpcGetMsgImageType,
+  GrpcGetMsgVoiceType,
   GrpcGetQRCodeType,
   GrpcMessagePayload,
   GrpcQrcodeLoginType,
@@ -25,6 +26,7 @@ import {
   GrpcVoiceFormat,
   PadproImageMessagePayload,
   PadproMessagePayload,
+  PadproVoiceMessagePayload,
   SearchContactTypeStatus,
 } from '../schemas'
 
@@ -444,10 +446,8 @@ export class PadproGrpc extends EventEmitter {
 
     if (imagePayload.length) {
       totalLength = imagePayload.length
-
     } else if (imagePayload.hdLength) {
       totalLength = imagePayload.hdLength
-      log.error(PRE, `GrpcGetMsgImage() is trying to process low definition image message.`)
     } else {
       return ''
     }
@@ -485,13 +485,34 @@ export class PadproGrpc extends EventEmitter {
   /**
    * Get voice from the message
    * @param content message content
-   * TODO: This feature is not ready yet
    */
   public async GrpcGetMsgVoice (
-    content: string,
+    message: PadproMessagePayload,
+    voicePayload: PadproVoiceMessagePayload,
   ): Promise<any> {
-    log.silly(PRE, `GrpcGetMsgVoice(${content})`)
-    // await this.wechatGateway.callApi('GrpcGetMsgVoice')
+    log.silly(PRE, `GrpcGetMsgVoice()`)
+    const MsgId = parseInt(message.messageId, 10)
+    const voiceBufferArray: Buffer[] = []
+
+    let dataLen = 65536
+    let startPos = 0
+    const totalLength = voicePayload.length
+    const clientMsgId = voicePayload.clientMsgId
+
+    while (startPos < totalLength) {
+      dataLen = startPos + dataLen > totalLength ? totalLength - startPos : dataLen
+      const result: GrpcGetMsgVoiceType = await this.wechatGateway.callApi('GrpcGetMsgVoice', {
+        ClientMsgId: clientMsgId,
+        DataLen: dataLen,
+        MsgId,
+        StartPos: startPos,
+      })
+
+      const bufferData = Buffer.from(result.voiceData, 'base64')
+      voiceBufferArray.push(bufferData)
+      startPos += bufferData.length
+    }
+    return Buffer.concat(voiceBufferArray).toString('base64')
   }
 
   /**

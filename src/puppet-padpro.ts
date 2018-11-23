@@ -57,6 +57,8 @@ import {
   friendshipReceiveEventMessageParser,
   friendshipVerifyEventMessageParser,
 
+  imagePayloadParser,
+
   isStrangerV1,
   isStrangerV2,
 
@@ -66,6 +68,8 @@ import {
   roomLeaveEventMessageParser,
   roomRawPayloadParser,
   roomTopicEventMessageParser,
+
+  voicePayloadParser,
 }                                         from './pure-function-helpers'
 
 import {
@@ -813,7 +817,19 @@ export class PuppetPadpro extends Puppet {
 
     switch (payload.type) {
       case MessageType.Audio:
-        return this.getVoiceFileBoxFromRawPayload(rawPayload, attachmentName)
+        const voicePayload = await voicePayloadParser(rawPayload)
+        if (voicePayload === null) {
+          log.error(PRE, `Can not parse image message, content: ${rawPayload.content}`)
+          return FileBox.fromBase64('', attachmentName)
+        }
+        const name = `${rawPayload.messageId}.${voicePayload.voiceLength}.slk`
+        if (rawPayload.data !== undefined && rawPayload.data !== null) {
+          result = rawPayload.data
+        } else {
+          result = await this.padproManager.getMsgVoice(rawPayload)
+        }
+
+        return FileBox.fromBase64(result, name)
 
       case MessageType.Emoticon:
         const emojiPayload = await emojiPayloadParser(rawPayload)
@@ -824,8 +840,14 @@ export class PuppetPadpro extends Puppet {
         }
 
       case MessageType.Image:
-        result = await this.padproManager.getMsgImage(rawPayload)
-        return FileBox.fromBase64(result, `${attachmentName}`)
+        const imagePayload = await imagePayloadParser(rawPayload)
+        if (imagePayload === null) {
+          log.error(PRE, `Can not parse image message, content: ${rawPayload.content}`)
+          return FileBox.fromBase64('', attachmentName)
+        }
+        result = await this.padproManager.GrpcGetMsgImage(rawPayload, imagePayload)
+
+        return FileBox.fromBase64(result, attachmentName)
 
       case MessageType.Video:
         result = await this.padproManager.GrpcGetMsgVideo(rawText)
@@ -869,32 +891,6 @@ export class PuppetPadpro extends Puppet {
       } else {
         throw new Error('Can not parse url message payload')
       }
-    }
-  }
-
-  private async getVoiceFileBoxFromRawPayload (rawPayload: PadproMessagePayload, attachmentName: string): Promise<FileBox> {
-    const data = await this.getVoiceDataFromRawPayload(rawPayload)
-    const result = FileBox.fromBase64(data, attachmentName)
-    try {
-      const match  = rawPayload.content.match(/voicelength="(\d+)"/) || []
-      const voiceLength = parseInt(match[1], 10) || 0
-      result.name = `${rawPayload.messageId}.${voiceLength}.slk`
-    } catch (e) {
-      log.error(PRE, 'Can not get voice length from content, will have empty voice length')
-    }
-
-    return result
-  }
-
-  private async getVoiceDataFromRawPayload (rawPayload: PadproMessagePayload): Promise<string> {
-    if (!this.padproManager) {
-      throw new Error('no padpro manager')
-    }
-    if (!rawPayload.data) {
-      const result = await this.padproManager.GrpcGetMsgVoice(JSON.stringify(rawPayload))
-      return result.voice
-    } else {
-      return rawPayload.data
     }
   }
 
@@ -1046,20 +1042,23 @@ export class PuppetPadpro extends Puppet {
       if (!id) {
         throw Error(`Can not find the receiver id for forwarding voice message(${rawPayload.messageId}), forward voice message failed`)
       }
+      let data: string
+      const voicePayload = await voicePayloadParser(rawPayload)
+      if (voicePayload === null) {
+        log.error(PRE, `Can not parse voice message, content: ${rawPayload.content}`)
+        throw new Error(`Can not parse voice message.`)
+      }
 
-      let voiceLength: number
-      try {
-        const match  = rawPayload.content.match(/voicelength="(\d+)"/) || []
-        voiceLength = parseInt(match[1], 10) || 0
-      } catch (e) {
-        log.error(e)
-        throw new Error(`Can not get the length of the voice message(${rawPayload.messageId}), forward voice message failed`)
+      if (rawPayload.data !== undefined && rawPayload.data !== null) {
+        data = rawPayload.data
+      } else {
+        data = await this.padproManager.getMsgVoice(rawPayload)
       }
 
       await this.padproManager.GrpcSendVoice(
         id,
-        await this.getVoiceDataFromRawPayload(rawPayload),
-        voiceLength,
+        data,
+        voicePayload.voiceLength,
       )
     } else if (payload.type === MessageType.Url) {
       await this.messageSendUrl(

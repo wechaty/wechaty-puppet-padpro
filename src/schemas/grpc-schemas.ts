@@ -248,3 +248,7 @@ export interface GrpcCreateRoomPayload {
 export interface GrpcGetMsgImageType {
   imageData: string,
 }
+
+export interface GrpcGetMsgVoiceType {
+  voiceData: string,
+}

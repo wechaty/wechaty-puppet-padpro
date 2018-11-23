@@ -13,6 +13,7 @@ export const GrpcSendImage: ApiOption = {
 
 export const GrpcSendVoice: ApiOption = {
   longRequest: true,
+  // noParse: true,
 }
 
 export const GrpcSendApp: ApiOption = {}
@@ -21,6 +22,10 @@ export const GrpcGetMsgImage: ApiOption = {
   longRequest: true,
 }
 
-export const GrpcGetMsgVideo: ApiOption = {}
+export const GrpcGetMsgVideo: ApiOption = {
+  longRequest: true,
+}
 
-export const GrpcGetMsgVoice: ApiOption = {}
+export const GrpcGetMsgVoice: ApiOption = {
+  longRequest: true,
+}

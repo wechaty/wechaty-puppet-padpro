@@ -33,6 +33,7 @@ import {
   fileBoxToQrcode,
   isContactId,
   isRoomId,
+  voicePayloadParser,
 }                   from '../pure-function-helpers'
 
 import { log } from '../config'
@@ -44,7 +45,6 @@ import {
   convertRoom,
   convertRoomMember,
 } from '../converter'
-import { imagePayloadParser } from '../pure-function-helpers/message-image-payload-parser'
 
 export interface ManagerOptions {
   endpoint : string,
@@ -506,36 +506,24 @@ export class PadproManager extends PadproGrpc {
   }
 
   /**
-   * Get image data in base64 string for a given message
-   * @param payload message payload which to retrieve the image data
+   * Get voice data in base64 string for a given message
+   * @param payload message payload which to retrieve the voice data
    */
-  public async getMsgImage (payload: PadproMessagePayload): Promise<string> {
-    const imagePayload = await imagePayloadParser(payload)
-    if (imagePayload === null) {
-      log.error(PRE, `Can not parse image message, content: ${payload.content}`)
+  public async getMsgVoice (payload: PadproMessagePayload): Promise<string> {
+    const voicePayload = await voicePayloadParser(payload)
+    if (voicePayload === null) {
+      log.error(PRE, `Can not parse voice message, content: ${payload.content}`)
       return ''
     }
 
-    if (imagePayload.cdnBigImgUrl && imagePayload.hdLength) {
-      /**
-       * High Definition image message
-       * Retrieve image data from server
-       */
-      const result = await this.GrpcGetMsgImage(payload, imagePayload)
-      return result
-    } else {
-      /**
-       * Low Definition image message
-       * Use image data stored in data field
-       */
-      return payload.data || ''
-    }
+    const result = await this.GrpcGetMsgVoice(payload, voicePayload)
+
+    return result
   }
 
   protected async tryAutoLogin (): Promise<boolean> {
     log.verbose(PRE, `tryAutoLogin()`)
 
-    // TODO: Auto login not working right now, will always fallback to QRCode login right now
     try {
       const username = await this.GrpcAutoLogin()
       await this.onLogin(username)

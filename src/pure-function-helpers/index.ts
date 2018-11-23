@@ -13,6 +13,9 @@
  */
 
 export * from './message-app-payload-parser'
+export * from './message-emoji-payload-parser'
+export * from './message-image-payload-parser'
+export * from './message-voice-payload-parser'
 export * from './contact-raw-payload-parser'
 export * from './file-box-to-qrcode'
 export * from './friendship-event-message-parser'
