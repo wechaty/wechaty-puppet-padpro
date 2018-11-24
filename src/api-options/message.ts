@@ -13,7 +13,7 @@ export const GrpcSendImage: ApiOption = {
 
 export const GrpcSendVoice: ApiOption = {
   longRequest: true,
-  // noParse: true,
+  noParse: true,
 }
 
 export const GrpcSendApp: ApiOption = {}
