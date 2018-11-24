@@ -50,12 +50,16 @@ import {
   appMessageParser,
   contactRawPayloadParser,
 
+  emojiPayloadParser,
+
   fileBoxToQrcode,
 
   friendshipConfirmEventMessageParser,
   friendshipRawPayloadParser,
   friendshipReceiveEventMessageParser,
   friendshipVerifyEventMessageParser,
+
+  generateAppXMLMessage,
 
   imagePayloadParser,
 
@@ -100,9 +104,6 @@ import {
   PadproRoomPayload,
   SearchContactTypeStatus,
 }                           from './schemas'
-
-import { generateAppXMLMessage } from './pure-function-helpers/app-message-generator'
-import { emojiPayloadParser } from './pure-function-helpers/message-emoji-payload-parser'
 
 let PADPRO_COUNTER = 0 // PuppetPadpro Instance Counter
 
@@ -990,9 +991,7 @@ export class PuppetPadpro extends Puppet {
       throw Error('no id')
     }
 
-    const payload = await this.contactPayload(contactId)
-    const title = payload.name + '名片'
-    await this.padproManager.GrpcShareCard(id, contactId, title)
+    await this.padproManager.shareContactCard(id, contactId)
   }
 
   public async messageSendUrl (

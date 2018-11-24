@@ -30,3 +30,6 @@ export * from './room-event-leave-message-parser'
 export * from './room-event-topic-message-parser'
 export * from './room-raw-payload-parser'
 export * from './split-name'
+
+export * from './app-message-generator'
+export * from './contact-message-generator'

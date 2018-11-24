@@ -16,4 +16,6 @@ export const GrpcSearchContact: ApiOption = {
   longRequest: true,
 }
 
-export const GrpcShareCard: ApiOption = {}
+export const GrpcShareCard: ApiOption = {
+  longRequest: true,
+}

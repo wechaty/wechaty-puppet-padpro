@@ -895,6 +895,27 @@ export class PadproManager extends PadproGrpc {
     this.contactRawPayloadDirty(this.userId)
   }
 
+  public async shareContactCard (
+    toId     : string,
+    contactId: string,
+  ): Promise<void> {
+    if (!this.cacheContactRawPayload) {
+      throw new Error(`There is no cache when trying to share contact card.`)
+    }
+    let contactRawPayload: PadproContactPayload
+    try {
+      contactRawPayload = await this.contactRawPayload(contactId)
+    } catch (e) {
+      throw new Error(`NOT_FOUND, Can not find contact with contact id ${contactId}.`)
+    }
+
+    if (contactRawPayload.ticket) {
+      throw new Error(`NOT_FRIEND, contact id ${contactId} is not friend of bot.`)
+    }
+
+    await this.GrpcShareCard(toId, contactRawPayload)
+  }
+
   private memberIsSame (memberA: PadproMemberBrief[], memberB: PadproMemberBrief[]): boolean {
     const hashMemberA: { [id: string]: string } = {}
     memberA.forEach(m => { hashMemberA[m.userName] = m.nickName || '' })

@@ -15,7 +15,7 @@ import {
   GrpcSyncContactPayload,
 } from '../schemas/grpc-schemas'
 
-import { isRoomId } from '../pure-function-helpers'
+import { generateContactXMLMessage, isRoomId } from '../pure-function-helpers'
 
 import { log } from '../config'
 
@@ -24,8 +24,10 @@ import {
   ContactOperationBitVal,
   ContactOperationCmdId,
   GrpcVoiceFormat,
+  PadproContactPayload,
   PadproImageMessagePayload,
   PadproMessagePayload,
+  PadproMessageType,
   PadproVoiceMessagePayload,
   SearchContactTypeStatus,
 } from '../schemas'
@@ -523,12 +525,17 @@ export class PadproGrpc extends EventEmitter {
    * TODO: This feature is not ready yet
    */
   public async GrpcShareCard (
-    toId     : string,
-    contactId: string,
-    title    : string,
+    toId   : string,
+    contact: PadproContactPayload,
   ) {
-    log.silly(PRE, `GrpcShareCard(${toId}, ${contactId}, ${title})`)
-    // await this.wechatGateway.callApi('GrpcShareCard')
+    log.silly(PRE, `GrpcShareCard(${toId}, ${contact.userName})`)
+    const content = generateContactXMLMessage(contact)
+    await this.wechatGateway.callApi('GrpcShareCard', {
+      Content: content,
+      MsgSource: '',
+      ToUserName: toId,
+      Type: PadproMessageType.ShareCard,
+    })
   }
 
   /**
