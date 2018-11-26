@@ -7,10 +7,7 @@ import { FileBox } from 'file-box'
 
 export async function fileBoxToQrcode (file: FileBox): Promise<string> {
   const future = new Promise<string>(async (resolve, reject) => {
-    await Jimp.read(await file.toBuffer(), (err, image) => {
-      if (err) {
-        return reject(err)
-      }
+    await Jimp.read(await file.toBuffer()).then(image => {
 
       const qrCodeImageArray = new Uint8ClampedArray(image.bitmap.data.buffer)
 
@@ -25,9 +22,12 @@ export async function fileBoxToQrcode (file: FileBox): Promise<string> {
       } else {
         return reject(new Error('WXGetQRCode() qrCode decode fail'))
       }
+    }).catch(err => {
+      if (err) {
+        return reject(err)
+      }
     })
   })
-
   try {
     const qrCode = await future
     return qrCode
