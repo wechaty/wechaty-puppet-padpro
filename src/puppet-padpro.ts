@@ -724,28 +724,23 @@ export class PuppetPadpro extends Puppet {
       payload.friend = false
     }
 
-    if (!this.padproManager) {
-      throw new Error('no padpro manager')
-    }
-
-    const searchResult = await this.padproManager.GrpcSearchContact(rawPayload.userName)
-
-    let friend: undefined | boolean
-
-    if (searchResult) {
-      if (searchResult.status === -24 && !searchResult.user_name) {
-        friend = false
-      } else if (  isStrangerV1(searchResult.user_name)
-                || isStrangerV2(searchResult.user_name)
-      ) {
-        friend = false
-      }
-    }
-
-    return {
-      ...payload,
-      friend,
-    }
+    // Considered to be unnecessary for now, try to disable first
+    //
+    // if (!this.padproManager) {
+    //   throw new Error('no padpro manager')
+    // }
+    // const searchResult = await this.padproManager.GrpcSearchContact(rawPayload.userName)
+    // let friend: undefined | boolean
+    // if (searchResult) {
+    //   if (searchResult.status === -24 && !searchResult.user_name) {
+    //     friend = false
+    //   } else if (  isStrangerV1(searchResult.user_name)
+    //             || isStrangerV2(searchResult.user_name)
+    //   ) {
+    //     friend = false
+    //   }
+    // }
+    return payload
   }
 
   /**
@@ -1379,23 +1374,23 @@ export class PuppetPadpro extends Puppet {
       const payload = await this.padproManager.roomInvitationRawPayload(roomInvitationId)
       const shareUrl = payload.url
 
-      const response = await this.padproManager.GrpcGetRequestToken(this.selfId(), shareUrl)
+      const response = await this.padproManager.GrpcGetA8Key(this.selfId(), shareUrl)
 
       res = await require('request-promise')({
         method: 'POST',
         simple: false,
-        uri: response.full_url,
+        uri: response.Url,
       })
     } catch (e) {
       throw new Error('UNKNOWN: Unexpected error happened when trying to accept invitation\n' + e)
     }
 
-    if (res.indexOf('你无法查看被转发过的邀请') !== -1 || res.indexOf('Unable to view forwarded invitations') === -1) {
+    if (res.indexOf('你无法查看被转发过的邀请') !== -1 || res.indexOf('Unable to view forwarded invitations') !== -1) {
       throw new Error('FORWARDED: Accept invitation failed, this is a forwarded invitation, can not be accepted')
-    } else if (res.indexOf('你未开通微信支付') !== -1 || res.indexOf('You haven\'t enabled WeChat Pay') === -1
+    } else if (res.indexOf('你未开通微信支付') !== -1 || res.indexOf('You haven\'t enabled WeChat Pay') !== -1
               || res.indexOf('你需要实名验证后才能接受邀请') !== -1) {
       throw new Error('WXPAY: The user need to enable wechaty pay(微信支付) to join the room, this is requested by Wechat.')
-    } else if (res.indexOf('该邀请已过期') !== -1 || res.indexOf('Invitation expired') === -1) {
+    } else if (res.indexOf('该邀请已过期') !== -1 || res.indexOf('Invitation expired') !== -1) {
       throw new Error('EXPIRED: The invitation is expired, please request the user to send again')
     } else if (res.indexOf('群聊邀请操作太频繁请稍后再试') !== -1 || res.indexOf('操作太频繁，请稍后再试') !== -1) {
       throw new Error('FREQUENT: Room invitation operation too frequent.')

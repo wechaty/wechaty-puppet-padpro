@@ -5,6 +5,7 @@ import {
   GrpcContactOperationOption,
   GrpcContactRawPayload,
   GrpcCreateRoomPayload,
+  GrpcGetA8KeyType,
   GrpcGetMsgImageType,
   GrpcGetMsgVoiceType,
   GrpcGetQRCodeType,
@@ -23,6 +24,7 @@ import { WechatGateway } from '../gateway/wechat-gateway'
 import {
   ContactOperationBitVal,
   ContactOperationCmdId,
+  GrpcA8KeyScene,
   GrpcVoiceFormat,
   PadproContactPayload,
   PadproImageMessagePayload,
@@ -144,7 +146,7 @@ export class PadproGrpc extends EventEmitter {
     // log.silly(PRE, `GrpcGetContactPayload() result: ${JSON.stringify(result)}`)
 
     if (typeof contact === 'string') {
-      return result.length === 0 ? null : result[0]
+      return !result || result.length === 0 ? null : result[0]
     } else {
       return result
     }
@@ -522,7 +524,6 @@ export class PadproGrpc extends EventEmitter {
    * @param toId contact id that receive this contact card
    * @param contactId contact that in the contact card
    * @param title the title of the card
-   * TODO: This feature is not ready yet
    */
   public async GrpcShareCard (
     toId   : string,
@@ -539,19 +540,20 @@ export class PadproGrpc extends EventEmitter {
   }
 
   /**
-   * Get request token for link
+   * Get A8 key
    * @param contactId contact id
    * @param url url
-   * TODO: This is not working right now
    */
-  public async GrpcGetRequestToken (
+  public async GrpcGetA8Key (
     contactId: string,
     url: string,
-  ) {
-    log.silly(PRE, `GrpcGetRequestToken(${contactId}, ${url})`)
-    return this.wechatGateway.callApi('GrpcGetRequestToken', {
-      fromUser: contactId,
-      url
+  ): Promise<GrpcGetA8KeyType> {
+    log.silly(PRE, `GrpcGetA8Key(${contactId}, ${url})`)
+    return this.wechatGateway.callApi('GrpcGetA8Key', {
+      ProtocolVer: 1,
+      ReqUrl: url,
+      Scene: GrpcA8KeyScene.ContactOrRoom,
+      Username: contactId,
     })
   }
 

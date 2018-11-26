@@ -252,3 +252,9 @@ export interface GrpcGetMsgImageType {
 export interface GrpcGetMsgVoiceType {
   voiceData: string,
 }
+
+export interface GrpcGetA8KeyType {
+  Url: string,
+  XWechatKey: string,
+  XWechatUin: string,
+}

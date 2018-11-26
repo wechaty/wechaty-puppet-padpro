@@ -195,3 +195,10 @@ export enum GrpcVoiceFormat {
   Wave = 3,
   Silk = 4,
 }
+
+export enum GrpcA8KeyScene {
+  ContactOrRoom = 2,
+  HistoryReading = 3,
+  QRCodeLink = 4,
+  OAAccount = 7,
+}

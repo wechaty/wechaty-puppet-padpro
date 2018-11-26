@@ -41,6 +41,7 @@ import { retry } from '../utils'
 
 import {
   convertContact,
+  convertMemberToContact,
   convertMessage,
   convertRoom,
   convertRoomMember,
@@ -666,8 +667,15 @@ export class PadproManager extends PadproGrpc {
 
     const memberDict: { [contactId: string]: PadproRoomMemberPayload } = {}
 
+    if (!this.cacheContactRawPayload) {
+      throw new Error('contact cache not inited when sync room member')
+    }
     for (const memberPayload of memberList) {
-      const      contactId  = memberPayload.Username
+      const contactId  = memberPayload.Username
+      const contact = convertMemberToContact(memberPayload)
+      if (!this.cacheContactRawPayload.has(contactId)) {
+        this.cacheContactRawPayload.set(contactId, contact)
+      }
       memberDict[contactId] = convertRoomMember(memberPayload)
     }
 
@@ -694,7 +702,6 @@ export class PadproManager extends PadproGrpc {
 
     let cont = true
     while (cont && this.state.on() && this.userId) {
-      log.silly(PRE, `syncContactsAndRooms() fetched ${contactAndRoomIdList.length} ids.`)
       const syncContactPayload = await this.GrpcSyncContact(contactSeq, roomSeq)
       const {
         CurrentWxcontactSeq,
@@ -709,9 +716,10 @@ export class PadproManager extends PadproGrpc {
       cont = ContinueFlag === PadproContinue.Go
 
       await new Promise(r => setTimeout(r, 500))
+      log.silly(PRE, `syncContactsAndRooms() fetched ${contactAndRoomIdList.length} ids.`)
     }
 
-    log.info(PRE, `syncContactAndRooms() got ${contactAndRoomIdList.length} contacts and rooms in total.`)
+    log.info(PRE, `syncContactsAndRooms() got ${contactAndRoomIdList.length} contacts and rooms in total.`)
 
     if (!this.cacheContactRawPayload || !this.cacheRoomRawPayload || !this.cacheRoomMemberRawPayload) {
       throw new Error('no cache when syncing contacts and rooms')

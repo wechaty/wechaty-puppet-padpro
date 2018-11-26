@@ -19,6 +19,8 @@ import {
   PackShortRes,
 } from './grpc-gateway'
 
+import { DedupeApi } from './dedupe-api'
+
 export interface CallBackBuffer {
   [id: string]: (buf: any) => void
 }
@@ -44,6 +46,8 @@ export class WechatGateway extends EventEmitter {
 
   private cacheBuf?: Buffer
 
+  private dedupeApi: DedupeApi
+
   constructor (
     token: string,
     endpoint: string,
@@ -57,6 +61,7 @@ export class WechatGateway extends EventEmitter {
     if (proxyEndpoint) {
       this.proxyAgent = new HttpProxyAgent(proxyEndpoint)
     }
+    this.dedupeApi = new DedupeApi()
   }
   public emit (event: 'newMessage' | 'rawMessage', message: Buffer): boolean
   public emit (event: 'socketClose' | 'socketEnd' | 'logout'): boolean
@@ -149,6 +154,10 @@ export class WechatGateway extends EventEmitter {
   }
 
   public async callApi (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) {
+    return this.dedupeApi.dedupeApi(this._callApi.bind(this), apiName, params, forceLongOrShort)
+  }
+
+  private async _callApi (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) {
     const option = ApiOptions[apiName]
     if (!option) {
       throw new Error(`Unknown API name: ${apiName}`)
@@ -314,4 +323,5 @@ export class WechatGateway extends EventEmitter {
   private bufferToInt (buffer: Buffer, offset = 0): number {
     return buffer.readUIntBE(offset, 4)
   }
+
 }
