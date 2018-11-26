@@ -8,11 +8,11 @@
 // tslint:disable:no-console
 
 import {
-  PuppetPro,
+  PuppetPadpro,
 }                 from 'wechaty-puppet-padpro'
 
 async function main () {
-  const puppet = new PuppetPro()
+  const puppet = new PuppetPadpro()
   console.log(`Puppet v${puppet.version()} smoke testing passed.`)
   return 0
 }
