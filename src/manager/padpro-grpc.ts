@@ -124,64 +124,24 @@ export class PadproGrpc extends EventEmitter {
     log.verbose(PRE, 'stop()')
   }
 
-  /**
-   * This function will fetch contact data for the given contact id(s)
-   * @param contact This is either one wxid or an array of wxid
-   */
-  protected async GrpcGetContactPayload (contact: string)  : Promise<GrpcContactRawPayload | null>
-  protected async GrpcGetContactPayload (contact: string[]): Promise<GrpcContactRawPayload[]>
-
   protected async GrpcGetContactPayload (
-    contact: string | string[]
-  )        : Promise<GrpcContactRawPayload | GrpcContactRawPayload[] | null> {
+    contact: string
+  )        : Promise<GrpcContactRawPayload | null> {
     log.silly(PRE, `GrpcGetContactPayload(${contact})`)
-    let UserNameList: string
-    if (typeof contact === 'string') {
-      UserNameList = contact
-    } else {
-      UserNameList = contact.join(',')
-    }
 
-    const result: GrpcContactRawPayload[] = await this.wechatGateway.callApi('GrpcGetContact', { UserNameList })
-    // log.silly(PRE, `GrpcGetContactPayload() result: ${JSON.stringify(result)}`)
-
-    if (typeof contact === 'string') {
-      return !result || result.length === 0 ? null : result[0]
-    } else {
-      return result
-    }
+    return this.wechatGateway.callApi('GrpcGetContact', { UserNameList: contact })
   }
 
-  protected async GrpcGetRoomPayload (room: string): Promise<GrpcRoomRawPayload | null>
-  protected async GrpcGetRoomPayload (room: string[]): Promise<GrpcRoomRawPayload[]>
-
   protected async GrpcGetRoomPayload (
-    room: string | string[]
-  ): Promise<GrpcRoomRawPayload | GrpcRoomRawPayload[] | null> {
+    room: string
+  ): Promise<GrpcRoomRawPayload | null> {
     log.silly(PRE, `GrpcGetRoomPayload(${room})`)
-    let UserNameList: string
-    if (typeof room === 'string') {
-      if (!isRoomId(room)) {
-        throw new Error(`GrpcGetRoomPayload got non room id: ${room}, can not process it`)
-      }
-      UserNameList = room
-    } else {
-      room.map(r => {
-        if (!isRoomId(r)) {
-          throw new Error(`GrpcGetRoomPayload got non room id: ${r}, can not process it`)
-        }
-      })
-      UserNameList = room.join(',')
+
+    if (!isRoomId(room)) {
+      throw new Error(`GrpcGetRoomPayload got non room id: ${room}, can not process it`)
     }
 
-    const result: GrpcRoomRawPayload[] = await this.wechatGateway.callApi('GrpcGetContact', { UserNameList })
-    // log.silly(PRE, `GrpcGetRoomPayload() result: ${JSON.stringify(result)}`)
-
-    if (typeof room === 'string') {
-      return result.length === 0 ? null : result[0]
-    } else {
-      return result
-    }
+    return this.wechatGateway.callApi('GrpcGetContact', { UserNameList: room })
   }
 
   /**

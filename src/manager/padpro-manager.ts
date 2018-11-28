@@ -727,29 +727,26 @@ export class PadproManager extends PadproGrpc {
     const contactIdList = contactAndRoomIdList.filter(id => isContactId(id))
     const roomIdList = contactAndRoomIdList.filter(id => isRoomId(id))
 
-    for (let i = 0; i < contactIdList.length; i += 20) {
-      const ids = contactIdList.slice(i, i + 20)
-      const rawContactPayloads = await this.GrpcGetContactPayload(ids)
-
-      for (const payload of rawContactPayloads) {
-        this.cacheContactRawPayload.set(payload.UserName, convertContact(payload))
+    for (const id of contactIdList) {
+      const payload = await this.GrpcGetContactPayload(id)
+      if (payload === null) {
+        continue
       }
-      await new Promise(r => setTimeout(r, 500))
+      this.cacheContactRawPayload.set(payload.UserName, convertContact(payload))
     }
 
-    for (let i = 0; i < roomIdList.length; i += 20) {
-      const ids = roomIdList.slice(i, i + 20)
-      const rawRoomPayloads = await this.GrpcGetRoomPayload(ids)
+    for (const id of roomIdList) {
+      const payload = await this.GrpcGetRoomPayload(id)
 
-      for (const payload of rawRoomPayloads) {
-        const roomMemberDict = await this.syncRoomMember(payload.UserName)
-        if (Object.keys(roomMemberDict).length === 0) {
-          log.verbose(PRE, `syncContactsAndRooms() got deleted room: ${payload.UserName}`)
-        } else {
-          this.cacheRoomRawPayload.set(payload.UserName, convertRoom(payload))
-        }
+      if (payload === null) {
+        continue
       }
-      await new Promise(r => setTimeout(r, 500))
+      const roomMemberDict = await this.syncRoomMember(payload.UserName)
+      if (Object.keys(roomMemberDict).length === 0) {
+        log.verbose(PRE, `syncContactsAndRooms() got deleted room: ${payload.UserName}`)
+      } else {
+        this.cacheRoomRawPayload.set(payload.UserName, convertRoom(payload))
+      }
     }
 
     this.emit('ready')
