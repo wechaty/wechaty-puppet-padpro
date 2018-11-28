@@ -346,13 +346,17 @@ export class PadproGrpc extends EventEmitter {
   public async GrpcSendMessage (
     contactId: string,
     content: string,
-    atUserList?: string,
+    atUserList?: string[],
   ) {
     log.silly(PRE, `GrpcSendMessage(${contactId}, ${content}, ${atUserList})`)
 
+    let messageSource = ''
+    if (atUserList) {
+      messageSource = `${atUserList.join(',')}`
+    }
     await this.wechatGateway.callApi('GrpcSendMessage', {
       Content: content,
-      MsgSource: atUserList ? atUserList : '',
+      MsgSource:  messageSource,
       ToUserName: contactId,
     })
   }

@@ -258,3 +258,10 @@ export type FriendshipPayloadVerify = FriendshipPayloadBase & {
 export type FriendshipPayload = FriendshipPayloadConfirm
                                   | FriendshipPayloadReceive
                                   | FriendshipPayloadVerify
+
+export interface PadproMessageSource {
+  silence?: boolean,
+  memberCount?: number,
+  imageFileName?: string,
+  atUserList?: string[],
+}

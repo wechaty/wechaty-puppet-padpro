@@ -910,8 +910,9 @@ export class PuppetPadpro extends Puppet {
   }
 
   public async messageSendText (
-    receiver : Receiver,
-    text     : string,
+    receiver   : Receiver,
+    text       : string,
+    atUserList?: string[],
   ): Promise<void> {
     log.verbose(PRE, 'messageSend(%s, %s)', JSON.stringify(receiver), text)
 
@@ -924,7 +925,7 @@ export class PuppetPadpro extends Puppet {
     if (!this.padproManager) {
       throw new Error('no padpro manager')
     }
-    await this.padproManager.GrpcSendMessage(id, text)
+    await this.padproManager.GrpcSendMessage(id, text, atUserList)
   }
 
   public async messageSendFile (
