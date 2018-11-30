@@ -45,6 +45,7 @@ export class GrpcGateway {
     try {
       return this._packLong(request)
     } catch (e) {
+      await new Promise(r => setTimeout(r, 1000))
       return this._packLong(request)
     }
   }
@@ -73,6 +74,7 @@ export class GrpcGateway {
     try {
       return this._packShort(request)
     } catch (e) {
+      await new Promise(r => setTimeout(r, 1000))
       return this._packShort(request)
     }
   }
@@ -101,6 +103,7 @@ export class GrpcGateway {
     try {
       response = await this._parse(request)
     } catch (e) {
+      await new Promise(r => setTimeout(r, 1000))
       response = await this._parse(request)
     }
 

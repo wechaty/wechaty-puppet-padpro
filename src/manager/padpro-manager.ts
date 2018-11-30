@@ -111,13 +111,13 @@ export class PadproManager extends PadproGrpc {
 
   private initQueue () {
 
-    this.debounceQueue = new DebounceQueue(20 * 1000)
+    this.debounceQueue = new DebounceQueue(30 * 1000)
     this.debounceQueueSubscription = this.debounceQueue.subscribe(() => {
       const heartbeatResult = this.GrpcHeartBeat()
       log.silly(PRE, `debounceQueue heartbeat result: ${JSON.stringify(heartbeatResult)}`)
     })
 
-    this.throttleQueue = new ThrottleQueue(20 * 1000)
+    this.throttleQueue = new ThrottleQueue(30 * 1000)
     this.throttleQueueSubscription = this.throttleQueue.subscribe(() => {
       log.silly(PRE, `throttleQueue emit heartbeat.`)
       this.emit('heartbeat')
