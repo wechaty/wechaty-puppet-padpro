@@ -1,5 +1,4 @@
 import { log } from '../config'
-import { GetContactHelper } from './get-contact-helper'
 import { ApiParams } from './grpc-gateway'
 
 const EXPIRE_TIME = 10
@@ -32,28 +31,21 @@ const PRE = 'DedupeApi'
  * Only api calls in the DEDUPE_API list will be affected.
  */
 export class DedupeApi {
-
-  private getContactHelper: GetContactHelper
-
   private pool: {
     [key: string]: ApiCall
   }
-
-  private func: (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) => Promise<any>
-
-  constructor (func: (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) => Promise<any>) {
+  constructor () {
     this.pool = {}
-    this.func = func
-    this.getContactHelper = new GetContactHelper(func)
   }
 
-  public async dedupe (
+  public async dedupeApi (
+    func: (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) => Promise<any>,
     apiName: string,
     params?: ApiParams,
     forceLongOrShort?: boolean,
   ): Promise<any> {
     if (DEDUPE_API.indexOf(apiName) === -1) {
-      return this.func(apiName, params, forceLongOrShort)
+      return func(apiName, params, forceLongOrShort)
     }
     log.silly(PRE, `dedupeApi(${apiName}, ${params ? JSON.stringify(params) : ''})`)
     const key = this.getKey(apiName, params)
@@ -81,11 +73,7 @@ export class DedupeApi {
       }
       let result: any
       try {
-        if (apiName === 'GrpcGetContact') {
-          result = await this.getContactHelper.get(params!)
-        } else {
-          result = await this.func(apiName, params, forceLongOrShort)
-        }
+        result = await func(apiName, params, forceLongOrShort)
       } catch (e) {
         log.silly(PRE, `dedupeApi(${apiName}) failed from external service, reject ${this.pool[key].listener.length} duplicate api calls.`)
         this.pool[key].listener.map(api => {

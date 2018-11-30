@@ -61,7 +61,7 @@ export class WechatGateway extends EventEmitter {
     if (proxyEndpoint) {
       this.proxyAgent = new HttpProxyAgent(proxyEndpoint)
     }
-    this.dedupeApi = new DedupeApi(this._callApi.bind(this))
+    this.dedupeApi = new DedupeApi()
   }
   public emit (event: 'newMessage' | 'rawMessage', message: Buffer): boolean
   public emit (event: 'socketClose' | 'socketEnd' | 'logout'): boolean
@@ -154,7 +154,7 @@ export class WechatGateway extends EventEmitter {
   }
 
   public async callApi (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) {
-    return this.dedupeApi.dedupe(apiName, params, forceLongOrShort)
+    return this.dedupeApi.dedupeApi(this._callApi.bind(this), apiName, params, forceLongOrShort)
   }
 
   private async _callApi (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) {
