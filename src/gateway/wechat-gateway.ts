@@ -170,11 +170,25 @@ export class WechatGateway extends EventEmitter {
 
     if (longRequest) {
       const buffer = await this.grpcGateway.packLong(apiName, params)
-      const wxResponse = await this.sendLong(buffer, noParse)
+      let wxResponse
+      try {
+        wxResponse = await this.sendLong(buffer, noParse)
+      } catch (e) {
+        log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${params}`)
+        console.error(e)
+        return null
+      }
       return noParse ? wxResponse : this.grpcGateway.parse(apiName, wxResponse)
     } else {
       const res = await this.grpcGateway.packShort(apiName, params)
-      const wxResponse = await this.sendShort(res, noParse)
+      let wxResponse
+      try {
+        wxResponse = await this.sendShort(res, noParse)
+      } catch (e) {
+        log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${params}`)
+        console.error(e)
+        return null
+      }
       return this.grpcGateway.parse(apiName, wxResponse)
     }
   }
