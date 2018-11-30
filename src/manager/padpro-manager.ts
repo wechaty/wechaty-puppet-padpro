@@ -94,10 +94,9 @@ export class PadproManager extends PadproGrpc {
       }
     })
 
-    this.wechatGateway.on('logout', async () => {
+    this.wechatGateway.on('reset', async () => {
       log.info(PRE, `Logged out on phone or log into another device.`)
-      await this.logout()
-      this.emit('logout')
+      this.emit('reset')
     })
   }
 

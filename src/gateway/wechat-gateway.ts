@@ -30,7 +30,7 @@ export interface SwitchHostOption {
   longHost: string,
 }
 
-export type WechatGatewayEvent = 'newMessage' | 'socketClose' | 'socketError' | 'socketEnd' | 'rawMessage' | 'logout'
+export type WechatGatewayEvent = 'newMessage' | 'socketClose' | 'socketError' | 'socketEnd' | 'rawMessage' | 'reset'
 
 const PRE = 'WechatGateway'
 
@@ -64,7 +64,7 @@ export class WechatGateway extends EventEmitter {
     this.dedupeApi = new DedupeApi()
   }
   public emit (event: 'newMessage' | 'rawMessage', message: Buffer): boolean
-  public emit (event: 'socketClose' | 'socketEnd' | 'logout'): boolean
+  public emit (event: 'socketClose' | 'socketEnd' | 'reset'): boolean
   public emit (event: 'socketError', err: Error): boolean
 
   public emit (event: never, listener: never): never
@@ -76,7 +76,7 @@ export class WechatGateway extends EventEmitter {
     return super.emit(event, ...args)
   }
   public on (event: 'newMessage' | 'rawMessage', listener: ((this: WechatGateway, message: Buffer) => void)): this
-  public on (event: 'socketClose' | 'socketEnd' | 'logout', listener: ((this: WechatGateway) => void)): this
+  public on (event: 'socketClose' | 'socketEnd' | 'reset', listener: ((this: WechatGateway) => void)): this
   public on (event: 'socketError', listener: ((this: WechatGateway, err: Error) => void)): this
 
   public on (event: never, listener: never): never
@@ -266,7 +266,7 @@ export class WechatGateway extends EventEmitter {
         const judgeFlag = buffer[16]
         if (!noParse) {
           if (judgeFlag === 126) {
-            this.emit('logout')
+            this.emit('reset')
           } else if (judgeFlag !== 191) {
             reject(`sendLong receive unknown package: [${judgeFlag}] ${buffer.toString('hex')}]`)
           }
