@@ -100,7 +100,7 @@ export class PadproGrpc extends EventEmitter {
     log.info(PRE, `GrpcQRCodeLogin(${userName}, ${password})`)
     let result: GrpcQrcodeLoginType = await this.wechatGateway.callApi('GrpcQRCodeLogin', { userName, password })
     if (result.status === -301) {
-      this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
+      await this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
       log.silly(PRE, 'GrpcQRCodeLogin() Redirect to long connection')
       result = await this.wechatGateway.callApi('GrpcQRCodeLogin', { userName, password }, true)
     }

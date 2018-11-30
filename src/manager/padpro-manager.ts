@@ -95,7 +95,7 @@ export class PadproManager extends PadproGrpc {
     })
 
     this.wechatGateway.on('reset', async () => {
-      log.info(PRE, `Logged out on phone or log into another device.`)
+      log.info(PRE, `Connection has problem, reset self to recover the connection.`)
       this.emit('reset')
     })
   }
@@ -440,7 +440,7 @@ export class PadproManager extends PadproGrpc {
       log.silly(PRE, `startCheckScan() checkScanInternalLoop() resolved`)
     })
     .catch(e => {
-      console.log(e)
+      console.error(e)
       log.warn(PRE, `startCheckScan() checkScanLoop() exception: ${e}`)
       this.reset('startCheckScan() checkScanLoop() exception')
     })
@@ -500,7 +500,7 @@ export class PadproManager extends PadproGrpc {
       /**
        * Message emit here should all be valid message
        */
-      console.log(JSON.stringify(m))
+      // console.log(JSON.stringify(m))
       this.emit('message', convertMessage(m as GrpcMessagePayload))
     })
   }
@@ -603,13 +603,11 @@ export class PadproManager extends PadproGrpc {
                                 || await this.syncRoomMember(roomId)
 
     if (!memberRawPayloadDict) {
-      // or return [] ?
       throw new Error(`roomId not found: ${roomId}`)
     }
 
     const memberIdList = Object.keys(memberRawPayloadDict)
 
-    // console.log('memberRawPayloadDict:', memberRawPayloadDict)
     log.verbose(PRE, `getRoomMemberIdList(${roomId}) length=${memberIdList.length}`)
     return memberIdList
   }

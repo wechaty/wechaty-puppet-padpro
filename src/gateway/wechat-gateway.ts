@@ -96,10 +96,10 @@ export class WechatGateway extends EventEmitter {
   }
 
   public async start () {
-    this.initLongSocket()
+    await this.initLongSocket()
   }
 
-  public switchHost ({ shortHost, longHost }: SwitchHostOption) {
+  public async switchHost ({ shortHost, longHost }: SwitchHostOption) {
     log.silly(PRE, `switchHost({ shortHost: ${shortHost}, longHost: ${longHost} })`)
     if (this.shortHost !== shortHost) {
       this.shortHost = shortHost
@@ -107,7 +107,7 @@ export class WechatGateway extends EventEmitter {
     if (this.longHost !== longHost) {
       this.cleanLongSocket()
       this.longHost = longHost
-      this.initLongSocket()
+      await this.initLongSocket()
     }
   }
 
@@ -121,35 +121,38 @@ export class WechatGateway extends EventEmitter {
     }
   }
 
-  private initLongSocket (): void {
+  private async initLongSocket (): Promise<void> {
     if (this.longSocket) {
       log.verbose('WechatGateway', `initLongSocket() socket has already been created, quit initialize.`)
       return
     }
-    this.longSocket = new Socket()
-    this.longSocket.connect(80, this.longHost)
+    return new Promise<void>(resolve => {
+      this.longSocket = new Socket()
+      this.longSocket.connect(80, this.longHost)
 
-    this.longSocket.on('data', this.onData.bind(this))
+      this.longSocket.on('data', this.onData.bind(this))
 
-    this.longSocket.on('close', () => {
-      log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} closed.`)
-      this.cleanLongSocket()
-      this.initLongSocket()
-      this.emit('socketClose')
-    })
+      this.longSocket.on('close', async () => {
+        log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} closed.`)
+        this.cleanLongSocket()
+        await this.initLongSocket()
+        this.emit('socketClose')
+      })
 
-    this.longSocket.on('connect', () => {
-      log.info(PRE, `initLongSocket() connected to wechat long host server: ${this.longHost}.`)
-    })
+      this.longSocket.on('error', (err: Error) => {
+        log.error(PRE, `initLongSocket() error happened with long host server connection: ${err}`)
+        this.emit('socketError', err)
+      })
 
-    this.longSocket.on('error', (err: Error) => {
-      log.error(PRE, `initLongSocket() error happened with long host server connection: ${err}`)
-      this.emit('socketError', err)
-    })
+      this.longSocket.on('end', () => {
+        log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} ended.`)
+        this.emit('socketEnd')
+      })
 
-    this.longSocket.on('end', () => {
-      log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} ended.`)
-      this.emit('socketEnd')
+      this.longSocket.on('connect', () => {
+        log.info(PRE, `initLongSocket() connected to wechat long host server: ${this.longHost}.`)
+        resolve()
+      })
     })
   }
 
