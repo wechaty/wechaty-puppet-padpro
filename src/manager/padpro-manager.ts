@@ -741,15 +741,22 @@ export class PadproManager extends PadproGrpc {
       const ids = roomIdList.slice(i, i + 20)
       const rawRoomPayloads = await this.GrpcGetRoomPayload(ids)
 
+      await new Promise(r => setTimeout(r, 1000))
       for (const payload of rawRoomPayloads) {
-        const roomMemberDict = await this.syncRoomMember(payload.UserName)
-        if (Object.keys(roomMemberDict).length === 0) {
-          log.verbose(PRE, `syncContactsAndRooms() got deleted room: ${payload.UserName}`)
-        } else {
-          this.cacheRoomRawPayload.set(payload.UserName, convertRoom(payload))
+        const savedRoom = this.cacheRoomRawPayload.get(payload.UserName)
+        const newRoom = convertRoom(payload)
+
+        if (!savedRoom || !this.memberIsSame(savedRoom.members, newRoom.members)) {
+          const roomMemberDict = await this.syncRoomMember(newRoom.chatroomId)
+          if (Object.keys(roomMemberDict).length === 0) {
+            log.verbose(PRE, `syncContactsAndRooms() got deleted room: ${payload.UserName}`)
+          } else {
+            this.cacheRoomRawPayload.set(payload.UserName, convertRoom(payload))
+          }
         }
+
+        await new Promise(r => setTimeout(r, 1000))
       }
-      await new Promise(r => setTimeout(r, 500))
     }
 
     this.emit('ready')

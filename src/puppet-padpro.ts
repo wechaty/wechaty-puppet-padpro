@@ -217,7 +217,7 @@ export class PuppetPadpro extends Puppet {
       throw new Error('no padpro manager')
     }
     await super.login(selfId)
-    await this.padproManager.syncContactsAndRooms()
+    void this.padproManager.syncContactsAndRooms()
   }
 
   public async startManager (manager: PadproManager): Promise<void> {

@@ -174,7 +174,7 @@ export class WechatGateway extends EventEmitter {
       try {
         wxResponse = await this.sendLong(buffer, noParse)
       } catch (e) {
-        log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${params}`)
+        log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${JSON.stringify(params)}`)
         console.error(e)
         return null
       }
@@ -185,7 +185,7 @@ export class WechatGateway extends EventEmitter {
       try {
         wxResponse = await this.sendShort(res, noParse)
       } catch (e) {
-        log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${params}`)
+        log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${JSON.stringify(params)}`)
         console.error(e)
         return null
       }
@@ -246,7 +246,10 @@ export class WechatGateway extends EventEmitter {
           resolve(buffer)
         })
       })
-
+      req.setTimeout(5000)
+      req.on('error', (error: Error) => {
+        reject(error)
+      })
       req.write(res.payload)
       req.end()
     })
