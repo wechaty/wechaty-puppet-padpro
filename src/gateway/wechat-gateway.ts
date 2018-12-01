@@ -170,29 +170,20 @@ export class WechatGateway extends EventEmitter {
     if (forceLongOrShort !== undefined) {
       longRequest = forceLongOrShort
     }
-
-    if (longRequest) {
-      const buffer = await this.grpcGateway.packLong(apiName, params)
-      let wxResponse
-      try {
-        wxResponse = await this.sendLong(buffer, noParse)
-      } catch (e) {
-        log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${JSON.stringify(params)}`)
-        console.error(e)
-        return null
+    try {
+      if (longRequest) {
+        const buffer = await this.grpcGateway.packLong(apiName, params)
+        const wxResponse = await this.sendLong(buffer, noParse)
+        return noParse ? wxResponse : this.grpcGateway.parse(apiName, wxResponse)
+      } else {
+        const res = await this.grpcGateway.packShort(apiName, params)
+        const wxResponse = await this.sendShort(res, noParse)
+        return this.grpcGateway.parse(apiName, wxResponse)
       }
-      return noParse ? wxResponse : this.grpcGateway.parse(apiName, wxResponse)
-    } else {
-      const res = await this.grpcGateway.packShort(apiName, params)
-      let wxResponse
-      try {
-        wxResponse = await this.sendShort(res, noParse)
-      } catch (e) {
-        log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${JSON.stringify(params)}`)
-        console.error(e)
-        return null
-      }
-      return this.grpcGateway.parse(apiName, wxResponse)
+    } catch (e) {
+      log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${JSON.stringify(params)}`)
+      console.error(e)
+      return null
     }
   }
 
