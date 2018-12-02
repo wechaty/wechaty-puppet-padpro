@@ -44,7 +44,8 @@ export class GrpcGateway {
     }
 
     try {
-      return this._packLong(request)
+      const result = await this._packLong(request)
+      return result
     } catch (e) {
       if (this.isRetryableError(e)) {
         await new Promise(r => setTimeout(r, 1000))
@@ -77,7 +78,8 @@ export class GrpcGateway {
     }
 
     try {
-      return this._packShort(request)
+      const result = await this._packShort(request)
+      return result
     } catch (e) {
       if (this.isRetryableError(e)) {
         await new Promise(r => setTimeout(r, 1000))

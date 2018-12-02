@@ -51,6 +51,7 @@ export class DedupeApi {
     forceLongOrShort?: boolean,
   ): Promise<any> {
     if (DEDUPE_API.indexOf(apiName) === -1) {
+      log.silly(PRE, `dedupe() no need to dedupe api ${apiName}.`)
       return func(apiName, params, forceLongOrShort)
     }
     log.silly(PRE, `dedupeApi(${apiName}, ${params ? JSON.stringify(params) : ''})`)

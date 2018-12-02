@@ -21,6 +21,8 @@ import {
 
 import { DedupeApi } from './dedupe-api'
 
+import { EncryptionServiceError } from '../schemas'
+
 export interface CallBackBuffer {
   [id: string]: (buf: any) => void
 }
@@ -96,7 +98,13 @@ export class WechatGateway extends EventEmitter {
   }
 
   public async start () {
+    log.info(PRE, `start()`)
     await this.initLongSocket()
+  }
+
+  public async stop () {
+    log.info(PRE, `stop()`)
+    await this.releaseLongSocket()
   }
 
   public async switchHost ({ shortHost, longHost }: SwitchHostOption) {
@@ -117,13 +125,13 @@ export class WechatGateway extends EventEmitter {
       this.longSocket.destroy()
       this.longSocket = undefined
     } else {
-      log.verbose('WechatGateway', `cleanLongSocket() socket doesn't exist, no need to clean it.`)
+      log.verbose(PRE, `cleanLongSocket() socket doesn't exist, no need to clean it.`)
     }
   }
 
   private async initLongSocket (): Promise<void> {
     if (this.longSocket) {
-      log.verbose('WechatGateway', `initLongSocket() socket has already been created, quit initialize.`)
+      log.verbose(PRE, `initLongSocket() socket has already been created, quit initialize.`)
       return
     }
     return new Promise<void>(resolve => {
@@ -157,6 +165,18 @@ export class WechatGateway extends EventEmitter {
     })
   }
 
+  private async releaseLongSocket (): Promise<void> {
+    return new Promise<void>(resolve => {
+      if (!this.longSocket) {
+        log.verbose(PRE, `releaseLongSocket() socket has been released, quit release process.`)
+        return
+      }
+      this.longSocket.on('end', resolve)
+      this.longSocket.end()
+      this.longSocket = undefined
+    })
+  }
+
   public async callApi (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) {
     return this.dedupeApi.dedupe(this._callApi.bind(this), apiName, params, forceLongOrShort)
   }
@@ -182,8 +202,8 @@ export class WechatGateway extends EventEmitter {
         return this.grpcGateway.parse(apiName, wxResponse)
       }
     } catch (e) {
-      if (apiName === 'GrpcAutoLogin' && e.message === 'NO_SESSION') {
-        throw e
+      if (apiName === 'GrpcAutoLogin' && e.details === EncryptionServiceError.NO_SESSION) {
+        throw new Error(EncryptionServiceError.NO_SESSION)
       }
       log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${JSON.stringify(params)}`)
       console.error(e)
@@ -199,7 +219,7 @@ export class WechatGateway extends EventEmitter {
   }
 
   private async sendShort (res: PackShortRes, noParse?: boolean): Promise<Buffer> {
-    log.silly('WechatGateway', `sendShort() res: commandUrl: ${res.commandUrl}`)
+    log.silly(PRE, `sendShort() res: commandUrl: ${res.commandUrl}`)
     const options: RequestOptions = {
       headers: {
         'Content-Length': res.payload.length,

@@ -87,7 +87,7 @@ export class PadproGrpc extends EventEmitter {
     /**
      * Redirect to another service endpoint, need second login request.
      */
-    if (result.status === -301) {
+    if (result !== null && result.status === -301) {
       log.silly(PRE, `GrpcAutoLogin() redirect host ${JSON.stringify(result)}`)
       await this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
       result = await this.wechatGateway.callApi('GrpcAutoLogin')
@@ -144,7 +144,8 @@ export class PadproGrpc extends EventEmitter {
     this.emit('reset', reason)
   }
 
-  public stop (): void {
+  public async stop (): Promise<void> {
+    await this.wechatGateway.stop()
     log.verbose(PRE, 'stop()')
   }
 

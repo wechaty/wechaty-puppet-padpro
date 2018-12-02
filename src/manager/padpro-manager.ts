@@ -327,8 +327,6 @@ export class PadproManager extends PadproGrpc {
     this.releaseQueue()
     this.userId = undefined
     await this.releaseCache()
-
-    await this.startCheckScan()
   }
 
   protected async stopCheckScan (): Promise<void> {
@@ -540,8 +538,15 @@ export class PadproManager extends PadproGrpc {
           return this.tryAutoLogin()
         case AutoLoginError.USER_LOGOUT:
           // Stop auto login since user has logged out
+          break
         case EncryptionServiceError.NO_SESSION:
           // Stop auto login since this is the first time login
+          break
+
+        default:
+          // Some other errors related to connection, retry the login
+          await new Promise(r => setTimeout(r, 5000))
+          return this.tryAutoLogin()
       }
       log.verbose(PRE, `tryAutoLogin() failed: ${e}`)
     }
