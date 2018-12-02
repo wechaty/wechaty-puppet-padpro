@@ -15,6 +15,12 @@ export const PUPPET_PADPRO_TIMEOUT = 60 * 4
 export const MESSAGE_CACHE_AGE = 1000 * 60 * 60
 export const MESSAGE_CACHE_MAX = 1000
 
+export const NO_RETRY_ERROR_MESSAGE = [
+  'NO_SESSION',
+  'INVALID_TOKEN',
+  'EXPIRED_TOKEN',
+]
+
 /**
  * VERSION
  */

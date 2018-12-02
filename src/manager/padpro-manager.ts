@@ -12,7 +12,9 @@ import { Subscription }       from 'rxjs'
 import { StateSwitch }        from 'state-switch'
 
 import {
+  AutoLoginError,
   CheckQRCodeStatus,
+  EncryptionServiceError,
   GrpcContactRawPayload,
   GrpcMessagePayload,
   GrpcRoomRawPayload,
@@ -259,9 +261,10 @@ export class PadproManager extends PadproGrpc {
 
     this.state.on('pending')
 
-    // await this.tryAutoLogin()
-    const succeed = await this.tryAutoLogin()
-    if (!succeed) {
+    const username = await this.tryAutoLogin()
+    if (username) {
+      await this.onLogin(username)
+    } else {
       await this.startCheckScan()
     }
 
@@ -521,17 +524,28 @@ export class PadproManager extends PadproGrpc {
     return result
   }
 
-  protected async tryAutoLogin (): Promise<boolean> {
+  protected async tryAutoLogin (): Promise<string | undefined> {
     log.verbose(PRE, `tryAutoLogin()`)
 
     try {
-      const username = await this.GrpcAutoLogin()
-      await this.onLogin(username)
-      return true
+      const result = await this.GrpcAutoLogin()
+      return result
     } catch (e) {
+      switch (e.message) {
+        case AutoLoginError.UNKNOWN_STATUS:
+          log.warn(PRE, `tryAutoLogin receive unknown api call status, if you keep seeing this status, please file an issue with detailed log to us, we will fix it ASAP.`)
+          break
+        case AutoLoginError.CALL_FAILED:
+          await new Promise(r => setTimeout(r, 5000))
+          return this.tryAutoLogin()
+        case AutoLoginError.USER_LOGOUT:
+          // Stop auto login since user has logged out
+        case EncryptionServiceError.NO_SESSION:
+          // Stop auto login since this is the first time login
+      }
       log.verbose(PRE, `tryAutoLogin() failed: ${e}`)
-      return false
     }
+    return undefined
   }
 
   protected async emitLoginQrcode (): Promise<void> {

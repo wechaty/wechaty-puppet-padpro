@@ -76,14 +76,6 @@ export enum PadproContinue {
   Go   = 1,   // NOT Load Ready
 }
 
-// 2 Female, 1 Male, 0 Not Known
-// The same as ContactGender.
-// export enum PadproContactGender {
-//   Unknown = 0,
-//   Male    = 1,
-//   Female ,
-// }
-
 export enum PadproPayloadType {
   Logout             = -1, // -1 when logout
   InvalidPadproToken = -1111, // -1111 when the token pass to Padpro server is invalid
@@ -197,8 +189,18 @@ export enum GrpcVoiceFormat {
 }
 
 export enum GrpcA8KeyScene {
-  ContactOrRoom = 2,
+  ContactOrRoom  = 2,
   HistoryReading = 3,
-  QRCodeLink = 4,
-  OAAccount = 7,
+  QRCodeLink     = 4,
+  OAAccount      = 7,
+}
+
+export enum AutoLoginError {
+  CALL_FAILED = 'CALL_FAILED',
+  USER_LOGOUT = 'USER_LOGOUT',
+  UNKNOWN_STATUS = 'UNKNOWN_STATUS',
+}
+
+export enum EncryptionServiceError {
+  NO_SESSION = 'NO_SESSION',
 }

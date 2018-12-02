@@ -135,6 +135,7 @@ export class WechatGateway extends EventEmitter {
       this.longSocket.on('close', async () => {
         log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} closed.`)
         this.cleanLongSocket()
+        await new Promise(r => setTimeout(r, 1000))
         await this.initLongSocket()
         this.emit('socketClose')
       })
@@ -157,7 +158,7 @@ export class WechatGateway extends EventEmitter {
   }
 
   public async callApi (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) {
-    return this.dedupeApi.dedupeApi(this._callApi.bind(this), apiName, params, forceLongOrShort)
+    return this.dedupeApi.dedupe(this._callApi.bind(this), apiName, params, forceLongOrShort)
   }
 
   private async _callApi (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) {
@@ -181,6 +182,9 @@ export class WechatGateway extends EventEmitter {
         return this.grpcGateway.parse(apiName, wxResponse)
       }
     } catch (e) {
+      if (apiName === 'GrpcAutoLogin' && e.message === 'NO_SESSION') {
+        throw e
+      }
       log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${JSON.stringify(params)}`)
       console.error(e)
       return null

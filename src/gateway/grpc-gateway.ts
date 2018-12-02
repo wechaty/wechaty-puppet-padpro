@@ -1,7 +1,8 @@
 import grpc from 'grpc'
 
 import {
-  log
+  log,
+  NO_RETRY_ERROR_MESSAGE,
 }                       from '../config'
 import { PadchatGrpcClient } from './proto-ts/PadchatGrpc_grpc_pb'
 import {
@@ -45,8 +46,12 @@ export class GrpcGateway {
     try {
       return this._packLong(request)
     } catch (e) {
-      await new Promise(r => setTimeout(r, 1000))
-      return this._packLong(request)
+      if (this.isRetryableError(e)) {
+        await new Promise(r => setTimeout(r, 1000))
+        return this._packLong(request)
+      } else {
+        throw e
+      }
     }
   }
 
@@ -74,8 +79,12 @@ export class GrpcGateway {
     try {
       return this._packShort(request)
     } catch (e) {
-      await new Promise(r => setTimeout(r, 1000))
-      return this._packShort(request)
+      if (this.isRetryableError(e)) {
+        await new Promise(r => setTimeout(r, 1000))
+        return this._packShort(request)
+      } else {
+        throw e
+      }
     }
   }
 
@@ -103,8 +112,12 @@ export class GrpcGateway {
     try {
       response = await this._parse(request)
     } catch (e) {
-      await new Promise(r => setTimeout(r, 1000))
-      response = await this._parse(request)
+      if (this.isRetryableError(e)) {
+        await new Promise(r => setTimeout(r, 1000))
+        response = await this._parse(request)
+      } else {
+        throw e
+      }
     }
 
     const returnPayload = response.getPayload()
@@ -133,6 +146,16 @@ export class GrpcGateway {
 
   public isAlive (): boolean {
     // TODO: check grpc connection status here
+    return true
+  }
+
+  // Check retryable error
+  private isRetryableError (e: Error) {
+    for (const message of NO_RETRY_ERROR_MESSAGE) {
+      if (e.message.indexOf(message) !== -1) {
+        return false
+      }
+    }
     return true
   }
 }

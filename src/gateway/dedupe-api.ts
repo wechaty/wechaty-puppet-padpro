@@ -1,6 +1,8 @@
 import { log } from '../config'
 import { ApiParams } from './grpc-gateway'
 
+// Expire time for api call data that persist in the pool
+// Number of seconds
 const EXPIRE_TIME = 10
 
 const DEDUPE_API = [
@@ -34,11 +36,15 @@ export class DedupeApi {
   private pool: {
     [key: string]: ApiCall
   }
+
+  private cleaner: NodeJS.Timer
+
   constructor () {
     this.pool = {}
+    this.cleaner = setInterval(this.cleanData, EXPIRE_TIME * 1000)
   }
 
-  public async dedupeApi (
+  public async dedupe (
     func: (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) => Promise<any>,
     apiName: string,
     params?: ApiParams,
@@ -93,10 +99,27 @@ export class DedupeApi {
     }
   }
 
-  public clear () {
-    // tslint:disable-next-line:forin
+  public destroy () {
     for (const key in this.pool) {
-      delete this.pool[key]
+      if (this.pool.hasOwnProperty(key)) {
+        delete this.pool[key]
+      }
+    }
+    clearInterval(this.cleaner)
+  }
+
+  /**
+   * Get rid of data in pool that exists for more than EXPIRE_TIME
+   */
+  private cleanData () {
+    const now = new Date().getTime()
+    for (const key in this.pool) {
+      if (this.pool.hasOwnProperty(key)) {
+        const apiCache = this.pool[key]
+        if (apiCache.timestamp - now > EXPIRE_TIME * 1000) {
+          delete this.pool[key]
+        }
+      }
     }
   }
 

@@ -22,6 +22,7 @@ import { log } from '../config'
 
 import { WechatGateway } from '../gateway/wechat-gateway'
 import {
+  AutoLoginError,
   ContactOperationBitVal,
   ContactOperationCmdId,
   GrpcA8KeyScene,
@@ -82,16 +83,39 @@ export class PadproGrpc extends EventEmitter {
   public async GrpcAutoLogin (): Promise<string> {
 
     let result = await this.wechatGateway.callApi('GrpcAutoLogin')
+
+    /**
+     * Redirect to another service endpoint, need second login request.
+     */
     if (result.status === -301) {
       log.silly(PRE, `GrpcAutoLogin() redirect host ${JSON.stringify(result)}`)
       await this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
       result = await this.wechatGateway.callApi('GrpcAutoLogin')
     }
 
-    if (result.status !== 0) {
-      log.verbose(PRE, `GrpcAutoLogin() login failed with result: ${JSON.stringify(result)}`)
-      throw Error('Auto login failed')
+    if (result === null) {
+      throw new Error(AutoLoginError.CALL_FAILED)
     }
+
+    /**
+     * Wechat account has been logout or signed on another device: Mac or Web etc.
+     */
+    if (result.status === -2023) {
+      log.verbose(PRE, `GrpcAutoLogin() login failed with result: ${JSON.stringify(result)}`)
+      throw new Error(AutoLoginError.USER_LOGOUT)
+    }
+
+    /**
+     * Unknown auto login status
+     */
+    if (result.status !== 0) {
+      log.warn(PRE, `GrpcAutoLogin() login failed with result: ${JSON.stringify(result)}`)
+      throw new Error(AutoLoginError.UNKNOWN_STATUS)
+    }
+
+    /**
+     * Successfully sign in to wechat.
+     */
     log.verbose(PRE, `GrpcAutoLogin() success with result: ${JSON.stringify(result)}`)
     return result.userName
   }
