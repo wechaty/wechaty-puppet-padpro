@@ -195,17 +195,19 @@ export class WechatGateway extends EventEmitter {
       if (longRequest) {
         const buffer = await this.grpcGateway.packLong(apiName, params)
         const wxResponse = await this.sendLong(buffer, noParse)
-        return noParse ? wxResponse : this.grpcGateway.parse(apiName, wxResponse)
+        const result = noParse ? wxResponse : await this.grpcGateway.parse(apiName, wxResponse)
+        return result
       } else {
         const res = await this.grpcGateway.packShort(apiName, params)
         const wxResponse = await this.sendShort(res, noParse)
-        return this.grpcGateway.parse(apiName, wxResponse)
+        const result = await this.grpcGateway.parse(apiName, wxResponse)
+        return result
       }
     } catch (e) {
       if (apiName === 'GrpcAutoLogin' && e.details === EncryptionServiceError.NO_SESSION) {
         throw new Error(EncryptionServiceError.NO_SESSION)
       }
-      log.error(PRE, `Error happened when sendShort: api: ${apiName}, params: ${JSON.stringify(params)}`)
+      log.error(PRE, `Error happened when call api: ${apiName}, params: ${JSON.stringify(params)}`)
       console.error(e)
       return null
     }
@@ -342,6 +344,7 @@ export class WechatGateway extends EventEmitter {
       const seq: number = this.bufferToInt(bys, 12) // 12 - 16 sequence number
       if (this.backs[seq]) {
         this.backs[seq](bys)
+        this.emit('newMessage', bys)
       } else {
         this.emit('newMessage', bys)
       }

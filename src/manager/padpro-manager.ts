@@ -77,6 +77,8 @@ export class PadproManager extends PadproGrpc {
   private throttleQueue?: ThrottleQueue
   private throttleQueueSubscription?: Subscription
 
+  private messageSyncCounter: number
+
   constructor (
     public options: ManagerOptions,
   ) {
@@ -85,8 +87,13 @@ export class PadproManager extends PadproGrpc {
 
     this.state = new StateSwitch('PadproManager')
 
+    this.messageSyncCounter = 0
+
     this.wechatGateway.on('newMessage', () => {
-      void this.syncMessage()
+      this.messageSyncCounter ++
+      if (this.messageSyncCounter === 1) {
+        void this.syncMessage()
+      }
     })
 
     this.wechatGateway.on('rawMessage', () => {
@@ -450,7 +457,9 @@ export class PadproManager extends PadproGrpc {
   }
 
   private async syncMessage () {
+    log.silly(PRE, `syncMessage() current counter is: ${this.messageSyncCounter}`)
     const messages = await this.GrpcSyncMessage()
+    this.messageSyncCounter--
     if (messages === null) {
       log.verbose(PRE, `syncMessage() got empty response.`)
       return
@@ -504,6 +513,10 @@ export class PadproManager extends PadproGrpc {
       // console.log(JSON.stringify(m))
       this.emit('message', convertMessage(m as GrpcMessagePayload))
     })
+
+    if (this.messageSyncCounter !== 0) {
+      void this.syncMessage()
+    }
   }
 
   /**
