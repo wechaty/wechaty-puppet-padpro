@@ -74,7 +74,7 @@ export class PadproGrpc extends EventEmitter {
 
   protected async GrpcHeartBeat () {
     const payloads = await this.wechatGateway.callApi('GrpcHeartBeat')
-    if (payloads[3] !== 20 || payloads[5] !== 16) {
+    if (payloads !== null && payloads[3] !== 20 || payloads[5] !== 16) {
       throw new Error()
     }
     return payloads
