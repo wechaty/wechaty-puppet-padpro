@@ -43,7 +43,7 @@ import {
 }                   from '../pure-function-helpers'
 
 import { log, WAIT_FOR_READY_TIME } from '../config'
-import { retry } from '../utils'
+import { retry, updateContact } from '../utils'
 
 import {
   convertContact,
@@ -897,15 +897,30 @@ export class PadproManager extends PadproGrpc {
     log.info(PRE, `initData() finished with contacts: ${this.cacheContactRawPayload.size}, rooms: ${this.cacheRoomRawPayload.size}`)
   }
 
-  public contactRawPayloadDirty (
+  /**
+   * Treat the payload dirty as a force refresh data to avoid lose weixin from contact
+   * @param contactId contact id
+   */
+  public async contactRawPayloadDirty (
     contactId: string,
-  ): void {
+  ): Promise<void> {
     log.verbose(PRE, `contactRawPayloadDirty(${contactId})`)
     if (!this.cacheContactRawPayload) {
-      log.error(PRE, `contactRawPayloadDirty() cache not inited`)
       throw new Error('cache not inited' )
     }
-    this.cacheContactRawPayload.delete(contactId)
+    const previous = this.cacheContactRawPayload.get(contactId)
+    if (!previous) {
+      log.verbose(PRE, `contactRawPayloadDirty() trying to dirty a contact that does not exist in cache.`)
+      return
+    }
+    const current = await this.GrpcGetContactPayload(contactId)
+    if (current === null) {
+      log.verbose(PRE, `contactRawPayloadDirty() found invalid contact, remove it from cache.`)
+      this.cacheContactRawPayload.delete(contactId)
+    } else {
+      const updatedContact = updateContact(previous, current)
+      this.cacheContactRawPayload.set(contactId, updatedContact)
+    }
   }
 
   public async contactRawPayload (contactId: string): Promise<PadproContactPayload> {
@@ -1027,7 +1042,7 @@ export class PadproManager extends PadproGrpc {
     const { signature, sex, country, province, city } = self
 
     await this.GrpcSetUserInfo(newName, signature, sex.toString(), country, province, city)
-    this.contactRawPayloadDirty(this.userId)
+    await this.contactRawPayloadDirty(this.userId)
   }
 
   public async updateSelfSignature (signature: string): Promise<void> {
@@ -1038,7 +1053,7 @@ export class PadproManager extends PadproGrpc {
     const { nickName, sex, country, province, city } = self
 
     await this.GrpcSetUserInfo(nickName, signature, sex.toString(), country, province, city)
-    this.contactRawPayloadDirty(this.userId)
+    await this.contactRawPayloadDirty(this.userId)
   }
 
   public async shareContactCard (

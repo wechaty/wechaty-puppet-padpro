@@ -691,7 +691,7 @@ export class PuppetPadpro extends Puppet {
     log.verbose(PRE, 'contactPayloadDirty(%s)', contactId)
 
     if (this.padproManager) {
-      this.padproManager.contactRawPayloadDirty(contactId)
+      await this.padproManager.contactRawPayloadDirty(contactId)
     }
 
     await super.contactPayloadDirty(contactId)

@@ -1,1 +1,2 @@
-export * from './config-utils'
+export * from './config-util'
+export * from './contact-util'
