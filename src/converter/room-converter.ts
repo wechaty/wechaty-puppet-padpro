@@ -21,7 +21,7 @@ export const convertRoom = (input: GrpcRoomRawPayload): PadproRoomPayload => {
     try {
       memberList = JSON.parse(input.ExtInfo)
     } catch (_) {
-      log.verbose(PRE, `convertRoom() convert to json failed for room payload: ${JSON.stringify(input)}`)
+      log.verbose(PRE, `convertRoom() use alternative way to convert.`)
       memberList = input.ExtInfo.split(',').map(id => ({ Wxid: id }))
     }
     return {
