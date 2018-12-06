@@ -2,7 +2,9 @@ import { ApiOption } from './interface'
 
 export const GrpcGetContact: ApiOption = {}
 
-export const GrpcSyncContact: ApiOption = {}
+export const GrpcSyncContact: ApiOption = {
+  longRequest: true,
+}
 
 export const GrpcContactOperation: ApiOption = {}
 

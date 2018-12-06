@@ -204,3 +204,8 @@ export enum AutoLoginError {
 export enum EncryptionServiceError {
   NO_SESSION = 'NO_SESSION',
 }
+
+export enum GrpcSelfAvatarType {
+  CURRENT = 1,
+  OLD     = 2,
+}

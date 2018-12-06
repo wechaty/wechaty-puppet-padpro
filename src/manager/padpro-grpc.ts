@@ -9,11 +9,10 @@ import {
   GrpcGetMsgImageType,
   GrpcGetMsgVoiceType,
   GrpcGetQRCodeType,
-  GrpcMessagePayload,
   GrpcQrcodeLoginType,
   GrpcRoomMemberRawPayload,
   GrpcRoomRawPayload,
-  GrpcSyncContactPayload,
+  GrpcSyncMessagePayload,
 } from '../schemas/grpc-schemas'
 
 import { generateContactXMLMessage, isRoomId } from '../pure-function-helpers'
@@ -55,8 +54,13 @@ export class PadproGrpc extends EventEmitter {
   }
 
   protected async GrpcSyncMessage ()
-    : Promise<Array<GrpcMessagePayload | GrpcContactRawPayload | GrpcRoomRawPayload> | null> {
-    return this.wechatGateway.callApi('GrpcSyncMessage')
+    : Promise<GrpcSyncMessagePayload[] | null> {
+    const result: any = await this.wechatGateway.callApi('GrpcSyncMessage')
+    if (result === null) {
+      return null
+    } else {
+      return result.data !== null ? result.data : []
+    }
   }
 
   public async GrpcGetQRCode (): Promise<GrpcGetQRCodeType> {
@@ -207,25 +211,6 @@ export class PadproGrpc extends EventEmitter {
     } else {
       return result
     }
-  }
-
-  /**
-   * This function will return at most 100 wxid for either contacts or rooms
-   * Use the contactSeq or roomSeq to sync contact continuously
-   * @param contactSeq contact sequence number
-   * @param roomSeq room sequence number
-   */
-  protected async GrpcSyncContact (
-    contactSeq: number = 0,
-    roomSeq   : number = 0,
-  ): Promise<GrpcSyncContactPayload> {
-    log.silly(PRE, `GrpcSyncContact(contactSeq: ${contactSeq}, roomSeq: ${roomSeq})`)
-    const result: GrpcSyncContactPayload = await this.wechatGateway.callApi('GrpcSyncContact', {
-      CurrentChatRoomContactSeq: roomSeq,
-      CurrentWxcontactSeq      : contactSeq,
-    })
-    // log.silly(PRE, `GrpcSyncContact() result: ${JSON.stringify(result)}`)
-    return result
   }
 
   /**

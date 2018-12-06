@@ -217,7 +217,6 @@ export class PuppetPadpro extends Puppet {
       throw new Error('no padpro manager')
     }
     await super.login(selfId)
-    void this.padproManager.syncContactsAndRooms()
   }
 
   public async startManager (manager: PadproManager): Promise<void> {
@@ -699,7 +698,6 @@ export class PuppetPadpro extends Puppet {
   }
 
   public async contactRawPayload (contactId: string): Promise<PadproContactPayload> {
-    log.silly(PRE, 'contactRawPayload(%s)', contactId)
 
     if (!this.id) {
       throw Error('bot not login!')
@@ -714,7 +712,6 @@ export class PuppetPadpro extends Puppet {
   }
 
   public async contactRawPayloadParser (rawPayload: PadproContactPayload): Promise<ContactPayload> {
-    log.silly(PRE, `contactRawPayloadParser(${rawPayload.userName})`)
 
     const payload: ContactPayload = contactRawPayloadParser(rawPayload)
 
@@ -1074,7 +1071,6 @@ export class PuppetPadpro extends Puppet {
    *
    */
   public async roomMemberPayloadDirty (roomId: string) {
-    log.silly(PRE, `roomMemberRawPayloadDirty(${roomId})`)
 
     if (this.padproManager) {
       await this.padproManager.roomMemberRawPayloadDirty(roomId)
@@ -1087,7 +1083,6 @@ export class PuppetPadpro extends Puppet {
     roomId    : string,
     contactId : string,
   ): Promise<PadproRoomMemberPayload> {
-    log.silly(PRE, `roomMemberRawPayload(${roomId})`)
 
     if (!this.padproManager) {
       throw new Error('no padpro manager')
@@ -1101,7 +1096,6 @@ export class PuppetPadpro extends Puppet {
   public async roomMemberRawPayloadParser (
     rawPayload: PadproRoomMemberPayload,
   ): Promise<RoomMemberPayload> {
-    log.silly(PRE, `roomMemberRawPayloadParser(${rawPayload})`)
 
     const payload: RoomMemberPayload = {
       avatar    : rawPayload.bigHeadUrl,
@@ -1115,7 +1109,6 @@ export class PuppetPadpro extends Puppet {
   }
 
   public async roomPayloadDirty (roomId: string): Promise<void> {
-    log.verbose(PRE, `roomPayloadDirty(${roomId})`)
 
     if (this.padproManager) {
       this.padproManager.roomRawPayloadDirty(roomId)
@@ -1127,7 +1120,6 @@ export class PuppetPadpro extends Puppet {
   public async roomRawPayload (
     roomId: string,
   ): Promise<PadproRoomPayload> {
-    log.verbose(PRE, `roomRawPayload(${roomId})`)
 
     if (!this.padproManager) {
       throw new Error('no padpro manager')
@@ -1140,7 +1132,6 @@ export class PuppetPadpro extends Puppet {
   }
 
   public async roomRawPayloadParser (rawPayload: PadproRoomPayload): Promise<RoomPayload> {
-    log.verbose(PRE, `roomRawPayloadParser(rawPayload.user_name="${rawPayload.chatroomId}")`)
 
     const payload: RoomPayload = roomRawPayloadParser(rawPayload)
     return payload

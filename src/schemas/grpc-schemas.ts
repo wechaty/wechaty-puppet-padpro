@@ -4,7 +4,7 @@ import {
   CheckQRCodeStatus,
   ContactOperationBitVal,
   ContactOperationCmdId,
-  PadproContinue,
+  GrpcSelfAvatarType,
   PadproMessageStatus,
   PadproMessageType,
   PadproRoomMemberFlag,
@@ -101,13 +101,6 @@ export interface GrpcWxidItem {
   Username: string
 }
 
-export interface GrpcSyncContactPayload {
-  CurrentWxcontactSeq: number,
-  CurrentChatRoomContactSeq: number,
-  ContinueFlag: PadproContinue,
-  UsernameLists: GrpcWxidItem[]
-}
-
 /**
  * ******************************************************************************************************************
  * ----------------------------------------- Message related interface ----------------------------------------------
@@ -143,6 +136,36 @@ export interface GrpcMessagePayload {
   PushContent: string,
   NewMsgId: number
 }
+
+export interface GrpcSelfInfoPayload {
+  Alias: string,                           // "",             -> weixin id
+  BindUin: string,                         // 251642490,      -> QQ number
+  MsgType: PadproMessageType,              // 101,
+  Signature: string,                       // "",
+  UserName: string,                        // "lylezhuifeng", -> unique id
+  NickName: string,                        // "高原ོ",
+  Sex: ContactGender,                      // 1,
+  Province: string,                        // "Beijing",
+  City: string,                            // "",
+  BindEmail: string,                       // "lylezhuifeng@qq.com",
+  BindMobile: string,                      // "13999999999"
+}
+
+export interface GrpcSelfAvatarPayload {
+  MsgType: PadproMessageType,                      // 35,
+  ImgType: GrpcSelfAvatarType,                     // 1,
+  ImgLen: number,                                  // 4218,
+  ImgBuf: string,                                  // "/5FQ9qFCup5OcSStjioHU0GNcbDPiSmkusuMq6kqHtQoUoTjVpATIcA7KwKftA0KFZ2WIkou2APWkl/vLohKtwBnFChQXYZE5DJCRUk0TmhQqIguCcUKFCmAf/Z",
+  ImgMd5: string,                                  // "0144847978f6667ed59cc3d2b4350eb5",
+  BigHeadImgUrl: string,                           // "http://wx.qlogo.cn/mmhead/KDLS0iaeMdibHvaeoZVaPM/132",
+  SmallHeadImgUrl: string,                         // "http://wx.qlogo.cn/mmhead/KDLS0fhbZw1jQScfCqfVaPM/0"
+}
+
+export type GrpcSyncMessagePayload = GrpcMessagePayload
+                                   | GrpcContactRawPayload
+                                   | GrpcRoomRawPayload
+                                   | GrpcSelfInfoPayload
+                                   | GrpcSelfAvatarPayload
 
 /**
  * ******************************************************************************************************************

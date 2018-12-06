@@ -14,12 +14,16 @@ import { StateSwitch }        from 'state-switch'
 import {
   AutoLoginError,
   CheckQRCodeStatus,
+  ContactType,
   EncryptionServiceError,
   GrpcContactRawPayload,
   GrpcMessagePayload,
   GrpcRoomRawPayload,
+  GrpcSelfAvatarPayload,
+  GrpcSelfAvatarType,
+  GrpcSelfInfoPayload,
+  GrpcSyncMessagePayload,
   PadproContactPayload,
-  PadproContinue,
   PadproMemberBrief,
   PadproMessagePayload,
   PadproMessageType,
@@ -33,12 +37,12 @@ import { PadproGrpc } from './padpro-grpc'
 
 import {
   fileBoxToQrcode,
-  isContactId,
   isRoomId,
+  isStrangerV1,
   voicePayloadParser,
 }                   from '../pure-function-helpers'
 
-import { log } from '../config'
+import { log, WAIT_FOR_READY_TIME } from '../config'
 import { retry } from '../utils'
 
 import {
@@ -77,7 +81,17 @@ export class PadproManager extends PadproGrpc {
   private throttleQueue?: ThrottleQueue
   private throttleQueueSubscription?: Subscription
 
-  private messageSyncCounter: number
+  private selfContact: GrpcContactRawPayload
+
+  private messageBuffer: GrpcMessagePayload[]
+
+  private contactAndRoomData?: {
+    contactTotal: number,
+    friendTotal: number,
+    roomTotal: number,
+    updatedTime: number,
+    readyEmitted: boolean,
+  }
 
   constructor (
     public options: ManagerOptions,
@@ -87,11 +101,12 @@ export class PadproManager extends PadproGrpc {
 
     this.state = new StateSwitch('PadproManager')
 
-    this.messageSyncCounter = 0
+    this.selfContact = this.getEmptySelfContact()
+
+    this.messageBuffer = []
 
     this.wechatGateway.on('newMessage', () => {
-      this.messageSyncCounter ++
-      if (this.messageSyncCounter === 1) {
+      if (this.userId) {
         void this.syncMessage()
       }
     })
@@ -123,6 +138,9 @@ export class PadproManager extends PadproGrpc {
     this.debounceQueue = new DebounceQueue(30 * 1000)
     this.debounceQueueSubscription = this.debounceQueue.subscribe(() => {
       const heartbeatResult = this.GrpcHeartBeat()
+
+      this.setContactAndRoomData()
+
       log.silly(PRE, `debounceQueue heartbeat result: ${JSON.stringify(heartbeatResult)}`)
     })
 
@@ -182,8 +200,54 @@ export class PadproManager extends PadproGrpc {
 
     const contactTotal = this.cacheContactRawPayload.size
     const roomTotal = this.cacheRoomRawPayload.size
+    this.setContactAndRoomData()
 
     log.verbose(PRE, `initCache() inited ${contactTotal} Contacts, ${roomMemberTotal} RoomMembers, ${roomTotal} Rooms, cachedir="${baseDir}"`)
+  }
+
+  private setContactAndRoomData () {
+    if (!this.cacheContactRawPayload || !this.cacheRoomRawPayload || ! this.cacheRoomMemberRawPayload) {
+      log.warn(PRE, `setContactAndRoomData() can not proceed due to no cache.`)
+      return
+    }
+    const contactTotal = this.cacheContactRawPayload.size
+    const roomTotal = this.cacheRoomRawPayload.size
+    const friendTotal = [...this.cacheContactRawPayload.values()].filter(contact => {
+      isStrangerV1(contact.stranger)
+    }).length
+    const now = new Date().getTime()
+    if (this.contactAndRoomData) {
+
+      if (this.contactAndRoomData.contactTotal === contactTotal
+       && this.contactAndRoomData.roomTotal    === roomTotal
+       && this.contactAndRoomData.friendTotal  === friendTotal) {
+        if (now - this.contactAndRoomData.updatedTime > WAIT_FOR_READY_TIME
+          && !this.contactAndRoomData.readyEmitted) {
+          log.info(PRE, `setContactAndRoomData() more than ${WAIT_FOR_READY_TIME / 1000 / 60} minutes no change on data, emit ready event.`)
+          this.emit('ready')
+        }
+        log.silly(PRE, `setContactAndRoomData() found contact, room, friend data no change.`)
+      } else {
+        log.silly(PRE, `setContactAndRoomData() found contact or room or friend change. Record changes...`)
+        this.contactAndRoomData.contactTotal = contactTotal
+        this.contactAndRoomData.roomTotal    = roomTotal
+        this.contactAndRoomData.friendTotal  = friendTotal
+        this.contactAndRoomData.updatedTime  = now
+      }
+    } else {
+      log.silly(PRE, `setContactAndRoomData() initialize contact and room data.`)
+      this.contactAndRoomData = {
+        contactTotal,
+        friendTotal,
+        readyEmitted: false,
+        roomTotal,
+        updatedTime: now,
+      }
+    }
+  }
+
+  private clearContactAndRoomData () {
+    this.contactAndRoomData = undefined
   }
 
   /**
@@ -292,6 +356,10 @@ export class PadproManager extends PadproGrpc {
     this.userId          = undefined
     this.loginScanQrCode = undefined
     this.loginScanStatus = undefined
+    this.messageBuffer   = []
+    this.selfContact     = this.getEmptySelfContact()
+
+    this.clearContactAndRoomData()
 
     this.state.off(true)
   }
@@ -303,24 +371,15 @@ export class PadproManager extends PadproGrpc {
       log.verbose(PRE, `reconnected(${userId})`)
       return
     }
-    this.userId = userId
 
     await this.stopCheckScan()
 
     /**
      * Init persistence cache
      */
-    await this.initCache(this.options.token, this.userId)
+    await this.initCache(this.options.token, userId)
 
-    /**
-     * Refresh the login-ed user payload
-     */
-    if (this.cacheContactRawPayload) {
-      this.cacheContactRawPayload.delete(this.userId)
-      await this.contactRawPayload(this.userId)
-    }
-
-    this.emit('login', this.userId)
+    await this.initData()
   }
 
   public async logout (): Promise<void> {
@@ -332,7 +391,11 @@ export class PadproManager extends PadproGrpc {
     }
 
     this.releaseQueue()
-    this.userId = undefined
+    this.userId        = undefined
+    this.messageBuffer = []
+    this.selfContact   = this.getEmptySelfContact()
+
+    this.clearContactAndRoomData()
     await this.releaseCache()
   }
 
@@ -457,15 +520,20 @@ export class PadproManager extends PadproGrpc {
   }
 
   private async syncMessage () {
-    log.silly(PRE, `syncMessage() current counter is: ${this.messageSyncCounter}`)
+    log.silly(PRE, `syncMessage()`)
     const messages = await this.GrpcSyncMessage()
-    this.messageSyncCounter--
     if (messages === null) {
       log.verbose(PRE, `syncMessage() got empty response.`)
       return
     }
     log.verbose(PRE, `syncMessage() got ${messages.length} message(s).`)
 
+    await this.processMessages(messages)
+  }
+
+  private async processMessages (
+    messages: GrpcSyncMessagePayload[]
+  ): Promise<void> {
     messages.forEach(async m => {
 
       /**
@@ -483,7 +551,16 @@ export class PadproManager extends PadproGrpc {
           const newRoom = convertRoom(room)
 
           if (!savedRoom || !this.memberIsSame(savedRoom.members, newRoom.members)) {
-            await this.syncRoomMember(newRoom.chatroomId)
+            const roomMemberDict = await this.syncRoomMember(newRoom.chatroomId)
+            if (Object.keys(roomMemberDict).length === 0) {
+              log.verbose(PRE, `syncContactsAndRooms() got deleted room: ${room.UserName}`)
+              if (savedRoom) {
+                this.roomRawPayloadDirty(room.UserName)
+                this.roomMemberRawPayloadDirty(room.UserName)
+              }
+            } else {
+              this.cacheRoomRawPayload.set(room.UserName, convertRoom(room))
+            }
           }
 
           this.cacheRoomRawPayload.set(newRoom.chatroomId, newRoom)
@@ -495,6 +572,34 @@ export class PadproManager extends PadproGrpc {
           this.cacheContactRawPayload.set(contact.UserName, convertContact(contact))
         }
 
+        return
+      }
+
+      if (m.MsgType === PadproMessageType.SelfInfo) {
+        const payload = m as GrpcSelfInfoPayload
+
+        this.selfContact.Alias = payload.Alias
+        this.selfContact.City = payload.City
+        this.selfContact.NickName = payload.NickName
+        this.selfContact.Province = payload.Province
+        this.selfContact.Sex = payload.Sex
+        this.selfContact.Signature = payload.Signature
+        this.selfContact.UserName = payload.UserName
+        this.tryEmitLogin()
+        return
+      }
+
+      if (m.MsgType === PadproMessageType.SelfAvatar) {
+        const payload = m as GrpcSelfAvatarPayload
+        if (payload.ImgType === GrpcSelfAvatarType.CURRENT) {
+          /**
+           * Bug data below, small head url actually contains big head url
+           * So reverse the data below
+           */
+          this.selfContact.BigHeadImgUrl = payload.SmallHeadImgUrl
+          this.selfContact.SmallHeadImgUrl = payload.BigHeadImgUrl
+          this.tryEmitLogin()
+        }
         return
       }
 
@@ -511,11 +616,54 @@ export class PadproManager extends PadproGrpc {
        * Message emit here should all be valid message
        */
       // console.log(JSON.stringify(m))
-      this.emit('message', convertMessage(m as GrpcMessagePayload))
+      if (!this.userId) {
+        this.messageBuffer.push(m as GrpcMessagePayload)
+      } else {
+        this.emit('message', convertMessage(m as GrpcMessagePayload))
+      }
     })
+  }
 
-    if (this.messageSyncCounter !== 0) {
-      void this.syncMessage()
+  private tryEmitLogin () {
+    if (this.selfContact.UserName !== '' && this.selfContact.BigHeadImgUrl !== '' && !this.userId) {
+
+      if (!this.cacheContactRawPayload) {
+        throw Error(`${PRE} tryEmitLogin() has no contact cache.`)
+      }
+      this.cacheContactRawPayload.set(this.selfContact.UserName, convertContact(this.selfContact))
+      this.userId = this.selfContact.UserName
+      this.emit('login', this.selfContact.UserName)
+      this.releaseBufferedMessage()
+    }
+  }
+
+  private releaseBufferedMessage () {
+    this.messageBuffer.forEach(m => {
+      this.emit('message', convertMessage(m))
+    })
+  }
+
+  /**
+   * Return an empty contact which can be used as the self contact
+   */
+  private getEmptySelfContact () {
+    return {
+      Alias          : '',
+      BigHeadImgUrl  : '',
+      City           : '',
+      ContactType    : ContactType.Personal,
+      EncryptUsername: '',
+      LabelLists     : '',
+      MsgType        : PadproMessageType.Contact,
+      NickName       : '',
+      Province       : '',
+      Remark         : '',
+      Sex            : 0,
+      Signature      : '',
+      SmallHeadImgUrl: '',
+      Ticket         : '',
+      UserName       : '',
+      VerifyFlag     : 0,
     }
   }
 
@@ -722,72 +870,29 @@ export class PadproManager extends PadproGrpc {
     return newMemberDict
   }
 
-  public async syncContactsAndRooms (): Promise<void> {
-    log.verbose(PRE, `syncContactsAndRooms()`)
+  /**
+   * Init data needed for Padpro, includes self contact data, all contact data, all room data and all room member data
+   */
+  private async initData (): Promise<void> {
+    log.silly(PRE, `initData() started`)
 
-    let contactAndRoomIdList: string[] = []
-    let contactSeq = 0
-    let roomSeq = 0
-
-    let cont = true
-    while (cont && this.state.on() && this.userId) {
-      const syncContactPayload = await this.GrpcSyncContact(contactSeq, roomSeq)
-      const {
-        CurrentWxcontactSeq,
-        CurrentChatRoomContactSeq,
-        ContinueFlag,
-        UsernameLists
-      } = syncContactPayload
-
-      contactAndRoomIdList = contactAndRoomIdList.concat(UsernameLists.map(x => x.Username))
-      contactSeq = CurrentWxcontactSeq
-      roomSeq = CurrentChatRoomContactSeq
-      cont = ContinueFlag === PadproContinue.Go
-
+    let finished = false
+    while (!finished) {
+      const data = await this.GrpcSyncMessage()
+      if (data === null) {
+        await new Promise(r => setTimeout(r, 1000))
+        continue
+      }
+      await this.processMessages(data)
+      finished = data.length === 0
       await new Promise(r => setTimeout(r, 500))
-      log.silly(PRE, `syncContactsAndRooms() fetched ${contactAndRoomIdList.length} ids.`)
     }
-
-    log.info(PRE, `syncContactsAndRooms() got ${contactAndRoomIdList.length} contacts and rooms in total.`)
 
     if (!this.cacheContactRawPayload || !this.cacheRoomRawPayload || !this.cacheRoomMemberRawPayload) {
-      throw new Error('no cache when syncing contacts and rooms')
-    }
-    const contactIdList = contactAndRoomIdList.filter(id => isContactId(id))
-    const roomIdList = contactAndRoomIdList.filter(id => isRoomId(id))
-
-    for (let i = 0; i < contactIdList.length; i += 20) {
-      const ids = contactIdList.slice(i, i + 20)
-      const rawContactPayloads = await this.GrpcGetContactPayload(ids)
-
-      for (const payload of rawContactPayloads) {
-        this.cacheContactRawPayload.set(payload.UserName, convertContact(payload))
-      }
-      await new Promise(r => setTimeout(r, 500))
+      throw new Error(`${PRE} initData() has no contact or room or room member cache.`)
     }
 
-    for (let i = 0; i < roomIdList.length; i += 20) {
-      const ids = roomIdList.slice(i, i + 20)
-      const rawRoomPayloads = await this.GrpcGetRoomPayload(ids)
-
-      await new Promise(r => setTimeout(r, 1000))
-      for (const payload of rawRoomPayloads) {
-        const savedRoom = this.cacheRoomRawPayload.get(payload.UserName)
-        const newRoom = convertRoom(payload)
-
-        if (!savedRoom || !this.memberIsSame(savedRoom.members, newRoom.members)) {
-          const roomMemberDict = await this.syncRoomMember(newRoom.chatroomId)
-          if (Object.keys(roomMemberDict).length === 0) {
-            log.verbose(PRE, `syncContactsAndRooms() got deleted room: ${payload.UserName}`)
-          } else {
-            this.cacheRoomRawPayload.set(payload.UserName, convertRoom(payload))
-          }
-        }
-
-        await new Promise(r => setTimeout(r, 1000))
-      }
-    }
-
+    log.info(PRE, `initData() finished with contacts: ${this.cacheContactRawPayload.size}, rooms: ${this.cacheRoomRawPayload.size}`)
     this.emit('ready')
   }
 
@@ -803,10 +908,8 @@ export class PadproManager extends PadproGrpc {
   }
 
   public async contactRawPayload (contactId: string): Promise<PadproContactPayload> {
-    log.silly(PRE, `contactRawPayload(${contactId})`)
 
-    const rawPayload = await retry(async (retryException, attempt) => {
-      log.silly(PRE, `contactRawPayload(${contactId}) retry() attempt=${attempt}`)
+    const rawPayload = await retry(async (retryException) => {
 
       if (!this.cacheContactRawPayload) {
         log.error(PRE, `contactRawPayload() cache not inited`)
@@ -826,7 +929,6 @@ export class PadproManager extends PadproGrpc {
       } else if (tryRawPayload) {
         // If the payload is valid but we don't have UserName inside it,
         // consider this payload as invalid one and do not retry
-        // Correct me if I am wrong here
         return null
       }
       return retryException(new Error('tryRawPayload empty'))
@@ -839,7 +941,6 @@ export class PadproManager extends PadproGrpc {
   }
 
   public async roomRawPayload (id: string): Promise<PadproRoomPayload> {
-    log.verbose(PRE, `roomRawPayload(${id})`)
 
     const rawPayload = await retry(async (retryException, attempt) => {
       log.silly(PRE, `roomRawPayload(${id}) retry() attempt=${attempt}`)
