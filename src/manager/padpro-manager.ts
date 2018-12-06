@@ -224,6 +224,7 @@ export class PadproManager extends PadproGrpc {
         if (now - this.contactAndRoomData.updatedTime > WAIT_FOR_READY_TIME
           && !this.contactAndRoomData.readyEmitted) {
           log.info(PRE, `setContactAndRoomData() more than ${WAIT_FOR_READY_TIME / 1000 / 60} minutes no change on data, emit ready event.`)
+          this.contactAndRoomData.readyEmitted = true
           this.emit('ready')
         }
         log.silly(PRE, `setContactAndRoomData() found contact, room, friend data no change.`)
