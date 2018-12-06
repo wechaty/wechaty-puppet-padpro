@@ -894,7 +894,6 @@ export class PadproManager extends PadproGrpc {
     }
 
     log.info(PRE, `initData() finished with contacts: ${this.cacheContactRawPayload.size}, rooms: ${this.cacheRoomRawPayload.size}`)
-    this.emit('ready')
   }
 
   public contactRawPayloadDirty (
