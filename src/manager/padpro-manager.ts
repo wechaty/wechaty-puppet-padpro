@@ -639,9 +639,10 @@ export class PadproManager extends PadproGrpc {
   }
 
   private releaseBufferedMessage () {
-    this.messageBuffer.forEach(m => {
-      this.emit('message', convertMessage(m))
-    })
+    while (this.messageBuffer.length > 0) {
+      const message = this.messageBuffer.shift()
+      this.emit('message', convertMessage(message!))
+    }
   }
 
   /**
