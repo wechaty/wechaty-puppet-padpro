@@ -6,6 +6,7 @@ import {
   GrpcContactRawPayload,
   GrpcCreateRoomPayload,
   GrpcGetA8KeyType,
+  GrpcGetContactQrcodePayload,
   GrpcGetMsgImageType,
   GrpcGetMsgVoiceType,
   GrpcGetQRCodeType,
@@ -257,10 +258,10 @@ export class PadproGrpc extends EventEmitter {
    */
   public async GrpcGetContactQrcode (contactId: string) {
     log.silly(PRE, `GrpcGetContactQrcode(${contactId})`)
-    const result = await this.wechatGateway.callApi('GrpcGetContactQrcode', {
-      Style: 0,
-      Useranme: contactId,
+    const result: GrpcGetContactQrcodePayload = await this.wechatGateway.callApi('GrpcGetContactQrcode', {
+      Username: contactId,
     })
+
     return result
   }
 

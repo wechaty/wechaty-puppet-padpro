@@ -664,11 +664,16 @@ export class PuppetPadpro extends Puppet {
     return this.getQRCode(this.padproManager, contactName, contactId)
   }
 
-  private async getQRCode (manager: PadproManager, contactName: string,
-                           contactId: string, counter?: number): Promise<string> {
-    const base64 = await manager.GrpcGetContactQrcode(contactId)
+  private async getQRCode (
+    manager    : PadproManager,
+    contactName: string,
+    contactId  : string,
+    counter?   : number
+  )            : Promise<string> {
+    const result = await manager.GrpcGetContactQrcode(contactId)
+    const base64 = result.QrcodeBuf
 
-    const fileBox        = FileBox.fromBase64(base64, `${contactName}.jpg`)
+    const fileBox = FileBox.fromBase64(base64, `${contactName}.jpg`)
     try {
       // There are some styles of qrcode can not be parsed by the library we are using,
       // So added a retry mechanism here to guarantee the qrcode
@@ -1202,11 +1207,13 @@ export class PuppetPadpro extends Puppet {
       throw new Error(`userSelf not in this room: ${roomId}`)
     }
 
-    const base64 = await this.padproManager!.GrpcGetContactQrcode(roomId)
+    const result = await this.padproManager!.GrpcGetContactQrcode(roomId)
+    const base64 = result.QrcodeBuf
 
     const roomPayload = await this.roomPayload(roomId)
     const roomName    = roomPayload.topic || roomPayload.id
     const fileBox     = FileBox.fromBase64(base64, `${roomName}-qrcode.jpg`)
+    await fileBox.toFile()
 
     const qrcode = await fileBoxToQrcode(fileBox)
 

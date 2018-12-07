@@ -8,7 +8,9 @@ export const GrpcSyncContact: ApiOption = {
 
 export const GrpcContactOperation: ApiOption = {}
 
-export const GrpcGetContactQrcode: ApiOption = {}
+export const GrpcGetContactQrcode: ApiOption = {
+  longRequest: true,
+}
 
 export const GrpcAddFriend: ApiOption = {}
 

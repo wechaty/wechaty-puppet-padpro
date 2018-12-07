@@ -281,3 +281,8 @@ export interface GrpcGetA8KeyType {
   XWechatKey: string,
   XWechatUin: string,
 }
+
+export interface GrpcGetContactQrcodePayload {
+  QrcodeBuf: string,
+  FoterWording: string,
+}
