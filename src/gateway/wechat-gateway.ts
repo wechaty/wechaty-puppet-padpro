@@ -10,6 +10,8 @@ import net, { Socket } from 'net'
 import { ApiOptions } from '../api-options'
 import {
   log,
+  SEND_SHORT_RETRY_COUNT,
+  SEND_SHORT_TIMEOUT,
 } from '../config'
 import { WX_LONG_HOST, WX_SHORT_HOST } from '../consts'
 
@@ -220,7 +222,21 @@ export class WechatGateway extends EventEmitter {
     return wechatConnection && this.grpcGateway.isAlive()
   }
 
-  private async sendShort (res: PackShortRes, noParse?: boolean): Promise<Buffer> {
+  private async sendShort (res: PackShortRes, noParse?: boolean, retry = SEND_SHORT_RETRY_COUNT): Promise<Buffer> {
+    try {
+      const result = await this._sendShort(res, noParse)
+      return result
+    } catch (e) {
+      if (retry > 0) {
+        log.info(PRE, `sendShort() failed for error: ${e}, retry the api.`)
+        return this.sendShort(res, noParse, retry - 1)
+      } else {
+        throw e
+      }
+    }
+  }
+
+  private async _sendShort (res: PackShortRes, noParse?: boolean): Promise<Buffer> {
     log.silly(PRE, `sendShort() res: commandUrl: ${res.commandUrl}`)
     const options: RequestOptions = {
       headers: {
@@ -242,10 +258,6 @@ export class WechatGateway extends EventEmitter {
         const rawData: any = []
         let dataLen = 0
 
-        const timeoutTimer = setTimeout(() => {
-          reject(`sendShort failed: timeout.`)
-        }, 10000)
-
         if (response.statusCode !== 200) {
           reject(`sendShort failed, status code: ${response.statusCode}, status message: ${response.statusMessage}`)
         }
@@ -258,7 +270,6 @@ export class WechatGateway extends EventEmitter {
         })
         response.on('end', () => {
           const buffer = Buffer.concat(rawData, dataLen)
-          clearTimeout(timeoutTimer)
           // Short request parse judgement
           if (!noParse && buffer[0] !== 191) {
             reject(`sendShort receive unknown package: [${buffer[0]}] ${buffer.toString('hex')} ${buffer.toString()}]`)
@@ -266,9 +277,13 @@ export class WechatGateway extends EventEmitter {
           resolve(buffer)
         })
       })
-      req.setTimeout(5000)
+      req.setTimeout(SEND_SHORT_TIMEOUT)
       req.on('error', (error: Error) => {
         reject(error)
+      })
+      req.on('timeout', () => {
+        req.abort()
+        reject(`TIMEOUT`)
       })
       req.write(res.payload)
       req.end()

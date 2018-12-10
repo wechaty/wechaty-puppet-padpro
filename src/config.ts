@@ -17,6 +17,10 @@ export const MESSAGE_CACHE_MAX = 1000
 
 export const WAIT_FOR_READY_TIME = 3 * 60 * 1000
 
+export const SEND_SHORT_TIMEOUT = 5 * 1000
+
+export const SEND_SHORT_RETRY_COUNT = 5
+
 export const NO_RETRY_ERROR_MESSAGE = [
   'NO_SESSION',
   'INVALID_TOKEN',
