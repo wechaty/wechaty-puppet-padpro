@@ -325,11 +325,22 @@ const sampleLink: PadproMessagePayload = {
 test('Should be able to parse url link message successfully', async (t) => {
   const payload = await appMessageParser(sampleLink)
   const expectedResult = {
+    md5: '',
     title: '全球最惨烈的房地产泡沫，是怎么滋生、膨胀、破灭的？',
     des: '十次危机九次地产，过去一百年有四次波澜壮阔的房地产危机，每一次都影响深远，猫哥打算分两期跟大家回顾这四次地产危机，个中滋味各自体会。',
     url: 'http://mp.weixin.qq.com/s?__biz=MjM5MDY5NjI2MQ==&mid=2649758936&idx=1&sn=57c792c972163c93331c4e5daefe81d3&chksm=be446af28933e3e4a98dc8478cb72e43269dafefaa0241f5a2863d12540d37d56afff48f8617&mpshare=1&scene=1&srcid=0807oacxSyqTqFVtuXlErueP#rd',
     thumburl: 'http://mmbiz.qpic.cn/mmbiz_jpg/tft1HVJPPk9BOD3thBicXAzZpO117gbtVy8lhB7Pn3nsZtU7ydhUJQZdT33HEvnQynJgsib93JXbs1jBKjkMAJJA/300?wx_fmt=jpeg&wxfrom=1',
-    type: 5
+    type: 5,
+    appattach: {
+      aeskey: 'fe3ba55a0eec46cd8e66e6ae08f1c5e6',
+      attachid: '',
+      cdnthumbaeskey: 'fe3ba55a0eec46cd8e66e6ae08f1c5e6',
+      cdnattachurl: undefined,
+      emoticonmd5: '',
+      encryver: 0,
+      fileext: '',
+      totallen: 0
+    }
   }
   t.deepEqual(payload, expectedResult)
 })

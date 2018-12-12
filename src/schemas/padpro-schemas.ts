@@ -164,11 +164,24 @@ export interface PadproRoomInvitationPayload {
 }
 
 export interface PadproAppMessagePayload {
-  des?     : string,
-  thumburl?: string,
-  title    : string,
-  url      : string,
-  type     : WechatAppMessageType,
+  des?      : string,
+  thumburl? : string,
+  title     : string,
+  url       : string,
+  appattach?: PadproAppAttachPayload,
+  type      : WechatAppMessageType,
+  md5?      : string,
+}
+
+export interface PadproAppAttachPayload {
+  totallen?      : number,
+  attachid?      : string,
+  emoticonmd5?   : string,
+  fileext?       : string,
+  cdnattachurl?  : string,
+  aeskey?        : string,
+  cdnthumbaeskey?: string,
+  encryver?      : number,
 }
 
 export interface PadproEmojiMessagePayload {

@@ -60,6 +60,7 @@ import {
   friendshipVerifyEventMessageParser,
 
   generateAppXMLMessage,
+  generateAttachmentXMLMessageFromRaw,
 
   imagePayloadParser,
 
@@ -1062,12 +1063,39 @@ export class PuppetPadpro extends Puppet {
         receiver,
         await this.messageUrl(messageId)
       )
+    } else if (payload.type === MessageType.Attachment) {
+      await this.forwardAttachment(receiver, messageId)
     } else {
       await this.messageSendFile(
         receiver,
         await this.messageFile(messageId),
       )
     }
+  }
+
+  private async forwardAttachment (
+    receiver: Receiver,
+    messageId: string,
+  ): Promise<void> {
+    if (!this.padproManager) {
+      throw new Error('no padpro manager')
+    }
+
+    const rawPayload = await this.messageRawPayload(messageId)
+
+    // Send to the Room if there's a roomId
+    const id = receiver.roomId || receiver.contactId
+
+    if (!id) {
+      throw new Error('There is no receiver id when trying to forward attachment.')
+    }
+    const appPayload = await appMessageParser(rawPayload)
+    if (appPayload === null) {
+      throw new Error('Can not forward attachment, failed to parse xml message.')
+    }
+
+    const content = generateAttachmentXMLMessageFromRaw(appPayload)
+    await this.padproManager.GrpcSendApp(id, content)
   }
 
   /**
