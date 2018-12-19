@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-padpro",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "description": "Padpro Puppet for Wechaty",
   "directories": {
     "example": "examples"
@@ -81,6 +81,8 @@
   "homepage": "https://github.com/botorange/wechaty-puppet-padpro#readme",
   "dependencies": {
     "@babel/runtime": "7.2.0",
+    "@xanthous/file-box": "^0.8.27",
+    "@xanthous/wav-file-info": "^0.0.9",
     "array-flatten": "^2.1.1",
     "axios": "^0.18.0",
     "emoji-regex": "^7.0.0",

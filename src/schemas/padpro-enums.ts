@@ -182,7 +182,7 @@ export enum ContactOperationBitVal {
 }
 
 export enum GrpcVoiceFormat {
-  Arm  = 1,
+  Amr  = 1,
   Mp3  = 2,
   Wave = 3,
   Silk = 4,
