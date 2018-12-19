@@ -26,7 +26,6 @@ import {
   ContactOperationBitVal,
   ContactOperationCmdId,
   GrpcA8KeyScene,
-  GrpcVoiceFormat,
   PadproContactPayload,
   PadproImageMessagePayload,
   PadproMessagePayload,
@@ -410,15 +409,16 @@ export class PadproGrpc extends EventEmitter {
     contactId: string,
     data: string,
     voiceLength: number,
+    format: number,
   ) {
-    log.silly(PRE, `GrpcSendVoice()`)
+    log.silly(PRE, `GrpcSendVoice(${contactId}, voice, ${voiceLength})`)
     await this.wechatGateway.callApi('GrpcSendVoice', {
       Data: data,
       EndFlag: 1,
       Length: data.length,
       Offset: 0,
       ToUserName: contactId,
-      VoiceFormat: GrpcVoiceFormat.Silk,
+      VoiceFormat: format,
       VoiceLength: voiceLength,
     })
   }
