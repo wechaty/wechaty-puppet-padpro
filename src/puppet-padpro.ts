@@ -3,7 +3,7 @@
  *
  *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   Licensed under the Apache License, Version 2.0 (the "License")
  *   you may not use this file except in compliance with the License.
  *   You may obtain a copy of the License at
  *
@@ -17,11 +17,10 @@
  *
  */
 
-import path     from 'path'
-
 import flatten  from 'array-flatten'
 import getMp3Duration from 'get-mp3-duration'
 import LRU      from 'lru-cache'
+import path     from 'path'
 
 import wavFileInfo from '@xanthous/wav-file-info'
 import { promisify } from 'util'
