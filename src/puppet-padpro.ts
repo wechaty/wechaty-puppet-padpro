@@ -23,6 +23,9 @@ import flatten  from 'array-flatten'
 import getMp3Duration from 'get-mp3-duration'
 import LRU      from 'lru-cache'
 
+import wavFileInfo from '@xanthous/wav-file-info'
+import { promisify } from 'util'
+
 import { FileBox }    from 'file-box'
 
 import {
@@ -116,6 +119,8 @@ import { CDNManager } from './manager/cdn-manager'
 let PADPRO_COUNTER = 0 // PuppetPadpro Instance Counter
 
 const PRE = 'PuppetPadpro'
+
+const getWavInfoFromBuffer = promisify(wavFileInfo.infoByBuffer)
 
 export class PuppetPadpro extends Puppet {
   public static readonly VERSION = VERSION
@@ -970,7 +975,7 @@ export class PuppetPadpro extends Puppet {
     receiver : Receiver,
     file     : FileBox,
   ): Promise<void> {
-    log.verbose(PRE, `messageSend("${JSON.stringify(receiver)}", ${file})`)
+    log.verbose(PRE, `messageSendFile("${JSON.stringify(receiver)}", ${file})`)
 
     // Send to the Room if there's a roomId
     const id = receiver.roomId || receiver.contactId
@@ -987,8 +992,27 @@ export class PuppetPadpro extends Puppet {
       throw new Error(`${PRE} no cdn manager`)
     }
 
+    await file.syncRemoteName()
     const type = file.mimeType || path.extname(file.name)
+    log.silly(PRE, `fileType ${type}`)
     switch (type) {
+      case 'audio/wav':
+      case '.wav':
+        try {
+          const buffer = await file.toBuffer()
+          const { duration: voiceLength } = await getWavInfoFromBuffer(buffer.slice(0, 40), null)
+          await this.padproManager.GrpcSendVoice(
+            id,
+            await file.toBase64(),
+            voiceLength,
+            GrpcVoiceFormat.Wave,
+          )
+        } catch (e) {
+          throw Error('Can not send voice wav')
+        }
+        break
+
+      case 'audio/mp3':
       case '.mp3':
         try {
           const voiceLength = getMp3Duration(await file.toBuffer())
