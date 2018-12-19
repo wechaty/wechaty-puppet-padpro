@@ -18,10 +18,12 @@
  */
 
 import wavFileInfo from '@xanthous/wav-file-info'
+
 import path     from 'path'
+
 import flatten  from 'array-flatten'
-import LRU      from 'lru-cache'
 import getMp3Duration from 'get-mp3-duration'
+import LRU      from 'lru-cache'
 import { promisify } from 'util'
 
 import { FileBox }    from 'file-box'
@@ -99,6 +101,7 @@ import { PadproManager } from './manager/padpro-manager'
 
 import {
   FriendshipPayloadReceive,
+  GrpcVoiceFormat,
   PadproContactPayload,
   PadproMessagePayload,
   PadproMessageType,
@@ -106,7 +109,6 @@ import {
   PadproRoomMemberPayload,
   PadproRoomPayload,
   SearchContactTypeStatus,
-  GrpcVoiceFormat,
 }                           from './schemas'
 
 let PADPRO_COUNTER = 0 // PuppetPadpro Instance Counter
