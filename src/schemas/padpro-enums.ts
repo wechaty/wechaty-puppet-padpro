@@ -209,3 +209,14 @@ export enum GrpcSelfAvatarType {
   CURRENT = 1,
   OLD     = 2,
 }
+
+export enum CDNFileType {
+  ONE = 1,
+  THREE = 3,
+  FIVE = 5,
+}
+
+export enum CDNFileMd5Exist {
+  NON_EXIST = 0,
+  EXIST = 1,
+}

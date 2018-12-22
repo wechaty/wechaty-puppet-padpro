@@ -26,3 +26,5 @@ export const GrpcAutoLogin: ApiOption = {
 export const GrpcLogout: ApiOption = {}
 
 export const GrpcSetUserInfo: ApiOption = {}
+
+export const GrpcGetCdnDns: ApiOption = {}

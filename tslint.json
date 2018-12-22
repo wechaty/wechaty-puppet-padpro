@@ -12,6 +12,7 @@
     "max-line-length": false,
     "member-ordering": false,
     "space-within-parens": false,
+    "object-literal-sort-keys": false,
     "arrow-parens": false
   }
 }

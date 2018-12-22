@@ -54,7 +54,6 @@ import {
 } from '../converter'
 
 export interface ManagerOptions {
-  endpoint : string,
   token    : string,
 }
 
@@ -96,7 +95,7 @@ export class PadproManager extends PadproGrpc {
   constructor (
     public options: ManagerOptions,
   ) {
-    super(options.token, options.endpoint)
+    super()
     log.verbose(PRE, 'constructor()')
 
     this.state = new StateSwitch('PadproManager')

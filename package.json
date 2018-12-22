@@ -81,6 +81,7 @@
   "homepage": "https://github.com/botorange/wechaty-puppet-padpro#readme",
   "dependencies": {
     "@babel/runtime": "7.1.5",
+    "@types/public-ip": "^2.4.0",
     "array-flatten": "^2.1.1",
     "axios": "^0.18.0",
     "emoji-regex": "^7.0.0",
@@ -95,6 +96,7 @@
     "jsqr": "^1.1.0",
     "lru-cache": "^5.1.1",
     "promise-retry": "^1.1.1",
+    "public-ip": "^3.0.0",
     "qr-image": "^3.2.0",
     "qrcode": "^1.2.2",
     "read-pkg-up": "^4.0.0",

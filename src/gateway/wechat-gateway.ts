@@ -40,6 +40,8 @@ const PRE = 'WechatGateway'
 
 export class WechatGateway extends EventEmitter {
 
+  private static _instance?: WechatGateway
+
   private longHost: string
   private shortHost: string
 
@@ -52,7 +54,32 @@ export class WechatGateway extends EventEmitter {
 
   private dedupeApi: DedupeApi
 
-  constructor (
+  public static init (
+    token: string,
+    endpoint: string,
+    proxyEndpoint?: string,
+  ) {
+    log.info(PRE, `init(${token}, ${endpoint}, ${proxyEndpoint})`)
+    this._instance = new WechatGateway(token, endpoint, proxyEndpoint)
+  }
+
+  public static async release () {
+    if (this._instance) {
+      await this._instance.stop()
+      this._instance = undefined
+    } else {
+      log.verbose(PRE, `release() instance not exist, skip release.`)
+    }
+  }
+
+  public static get Instance (): WechatGateway {
+    if (!this._instance) {
+      throw new Error(`${PRE} wechat gateway instance not initialized.`)
+    }
+    return this._instance
+  }
+
+  private constructor (
     token: string,
     endpoint: string,
     proxyEndpoint?: string,
@@ -241,7 +268,8 @@ export class WechatGateway extends EventEmitter {
     const options: RequestOptions = {
       headers: {
         'Content-Length': res.payload.length,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type'  : 'application/x-www-form-urlencoded',
+        'User-Agent'    : 'MicroMessenger Client',
       },
       hostname: this.shortHost,
       method: 'POST',

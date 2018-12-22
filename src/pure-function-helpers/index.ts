@@ -33,3 +33,5 @@ export * from './split-name'
 
 export * from './app-message-generator'
 export * from './contact-message-generator'
+
+export * from './cdn-data-packer'

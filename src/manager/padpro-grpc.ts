@@ -43,15 +43,10 @@ export class PadproGrpc extends EventEmitter {
   protected wechatGateway: WechatGateway
 
   constructor (
-    protected token: string,
-    protected endpoint: string,
-    protected proxyEndpoint?: string,
   ) {
     super()
-    this.token = token
-    this.wechatGateway = new WechatGateway(token, endpoint, proxyEndpoint)
-
-    log.silly(PRE, `constructor(${token})`)
+    this.wechatGateway = WechatGateway.Instance
+    log.silly(PRE, `constructor()`)
   }
 
   protected async GrpcSyncMessage ()
@@ -150,7 +145,6 @@ export class PadproGrpc extends EventEmitter {
   }
 
   public async stop (): Promise<void> {
-    await this.wechatGateway.stop()
     log.verbose(PRE, 'stop()')
   }
 
