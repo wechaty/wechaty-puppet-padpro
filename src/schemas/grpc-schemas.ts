@@ -286,3 +286,25 @@ export interface GrpcGetContactQrcodePayload {
   QrcodeBuf: string,
   FoterWording: string,
 }
+
+export interface GrpcGetCdnDnsPayload {
+  dnsCdn: {
+    ver: string,
+    uin: string,
+    ip: string,
+    aesKey: string,
+  },
+  snsCdn: {
+    ver: string,
+    uin: string,
+    ip: string,
+    aesKey: string,
+  },
+  appCdn: {
+    ver: string,
+    uin: string,
+    ip: string,
+    aesKey: string,
+  },
+  clientVersion: number,
+}

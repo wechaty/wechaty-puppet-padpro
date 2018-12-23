@@ -111,6 +111,9 @@ import {
   SearchContactTypeStatus,
 }                           from './schemas'
 
+import { WechatGateway } from './gateway/wechat-gateway'
+import { CDNManager } from './manager/cdn-manager'
+
 let PADPRO_COUNTER = 0 // PuppetPadpro Instance Counter
 
 const PRE = 'PuppetPadpro'
@@ -123,7 +126,8 @@ export class PuppetPadpro extends Puppet {
   private padproCounter: number
   private readonly cachePadproMessagePayload: LRU.Cache<string, PadproMessagePayload>
 
-  private padproManager? : PadproManager
+  private padproManager?: PadproManager
+  private cdnManager?   : CDNManager
 
   constructor (
     public options: PuppetOptions = {},
@@ -209,8 +213,12 @@ export class PuppetPadpro extends Puppet {
      */
     this.state.on('pending')
 
+    await WechatGateway.init(
+      this.options.token     || padproToken(),
+      this.options.endpoint  || WECHATY_PUPPET_PADPRO_ENDPOINT,
+    )
+
     const manager = this.padproManager = new PadproManager({
-      endpoint : this.options.endpoint  || WECHATY_PUPPET_PADPRO_ENDPOINT,
       token    : this.options.token     || padproToken(),
     })
 
@@ -224,6 +232,10 @@ export class PuppetPadpro extends Puppet {
     if (!this.padproManager) {
       throw new Error('no padpro manager')
     }
+
+    this.cdnManager = new CDNManager()
+    await this.cdnManager.getCDNServerIP()
+
     await super.login(selfId)
   }
 
@@ -541,6 +553,7 @@ export class PuppetPadpro extends Puppet {
     this.padproManager.removeAllListeners()
     this.padproManager = undefined
 
+    await WechatGateway.release()
     this.state.off(true)
   }
 
@@ -817,7 +830,7 @@ export class PuppetPadpro extends Puppet {
     const payload    = await this.messagePayload(messageId)
 
     const rawText        = JSON.stringify(rawPayload)
-    const attachmentName = payload.filename || payload.id
+    let filename = payload.filename || payload.id
 
     let result
 
@@ -826,7 +839,7 @@ export class PuppetPadpro extends Puppet {
         const voicePayload = await voicePayloadParser(rawPayload)
         if (voicePayload === null) {
           log.error(PRE, `Can not parse image message, content: ${rawPayload.content}`)
-          return FileBox.fromBase64('', attachmentName)
+          return FileBox.fromBase64('', filename)
         }
         const name = `${rawPayload.messageId}.${voicePayload.voiceLength}.slk`
         if (rawPayload.data !== undefined && rawPayload.data !== null) {
@@ -840,7 +853,7 @@ export class PuppetPadpro extends Puppet {
       case MessageType.Emoticon:
         const emojiPayload = await emojiPayloadParser(rawPayload)
         if (emojiPayload) {
-          return FileBox.fromUrl(emojiPayload.cdnurl, `${attachmentName}.gif`)
+          return FileBox.fromUrl(emojiPayload.cdnurl, `${filename}.gif`)
         } else {
           throw new Error('Can not get emoji file from the message')
         }
@@ -849,17 +862,39 @@ export class PuppetPadpro extends Puppet {
         const imagePayload = await imagePayloadParser(rawPayload)
         if (imagePayload === null) {
           log.error(PRE, `Can not parse image message, content: ${rawPayload.content}`)
-          return FileBox.fromBase64('', attachmentName)
+          return FileBox.fromBase64('', filename)
         }
         result = await this.padproManager.GrpcGetMsgImage(rawPayload, imagePayload)
 
-        return FileBox.fromBase64(result, attachmentName)
+        return FileBox.fromBase64(result, filename)
 
       case MessageType.Video:
         result = await this.padproManager.GrpcGetMsgVideo(rawText)
-        return FileBox.fromBase64(result.video, `${attachmentName}.mp4`)
+        return FileBox.fromBase64(result.video, `${filename}.mp4`)
 
       case MessageType.Attachment:
+        const attachmentPayload = await appMessageParser(rawPayload)
+        if (attachmentPayload === null || !attachmentPayload.appattach) {
+          log.verbose(PRE, `Can not parse attachment message, content: ${rawPayload.content}`)
+          return FileBox.fromBase64('', 'empty-file')
+        }
+        const cdnInfo = attachmentPayload.appattach
+        filename = attachmentPayload.title
+
+        if (!this.cdnManager) {
+          throw new Error(`${PRE} messageFile() can not get file from message since cdn manager is not inited.`)
+        }
+        const data = await this.cdnManager.downloadFile(
+          cdnInfo.cdnattachurl || '',
+          cdnInfo.aeskey || '',
+          cdnInfo.totallen || 0,
+        )
+
+        return FileBox.fromBase64(
+          data.toString('base64'),
+          filename,
+        )
+
       default:
         log.warn(PRE, 'messageFile(%s) unsupport type: %s(%s) because it is not fully implemented yet, PR is welcome.',
                                   messageId,
@@ -867,14 +902,12 @@ export class PuppetPadpro extends Puppet {
                                   rawPayload.messageType,
                 )
         const base64 = 'Tm90IFN1cHBvcnRlZCBBdHRhY2htZW50IEZpbGUgVHlwZSBpbiBNZXNzYWdlLgpTZWU6IGh0dHBzOi8vZ2l0aHViLmNvbS9DaGF0aWUvd2VjaGF0eS9pc3N1ZXMvMTI0OQo='
-        const filename = 'wechaty-puppet-padpro-message-attachment-' + messageId + '.txt'
+        filename = 'wechaty-puppet-padpro-message-attachment-' + messageId + '.txt'
 
-        const file = FileBox.fromBase64(
+        return FileBox.fromBase64(
           base64,
           filename,
         )
-
-        return file
     }
   }
 
@@ -952,7 +985,11 @@ export class PuppetPadpro extends Puppet {
     }
 
     if (!this.padproManager) {
-      throw new Error('no padpro manager')
+      throw new Error(`${PRE} no padpro manager`)
+    }
+
+    if (!this.cdnManager) {
+      throw new Error(`${PRE} no cdn manager`)
     }
 
     await file.syncRemoteName()
@@ -1005,11 +1042,18 @@ export class PuppetPadpro extends Puppet {
         }
         break
 
+      case '.mp4':
+        throw new Error('Sending Video not supported yet.')
+
       default:
-        await this.padproManager.GrpcSendImage(
+        const appPayload = await this.cdnManager.uploadFile(
           id,
           await file.toBase64(),
+          file.name,
+          type,
         )
+        const content = generateAttachmentXMLMessageFromRaw(appPayload)
+        await this.padproManager.GrpcSendApp(id, content)
         break
     }
   }
