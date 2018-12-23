@@ -67,6 +67,10 @@ export interface CDNCheckMd5Response {
   ver: number,
   seq: number,
   existflag: CDNFileMd5Exist,
+  aeskey?: Buffer,
+  fileid?: string,
+  midimglen?: number,
+  cachesize?: number,
   retcode: number,
 }
 
@@ -119,10 +123,16 @@ export interface CDNUploadDataResponse {
   seq: number,
   retcode: number,
   existflag: CDNFileMd5Exist,
-  fileid: string,
+  fileid?: string,
   retrysec: number,
   isretry: number,
   isoverload: number,
   isgetcdn: number,
   'x-ClientIp': string,
+}
+
+export interface FileCache {
+  fileId: string,
+  aesKey: Buffer,
+  timestamp: number,
 }

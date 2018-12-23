@@ -88,12 +88,26 @@ export const unpackCheckMd5Request = (buf: Buffer): CDNCheckMd5Request => {
 
 export const unpackCheckMd5Response = (rawResponse: Buffer): CDNCheckMd5Response => {
   const rawRes = unpackCdnData(rawResponse)
-  return {
+
+  const result: CDNCheckMd5Response = {
     ver: parseInt(rawRes.ver.toString(), 10),
     seq: parseInt(rawRes.seq.toString(), 10),
     existflag: parseInt(rawRes.existflag.toString(), 10),
     retcode: parseInt(rawRes.retcode.toString(), 10),
   }
+  if (rawRes.aeskey) {
+    result.aeskey = rawRes.aeskey
+  }
+  if (rawRes.fileid) {
+    result.fileid = rawRes.fileid.toString()
+  }
+  if (rawRes.midimglen) {
+    result.midimglen = parseInt(rawRes.midimglen.toString(), 10)
+  }
+  if (rawRes.cachesize) {
+    result.cachesize = parseInt(rawRes.cachesize.toString(), 10)
+  }
+  return result
 }
 
 export const packUploadRequest = (request: CDNUploadDataRequest): Buffer => {
@@ -146,7 +160,7 @@ export const unpackUploadRequest = (buf: Buffer): CDNUploadDataRequest => {
 
 export const unpackUploadResponse = (rawResponse: Buffer): CDNUploadDataResponse => {
   const rawRes = unpackCdnData(rawResponse)
-  return {
+  const result: CDNUploadDataResponse = {
     'ver': parseInt(rawRes.ver.toString(), 10),
     'filekey': rawRes.filekey.toString(),
     'rangestart': parseInt(rawRes.rangestart.toString(), 10),
@@ -154,11 +168,15 @@ export const unpackUploadResponse = (rawResponse: Buffer): CDNUploadDataResponse
     'seq': parseInt(rawRes.seq.toString(), 10),
     'retcode': parseInt(rawRes.retcode.toString(), 10),
     'existflag': parseInt(rawRes.existflag.toString(), 10),
-    'fileid': rawRes.fileid.toString(),
     'retrysec': parseInt(rawRes.retrysec.toString(), 10),
     'isretry': parseInt(rawRes.isretry.toString(), 10),
     'isoverload': parseInt(rawRes.isoverload.toString(), 10),
     'isgetcdn': parseInt(rawRes.isgetcdn.toString(), 10),
     'x-ClientIp': rawRes['x-ClientIp'].toString(),
   }
+  if (rawRes.fileid) {
+    result.fileid = rawRes.fileid.toString()
+  }
+
+  return result
 }

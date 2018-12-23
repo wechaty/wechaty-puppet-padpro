@@ -215,8 +215,6 @@ export class PuppetPadpro extends Puppet {
       token    : this.options.token     || padproToken(),
     })
 
-    this.cdnManager = new CDNManager()
-
     await this.startManager(manager)
     await this.startWatchdog()
 
@@ -227,10 +225,8 @@ export class PuppetPadpro extends Puppet {
     if (!this.padproManager) {
       throw new Error('no padpro manager')
     }
-    if (!this.cdnManager) {
-      throw new Error('no cdn manager')
-    }
 
+    this.cdnManager = new CDNManager()
     await this.cdnManager.getCDNServerIP()
 
     await super.login(selfId)
@@ -1005,11 +1001,18 @@ export class PuppetPadpro extends Puppet {
         }
         break
 
+      case '.mp4':
+        throw new Error('Sending Video not supported yet.')
+
       default:
-        await this.cdnManager.uploadFile(
+        const appPayload = await this.cdnManager.uploadFile(
           id,
           await file.toBase64(),
+          file.name,
+          type,
         )
+        const content = generateAttachmentXMLMessageFromRaw(appPayload)
+        await this.padproManager.GrpcSendApp(id, content)
         break
     }
   }
