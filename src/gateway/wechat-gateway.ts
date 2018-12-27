@@ -126,11 +126,6 @@ export class WechatGateway extends EventEmitter {
     return this
   }
 
-  public async start () {
-    log.info(PRE, `start()`)
-    await this.initLongSocket()
-  }
-
   public async stop () {
     log.info(PRE, `stop()`)
     await this.releaseLongSocket()
@@ -172,8 +167,6 @@ export class WechatGateway extends EventEmitter {
       this.longSocket.on('close', async () => {
         log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} closed.`)
         this.cleanLongSocket()
-        await new Promise(r => setTimeout(r, 1000))
-        await this.initLongSocket()
         this.emit('socketClose')
       })
 
@@ -322,7 +315,7 @@ export class WechatGateway extends EventEmitter {
     const reqSeq = this.bufferToInt(sendBuff, 12)
     log.silly(PRE, `sendLong() reqSeq: ${reqSeq}`)
 
-    return new Promise<Buffer>((resolve, reject) => {
+    return new Promise<Buffer>(async (resolve, reject) => {
       this.backs[reqSeq] = (buffer: Buffer) => {
         // Long request parse judgement
         log.silly(PRE, `sendLong() receive back package size: ${buffer.length}`)
@@ -340,13 +333,11 @@ export class WechatGateway extends EventEmitter {
 
       try {
         if (!this.longSocket) {
-          reject(`Long socket not initialized, can not send message through long socket.`)
-        } else {
-          this.longSocket.write(sendBuff)
+          await this.initLongSocket()
         }
+        this.longSocket!.write(sendBuff)
       } catch (e) {
         delete this.backs[reqSeq]
-        // this.connectLongSocket()
         reject(e)
       }
     })

@@ -60,6 +60,7 @@ export class PadproManager extends PadproGrpc {
   private loginScanQrCode? : string
   private loginScanStatus? : number
   private loginScanTimer?  : NodeJS.Timer
+  private initDataTimer?   : NodeJS.Timer
 
   private readonly state                  : StateSwitch
 
@@ -184,6 +185,47 @@ export class PadproManager extends PadproGrpc {
     }
   }
 
+  /**
+   * Init data needed for Padpro, includes self contact data, all contact data, all room data and all room member data
+   */
+  private async initData (): Promise<void> {
+    log.silly(PRE, `initData() started`)
+
+    await this.initDataInternalLoop()
+  }
+
+  private async initDataInternalLoop (): Promise<void> {
+    const data = await this.GrpcSyncMessage()
+    if (data === null) {
+      await new Promise(r => setTimeout(r, 1000))
+    } else if (data.length === 0) {
+      if (this.state.off()) {
+        log.verbose(PRE, `initDataInternalLoop() in off state, skip processing message.`)
+        return
+      }
+      if (!this.cacheManager) {
+        throw new Error(`${PRE} initDataInternalLoop() has no cache.`)
+      }
+
+      log.info(PRE, `initData() finished with contacts: ${this.cacheManager.getContactCount()}, rooms: ${this.cacheManager.getRoomCount()}`)
+      return
+    } else {
+      await this.processMessages(data)
+    }
+    this.initDataTimer = setTimeout(async () => {
+      this.initDataTimer = undefined
+      await this.initDataInternalLoop()
+    }, 500)
+  }
+
+  private async stopInitData (): Promise<void> {
+    log.verbose(PRE, `stopInitData()`)
+    if (this.initDataTimer) {
+      clearTimeout(this.initDataTimer)
+      this.initDataTimer = undefined
+    }
+  }
+
   private clearContactAndRoomData () {
     this.contactAndRoomData = undefined
   }
@@ -231,7 +273,6 @@ export class PadproManager extends PadproGrpc {
    */
 
   public async start (): Promise<void> {
-    await super.start()
     this.initQueue()
 
     log.verbose(PRE, `start()`)
@@ -259,7 +300,10 @@ export class PadproManager extends PadproGrpc {
 
     this.releaseQueue()
 
+    this.wechatGateway.removeAllListeners()
+
     await this.stopCheckScan()
+    await this.stopInitData()
     await super.stop()
     await CacheManager.release()
 
@@ -306,8 +350,10 @@ export class PadproManager extends PadproGrpc {
     this.messageBuffer = []
     this.selfContact   = this.getEmptySelfContact()
 
-    this.clearContactAndRoomData()
+    await this.stopInitData()
     await CacheManager.release()
+    this.cacheManager = undefined
+    this.clearContactAndRoomData()
   }
 
   protected async stopCheckScan (): Promise<void> {
@@ -447,6 +493,10 @@ export class PadproManager extends PadproGrpc {
   ): Promise<void> {
     messages.forEach(async m => {
 
+      if (this.state.off()) {
+        log.verbose(PRE, `processMessages() in off state, skip processing message.`)
+        return
+      }
       if (!this.cacheManager) {
         throw new Error(`${PRE} processMessages() failed due to no cache manager.`)
       }
@@ -459,6 +509,10 @@ export class PadproManager extends PadproGrpc {
         if (isRoomId(contactOrRoom.UserName)) {
           const room = contactOrRoom as GrpcRoomRawPayload
 
+          if (this.state.off()) {
+            log.verbose(PRE, `processMessages() in off state, skip processing message.`)
+            return
+          }
           const savedRoom = this.cacheManager.getRoom(room.UserName)
           const newRoom = convertRoom(room)
 
@@ -475,8 +529,16 @@ export class PadproManager extends PadproGrpc {
             }
           }
 
+          if (this.state.off()) {
+            log.verbose(PRE, `processMessages() in off state, skip processing message.`)
+            return
+          }
           this.cacheManager.setRoom(newRoom.chatroomId, newRoom)
         } else {
+          if (this.state.off()) {
+            log.verbose(PRE, `processMessages() in off state, skip processing message.`)
+            return
+          }
           const contact = contactOrRoom as GrpcContactRawPayload
           this.cacheManager.setContact(contact.UserName, convertContact(contact))
         }
@@ -670,6 +732,10 @@ export class PadproManager extends PadproGrpc {
     roomId: string,
   ): void {
     log.verbose(PRE, `roomMemberRawPayloadDirty(${roomId})`)
+    if (this.state.off()) {
+      log.verbose(PRE, `roomMemberRawPayloadDirty() in off state, skip processing message.`)
+      return
+    }
     if (!this.cacheManager) {
       throw new Error('cache not initialized')
     }
@@ -706,6 +772,10 @@ export class PadproManager extends PadproGrpc {
     roomId: string,
   ): void {
     log.verbose(PRE, `roomRawPayloadDirty(${roomId})`)
+    if (this.state.off()) {
+      log.verbose(PRE, `roomRawPayloadDirty() in off state, skip processing message.`)
+      return
+    }
     if (!this.cacheManager) {
       throw new Error('cache not inited' )
     }
@@ -754,6 +824,10 @@ export class PadproManager extends PadproGrpc {
 
     const memberDict: { [contactId: string]: PadproRoomMemberPayload } = {}
 
+    if (this.state.off()) {
+      log.verbose(PRE, `syncRoomMember() in off state, skip processing message.`)
+      return {}
+    }
     if (!this.cacheManager) {
       throw new Error('contact cache not inited when sync room member')
     }
@@ -774,31 +848,6 @@ export class PadproManager extends PadproGrpc {
     this.cacheManager.setRoomMember(roomId, newMemberDict)
 
     return newMemberDict
-  }
-
-  /**
-   * Init data needed for Padpro, includes self contact data, all contact data, all room data and all room member data
-   */
-  private async initData (): Promise<void> {
-    log.silly(PRE, `initData() started`)
-
-    let finished = false
-    while (!finished) {
-      const data = await this.GrpcSyncMessage()
-      if (data === null) {
-        await new Promise(r => setTimeout(r, 1000))
-        continue
-      }
-      await this.processMessages(data)
-      finished = data.length === 0
-      await new Promise(r => setTimeout(r, 500))
-    }
-
-    if (!this.cacheManager) {
-      throw new Error(`${PRE} initData() has no cache.`)
-    }
-
-    log.info(PRE, `initData() finished with contacts: ${this.cacheManager.getContactCount()}, rooms: ${this.cacheManager.getRoomCount()}`)
   }
 
   /**
