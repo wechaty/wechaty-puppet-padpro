@@ -11,6 +11,8 @@ npm install
 
 3. 请先在issue 中搜关键信息，确认你要发的内容和之前的issue 不重复。
 
+4. 请不要发代码和 log 截图和外链，这样才能方便其他人搜索。
+
 ### 1. 提供你的包版本信息
 - wechaty 版本：
 - wechaty-puppet-padpro 版本：
@@ -28,15 +30,22 @@ npm install
 - 第二步：
 - 。。。
 
+代码：
+```ts
+请将你的代码粘在这里
+```
+
 ### 5. 完整的日志信息：
 **请提供完整的日志信息(不要只提供部分的日志内容！)**
 <details>
 <summary>
-Show Logs
+你认为重要的log 可以提取在这里
 </summary>
 
 ```shell
 $ WECHATY_LOG=silly node yourbot.js
+
+请将你的log 粘贴在这里。
 
 ```
 
