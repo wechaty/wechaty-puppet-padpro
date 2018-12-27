@@ -66,11 +66,6 @@ export class PadproGrpc extends EventEmitter {
     return { qrCode: result.ImgBuf }
   }
 
-  public async start (): Promise<void> {
-    log.verbose(PRE, 'start()')
-    await this.wechatGateway.start()
-  }
-
   protected async GrpcHeartBeat () {
     const payloads = await this.wechatGateway.callApi('GrpcHeartBeat')
     if (payloads !== null && payloads[3] !== 20 || payloads[5] !== 16) {

@@ -102,6 +102,7 @@ import { PadproManager } from './manager/padpro-manager'
 import {
   FriendshipPayloadReceive,
   GrpcVoiceFormat,
+  GrpcContactRawPayload,
   PadproContactPayload,
   PadproMessagePayload,
   PadproMessageType,
@@ -1529,24 +1530,25 @@ export class PuppetPadpro extends Puppet {
       throw new Error('no padpro manager')
     }
 
-    const rawSearchPayload = await this.padproManager.GrpcSearchContact(contactId)
+    const rawSearchPayload: GrpcContactRawPayload = await this.padproManager.GrpcSearchContact(contactId)
 
+    console.log(JSON.stringify(rawSearchPayload, null, 2))
     /**
      * If the contact is not stranger, than using WXSearchContact can get userName
      */
-    if (rawSearchPayload.user_name !== '' && !isStrangerV1(rawSearchPayload.user_name) && !isStrangerV2(rawSearchPayload.user_name)) {
+    if (rawSearchPayload.UserName !== '' && !isStrangerV1(rawSearchPayload.UserName) && !isStrangerV2(rawSearchPayload.UserName)) {
       log.warn(PRE, `friendshipAdd ${contactId} has been friend with bot, no need to send friend request!`)
       return
     }
 
     let strangerV1
     let strangerV2
-    if (isStrangerV1(rawSearchPayload.stranger)) {
-      strangerV1 = rawSearchPayload.stranger
-      strangerV2 = rawSearchPayload.user_name
-    } else if (isStrangerV2(rawSearchPayload.stranger)) {
-      strangerV2 = rawSearchPayload.stranger
-      strangerV1 = rawSearchPayload.user_name
+    if (isStrangerV1(rawSearchPayload.Ticket)) {
+      strangerV1 = rawSearchPayload.Ticket
+      strangerV2 = rawSearchPayload.UserName
+    } else if (isStrangerV2(rawSearchPayload.Ticket)) {
+      strangerV2 = rawSearchPayload.Ticket
+      strangerV1 = rawSearchPayload.UserName
     } else {
       throw new Error('stranger neither v1 nor v2!')
     }
