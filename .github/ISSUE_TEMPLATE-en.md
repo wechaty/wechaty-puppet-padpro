@@ -15,7 +15,7 @@ npm install
 - What is your wechaty version?
 Answer:
 
-- What is your wechaty-puppet-padchat version?
+- What is your wechaty-puppet-padpro version?
 Answer:
 
 - What is your node version? (run `node --version`)
