@@ -224,6 +224,22 @@ export interface PadproVoiceMessagePayload {
   bufId: number,
 }
 
+export interface PadproVideoMessagePayload {
+  aesKey: string,
+  cdnThumbAesKey: string,
+  cdnVideoUrl: string,
+  cdnThumbUrl: string,
+  length: number,
+  playLength: number,
+  cdnThumbLength: number,
+  cdnThumbWidth: number,
+  cdnThumbHeight: number,
+  fromUsername: string,
+  md5: string,
+  newMd5: string,
+  isAd: boolean,
+}
+
 export interface PadproFriendshipPayload {
   fromusername    : string,   // 'lizhuohuan'
   encryptusername : string,   // v1_xxx@stranger'

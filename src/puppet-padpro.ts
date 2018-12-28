@@ -78,6 +78,7 @@ import {
   roomRawPayloadParser,
   roomTopicEventMessageParser,
 
+  videoPayloadParser,
   voicePayloadParser,
 }                                         from './pure-function-helpers'
 
@@ -830,7 +831,6 @@ export class PuppetPadpro extends Puppet {
     const rawPayload = await this.messageRawPayload(messageId)
     const payload    = await this.messagePayload(messageId)
 
-    const rawText        = JSON.stringify(rawPayload)
     let filename = payload.filename || payload.id
 
     let result
@@ -870,8 +870,7 @@ export class PuppetPadpro extends Puppet {
         return FileBox.fromBase64(result, filename)
 
       case MessageType.Video:
-        result = await this.padproManager.GrpcGetMsgVideo(rawText)
-        return FileBox.fromBase64(result.video, `${filename}.mp4`)
+        throw new Error('Can not download video message yet.')
 
       case MessageType.Attachment:
         const attachmentPayload = await appMessageParser(rawPayload)
@@ -1152,6 +1151,8 @@ export class PuppetPadpro extends Puppet {
       )
     } else if (payload.type === MessageType.Attachment) {
       await this.forwardAttachment(receiver, messageId)
+    } else if (payload.type === MessageType.Video) {
+      await this.forwardVideo(receiver, messageId)
     } else {
       await this.messageSendFile(
         receiver,
@@ -1183,6 +1184,29 @@ export class PuppetPadpro extends Puppet {
 
     const content = generateAttachmentXMLMessageFromRaw(appPayload)
     await this.padproManager.GrpcSendApp(id, content)
+  }
+
+  private async forwardVideo (
+    receiver: Receiver,
+    messageId: string,
+  ): Promise<void> {
+    if (!this.padproManager) {
+      throw new Error('no padpro manager')
+    }
+
+    const rawPayload = await this.messageRawPayload(messageId)
+
+    // Send to the Room if there's a roomId
+    const id = receiver.roomId || receiver.contactId
+
+    if (!id) {
+      throw new Error('There is no receiver id when trying to forward attachment.')
+    }
+    const videoPayload = await videoPayloadParser(rawPayload)
+    if (videoPayload === null) {
+      throw new Error('Can not forward video, failed to parse xml message.')
+    }
+    await this.padproManager.GrpcSendVideo(id, videoPayload)
   }
 
   /**
