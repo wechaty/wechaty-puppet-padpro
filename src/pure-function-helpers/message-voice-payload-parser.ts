@@ -49,7 +49,7 @@ export async function voicePayloadParser (rawPayload: PadproMessagePayload): Pro
 
   try {
     const jsonPayload: XmlSchema = await xmlToJson(tryXmlText)
-    console.log(JSON.stringify(jsonPayload))
+
     const data = jsonPayload.msg.voicemsg.$
     const result: PadproVoiceMessagePayload = {
       bufId: parseInt(data.bufid, 10),

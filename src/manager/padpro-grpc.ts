@@ -31,6 +31,7 @@ import {
   PadproImageMessagePayload,
   PadproMessagePayload,
   PadproMessageType,
+  PadproVideoMessagePayload,
   PadproVoiceMessagePayload,
   SearchContactTypeStatus,
 } from '../schemas'
@@ -422,6 +423,33 @@ export class PadproGrpc extends EventEmitter {
     })
   }
 
+  /**
+   * Send video message
+   * @param contactId contact id
+   * @param videoPayload video payload
+   */
+  public async GrpcSendVideo (
+    contactId: string,
+    videoPayload: PadproVideoMessagePayload,
+  ) {
+    log.silly(PRE, `GrpcSendVideo()`)
+    await this.wechatGateway.callApi('GrpcSendVideo',  {
+      ToUserName: contactId,
+      ThumbTotalLen: videoPayload.cdnThumbLength,
+      ThumbStartPos: videoPayload.cdnThumbLength,
+      VideoTotalLen: videoPayload.length,
+      VideoStartPos: videoPayload.length,
+      PlayLength: videoPayload.playLength,
+      AESKey: videoPayload.aesKey,
+      CDNVideoUrl: videoPayload.cdnVideoUrl,
+    })
+  }
+
+  /**
+   * Send app message
+   * @param contactId contact id
+   * @param content app message xml content
+   */
   public async GrpcSendApp (
     contactId: string,
     content: string,

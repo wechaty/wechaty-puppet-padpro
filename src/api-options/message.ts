@@ -16,6 +16,11 @@ export const GrpcSendVoice: ApiOption = {
   noParse: true,
 }
 
+export const GrpcSendVideo: ApiOption = {
+  longRequest: true,
+  noParse: true,
+}
+
 export const GrpcSendApp: ApiOption = {
   longRequest: true,
   noParse: true,
