@@ -991,8 +991,13 @@ export class PuppetPadpro extends Puppet {
       throw new Error(`${PRE} no cdn manager`)
     }
 
+    // this needs to run before mimeType is available
     await file.syncRemoteName()
-    const type = file.mimeType || path.extname(file.name)
+
+    const type = (file.mimeType && file.mimeType !== 'application/octet-stream')
+      ? file.mimeType
+      : path.extname(file.name)
+
     log.silly(PRE, `fileType ${type}`)
     switch (type) {
       case 'audio/wav':
