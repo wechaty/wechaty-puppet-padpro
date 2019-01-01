@@ -1034,7 +1034,8 @@ export class PuppetPadpro extends Puppet {
       case '.slk':
         try {
           // TODO: temporary hack solution, replace this when there is metadata in FileBox object
-          const voiceLength = parseInt(file.name.split('.')[1], 10)
+          // make sure it is grabbing the second to the last argument as length
+          const voiceLength = parseInt(file.name.split('.').slice(-2, -1)[0], 10)
           await this.padproManager.GrpcSendVoice(
             id,
             await file.toBase64(),
