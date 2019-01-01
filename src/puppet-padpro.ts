@@ -1046,6 +1046,21 @@ export class PuppetPadpro extends Puppet {
         }
         break
 
+      case 'image/jpeg':
+      case 'image/png':
+      case '.jpg':
+      case '.jpeg':
+      case '.png':
+        try {
+          await this.padproManager.GrpcSendImage(
+            id,
+            await file.toBase64(),
+          )
+        } catch (e) {
+          throw Error('Cannot send Image')
+        }
+        break
+
       case '.mp4':
         throw new Error('Sending Video not supported yet.')
 
