@@ -102,8 +102,8 @@ import { PadproManager } from './manager/padpro-manager'
 
 import {
   FriendshipPayloadReceive,
-  GrpcVoiceFormat,
   GrpcContactRawPayload,
+  GrpcVoiceFormat,
   PadproContactPayload,
   PadproMessagePayload,
   PadproMessageType,
