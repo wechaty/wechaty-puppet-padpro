@@ -1071,7 +1071,7 @@ export class PuppetPadpro extends Puppet {
           id,
           await file.toBase64(),
           file.name,
-          type,
+          path.extname(file.name),
         )
         const content = generateAttachmentXMLMessageFromRaw(appPayload)
         await this.padproManager.GrpcSendApp(id, content)
