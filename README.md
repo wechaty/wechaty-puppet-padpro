@@ -62,6 +62,10 @@ bot
 
 [了解更多Token 相关内容](https://github.com/lijiarui/wechaty-puppet-padchat/wiki/%E8%B4%AD%E4%B9%B0token)
 
+## 文件相关功能须知
+
+当前文件相关功能需要获取当前运行的主机的IP地址，目前项目使用了[public-ip](https://www.npmjs.com/package/public-ip)包来实现，但是对于某些运行环境，这个包可能无法获取当前的IP地址，因此项目中增加了对环境变量`PADPRO_IP`的处理。用户可以自行传入`PADPRO_IP`环境变量来指定自己的IP地址，然后根据这个IP地址获取文件功能相关的CDN服务器地址。务必保证自己传入了一个**公网地址**，否则传入参数无效，无法正确运行文件的收发功能。
+
 ## 文档
 
 [http://wechaty.botorange.com](http://wechaty.botorange.com)

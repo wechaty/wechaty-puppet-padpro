@@ -65,9 +65,8 @@ export class CDNManager {
    * Get CDN DNS server to send large file
    */
   public async getCDNServerIP () {
-    const result: GrpcGetCdnDnsPayload = await this.wechatGateway.callApi('GrpcGetCdnDns', {
-      ip: await publicIp.v4()
-    })
+    const ip = process.env.PADPRO_IP || await publicIp.v4()
+    const result: GrpcGetCdnDnsPayload = await this.wechatGateway.callApi('GrpcGetCdnDns', { ip })
     this.cdnInfo = {
       authKey: Buffer.from(result.dnsCdn.aesKey, 'base64'),
       serverIP: result.dnsCdn.ip,
@@ -85,7 +84,14 @@ export class CDNManager {
   ): Promise<PadproAppMessagePayload> {
     log.silly(PRE, `uploadFile(${toId}, ${data.slice(0, 100)})`)
     if (!this.cdnInfo) {
-      throw new Error(`${PRE} sendFile() failed, no CDN info yet, can not send file.`)
+      try {
+        await Promise.race([
+          await this.getCDNServerIP(),
+          await new Promise((_, reject) => setTimeout(reject, 20000)),
+        ])
+      } catch (e) {
+        throw new Error(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
+      }
     }
     const rawData = Buffer.from(data, 'base64')
     const rawTotalSize = rawData.length
@@ -172,6 +178,17 @@ export class CDNManager {
     let dataLen = totalLen
 
     let result = Buffer.from('')
+
+    if (!this.cdnInfo) {
+      try {
+        await Promise.race([
+          await this.getCDNServerIP(),
+          await new Promise((_, reject) => setTimeout(reject, 20000)),
+        ])
+      } catch (e) {
+        throw new Error(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
+      }
+    }
     while (curIndex + 1 < dataLen) {
       const endIndex = dataLen > curIndex + MAX_TRUNK_SIZE ? curIndex + MAX_TRUNK_SIZE : dataLen
       const response: CDNDownloadDataResponse = await this._downloadFile(seqNum, fileId, curIndex, endIndex)

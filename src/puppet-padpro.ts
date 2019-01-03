@@ -232,7 +232,6 @@ export class PuppetPadpro extends Puppet {
     }
 
     this.cdnManager = new CDNManager()
-    await this.cdnManager.getCDNServerIP()
 
     await super.login(selfId)
   }
