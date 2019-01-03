@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-padpro",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "description": "Padpro Puppet for Wechaty",
   "directories": {
     "example": "examples"
@@ -60,7 +60,7 @@
     "@types/xml2js": "^0.4.3",
     "blue-tape": "^1.0.0",
     "cuid": "^2.1.2",
-    "file-box": "^0.8.23",
+    "file-box": "^0.8.27",
     "git-scripts": "^0.2.1",
     "markdownlint-cli": "^0.13.0",
     "memory-card": "^0.6.8",
@@ -78,7 +78,7 @@
     }
   },
   "peerDependencies": {
-    "file-box": "^0.8.23",
+    "file-box": "^0.8.27",
     "wechaty-puppet": "^0.15.1"
   },
   "homepage": "https://github.com/botorange/wechaty-puppet-padpro#readme",
