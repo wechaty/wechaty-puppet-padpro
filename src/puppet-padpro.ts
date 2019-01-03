@@ -18,12 +18,8 @@
  */
 
 import flatten  from 'array-flatten'
-import getMp3Duration from 'get-mp3-duration'
 import LRU      from 'lru-cache'
 import path     from 'path'
-
-import wavFileInfo from '@xanthous/wav-file-info'
-import { promisify } from 'util'
 
 import { FileBox }    from 'file-box'
 
@@ -119,7 +115,8 @@ let PADPRO_COUNTER = 0 // PuppetPadpro Instance Counter
 
 const PRE = 'PuppetPadpro'
 
-const getWavInfoFromBuffer = promisify(wavFileInfo.infoByBuffer)
+// Comment for now, since sending voice with mp3/wav has some blocker.
+// const getWavInfoFromBuffer = promisify(wavFileInfo.infoByBuffer)
 
 export class PuppetPadpro extends Puppet {
   public static readonly VERSION = VERSION
@@ -1000,36 +997,39 @@ export class PuppetPadpro extends Puppet {
 
     log.silly(PRE, `fileType ${type}`)
     switch (type) {
-      case 'audio/wav':
-      case '.wav':
-        try {
-          const buffer = await file.toBuffer()
-          const { duration: voiceLength } = await getWavInfoFromBuffer(buffer.slice(0, 40), null)
-          await this.padproManager.GrpcSendVoice(
-            id,
-            await file.toBase64(),
-            voiceLength,
-            GrpcVoiceFormat.Wave,
-          )
-        } catch (e) {
-          throw Error('Can not send voice wav')
-        }
-        break
+      /**
+       * Comment for now, since sending voice with mp3/wav has some blocker.
+       */
+      // case 'audio/wav':
+      // case '.wav':
+      //   try {
+      //     const buffer = await file.toBuffer()
+      //     const { duration: voiceLength } = await getWavInfoFromBuffer(buffer.slice(0, 40), null)
+      //     await this.padproManager.GrpcSendVoice(
+      //       id,
+      //       await file.toBase64(),
+      //       voiceLength,
+      //       GrpcVoiceFormat.Wave,
+      //     )
+      //   } catch (e) {
+      //     throw Error('Can not send voice wav')
+      //   }
+      //   break
 
-      case 'audio/mp3':
-      case '.mp3':
-        try {
-          const voiceLength = getMp3Duration(await file.toBuffer())
-          await this.padproManager.GrpcSendVoice(
-            id,
-            await file.toBase64(),
-            voiceLength,
-            GrpcVoiceFormat.Mp3,
-          )
-        } catch (e) {
-          throw Error('Can not send voice mp3')
-        }
-        break
+      // case 'audio/mp3':
+      // case '.mp3':
+      //   try {
+      //     const voiceLength = getMp3Duration(await file.toBuffer())
+      //     await this.padproManager.GrpcSendVoice(
+      //       id,
+      //       await file.toBase64(),
+      //       voiceLength,
+      //       GrpcVoiceFormat.Mp3,
+      //     )
+      //   } catch (e) {
+      //     throw Error('Can not send voice mp3')
+      //   }
+      //   break
 
       case '.slk':
         try {
