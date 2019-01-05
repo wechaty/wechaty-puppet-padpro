@@ -989,7 +989,7 @@ export class PuppetPadpro extends Puppet {
     }
 
     // this needs to run before mimeType is available
-    await file.syncRemoteName()
+    await file.ready()
 
     const type = (file.mimeType && file.mimeType !== 'application/octet-stream')
       ? file.mimeType

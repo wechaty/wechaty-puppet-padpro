@@ -21,6 +21,8 @@ export const SEND_SHORT_TIMEOUT = 5 * 1000
 
 export const SEND_SHORT_RETRY_COUNT = 5
 
+export const SEND_CDN_RETRY_COUNT = 5
+
 export const NO_RETRY_ERROR_MESSAGE = [
   'NO_SESSION',
   'INVALID_TOKEN',

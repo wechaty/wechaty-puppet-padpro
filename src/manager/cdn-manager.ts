@@ -3,7 +3,11 @@ import md5 from 'md5'
 import publicIp from 'public-ip'
 import uuid from 'uuid'
 
-import { log, SEND_SHORT_TIMEOUT } from '../config'
+import {
+  log,
+  SEND_CDN_RETRY_COUNT,
+  SEND_SHORT_TIMEOUT,
+} from '../config'
 import { WechatGateway } from '../gateway/wechat-gateway'
 import {
   CDNCheckMd5Request,
@@ -84,14 +88,15 @@ export class CDNManager {
   ): Promise<PadproAppMessagePayload> {
     log.silly(PRE, `uploadFile(${toId}, ${data.slice(0, 100)})`)
     if (!this.cdnInfo) {
-      try {
-        await Promise.race([
-          await this.getCDNServerIP(),
-          await new Promise((_, reject) => setTimeout(reject, 20000)),
-        ])
-      } catch (e) {
-        throw new Error(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
-      }
+      await Promise.race([
+        this.getCDNServerIP(),
+        new Promise((_, reject) => {
+          const timeoutTimer = setTimeout(() => {
+            clearTimeout(timeoutTimer)
+            reject(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
+          }, 20000)
+        }),
+      ])
     }
     const rawData = Buffer.from(data, 'base64')
     const rawTotalSize = rawData.length
@@ -181,8 +186,8 @@ export class CDNManager {
 
     if (!this.cdnInfo) {
       await Promise.race([
-        await this.getCDNServerIP(),
-        await new Promise((_, reject) => {
+        this.getCDNServerIP(),
+        new Promise((_, reject) => {
           const timeoutTimer = setTimeout(() => {
             clearTimeout(timeoutTimer)
             reject(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
@@ -242,17 +247,15 @@ export class CDNManager {
       rangeend: endIndex,
     }
     const data = packDownloadRequest(request)
+    let response: Buffer
 
     try {
-      const response = await this.sendCdnRequest(data, '/download')
-      const result = unpackDownloadResponse(response)
-
-      return result
+      response = await this.sendCdnRequest(data, '/download')
     } catch (e) {
-      // TODO: deal with errors
       console.error(e)
       throw e
     }
+    return unpackDownloadResponse(response)
   }
 
   private async _checkFileMd5 (
@@ -284,17 +287,15 @@ export class CDNManager {
     }
 
     const data = packCheckMd5Request(request)
+    let response: Buffer
 
     try {
-      const response = await this.sendCdnRequest(data, '/uploadcheckmd5')
-      const result = unpackCheckMd5Response(response)
-
-      return result
+      response = await this.sendCdnRequest(data, '/uploadcheckmd5')
     } catch (e) {
-      // TODO: deal with errors
       console.error(e)
       throw e
     }
+    return unpackCheckMd5Response(response)
   }
 
   private async _uploadFile (
@@ -356,23 +357,39 @@ export class CDNManager {
       filedata: fileData,
     }
     const data = packUploadRequest(request)
+    let response: Buffer
 
     try {
-      const response = await this.sendCdnRequest(data, '/uploadv3')
-      const result = unpackUploadResponse(response)
-
-      return result
+      response = await this.sendCdnRequest(data, '/uploadv3')
     } catch (e) {
-      // TODO: deal with errors
       console.error(e)
       throw e
     }
+    return unpackUploadResponse(response)
   }
 
   private async sendCdnRequest (
     data: Buffer,
     url: string,
-  ) {
+  ): Promise<Buffer> {
+    let tryCount = 0
+    while (tryCount < SEND_CDN_RETRY_COUNT) {
+      try {
+        const result = await this._sendCdnRequest(data, url)
+        return result
+      } catch (e) {
+        tryCount++
+        log.verbose(PRE, `_sendCdnRequest() the ${tryCount} try failed for reason: \n${e}`)
+        await new Promise(r => setTimeout(r, 1000 * tryCount * tryCount))
+      }
+    }
+    throw new Error(`${PRE} sendCdnRequest failed. Retried ${tryCount} times.`)
+  }
+
+  private async _sendCdnRequest (
+    data: Buffer,
+    url: string,
+  ): Promise<Buffer> {
     log.silly(PRE, `sendCdnRequest(${url})`)
     if (!this.cdnInfo) {
       throw new Error(`Can not send cdn request to cdn server since there is no cdn info yet.`)
