@@ -16,7 +16,7 @@ const sampleImageMessage: PadproMessagePayload = {
   toUser       : 'wxid_e2lc33auu61g22',
 }
 
-test('Should parse emoji message correctly', async (t) => {
+test('Should parse image message correctly', async (t) => {
   const payload = await imagePayloadParser(sampleImageMessage)
   const expectedResult = {
     aesKey: 'cba5766c0515a49a5a0f9d988d1d8a79',

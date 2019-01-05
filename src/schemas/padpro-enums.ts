@@ -211,9 +211,10 @@ export enum GrpcSelfAvatarType {
 }
 
 export enum CDNFileType {
-  ONE = 1,
-  THREE = 3,
-  FIVE = 5,
+  IMAGE = 1,
+  VIDEO_THUMBNAIL = 3,
+  VIDEO = 4,
+  ATTACHMENT = 5,
 }
 
 export enum CDNFileMd5Exist {

@@ -176,6 +176,7 @@ export class CDNManager {
     fileId: string,
     aesKey: string,
     totalLen: number,
+    fileType: CDNFileType,
   ) {
     log.silly(PRE, `downloadFile(${fileId}, ${totalLen}) started.`)
     let seqNum = 1
@@ -197,7 +198,7 @@ export class CDNManager {
     }
     while (curIndex + 1 < dataLen) {
       const endIndex = dataLen > curIndex + MAX_TRUNK_SIZE ? curIndex + MAX_TRUNK_SIZE : dataLen
-      const response: CDNDownloadDataResponse = await this._downloadFile(seqNum, fileId, curIndex, endIndex)
+      const response: CDNDownloadDataResponse = await this._downloadFile(seqNum, fileId, curIndex, endIndex, fileType)
 
       const data = response.filedata
 
@@ -218,6 +219,7 @@ export class CDNManager {
     fileId: string,
     startIndex: number,
     endIndex: number,
+    fileType: CDNFileType,
   ): Promise<CDNDownloadDataResponse> {
     log.silly(PRE, `_downloadFile(${seq}, ${startIndex}, ${endIndex})`)
     if (!this.cdnInfo) {
@@ -233,7 +235,7 @@ export class CDNManager {
       nettype: 1,
       acceptdupack: 1,
       safeproto: 1,
-      filetype: CDNFileType.FIVE,
+      filetype: fileType,
       wxchattype: 0,
       fileid: fileId,
       lastretcode: 0,
@@ -264,7 +266,7 @@ export class CDNManager {
     filemd5: string,
   ): Promise<CDNCheckMd5Response> {
     if (!this.cdnInfo) {
-      throw new Error(`${PRE} _checkFileMd5() failed, no CDN info yet, can not download file.`)
+      throw new Error(`${PRE} _checkFileMd5() failed, no CDN info yet, can not get file info.`)
     }
     const touser = '@cdn_' + encryptUser(toId, CDN_USER_MD5_KEY)
     const request: CDNCheckMd5Request = {
@@ -276,7 +278,7 @@ export class CDNManager {
       authkey: this.cdnInfo.authKey,
       nettype: 1,
       acceptdupack: 1,
-      filetype: CDNFileType.FIVE,
+      filetype: CDNFileType.ATTACHMENT,
       safeproto: 1,
       enablehit: 1,
       filemd5,
@@ -326,7 +328,7 @@ export class CDNManager {
       nettype: 1,
       acceptdupack: 1,
       safeproto: 1,
-      filetype: CDNFileType.FIVE,
+      filetype: CDNFileType.ATTACHMENT,
       wxchattype: 0,
       lastretcode: 0,
       ipseq: 0,

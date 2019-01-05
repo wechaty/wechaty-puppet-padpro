@@ -478,20 +478,11 @@ export class PadproGrpc extends EventEmitter {
 
     let dataLen = 65536
     let startPos = 0
-    let totalLength
-
-    if (imagePayload.length) {
-      totalLength = imagePayload.length
-    } else if (imagePayload.hdLength) {
-      totalLength = imagePayload.hdLength
-    } else {
-      return ''
-    }
+    const totalLength = imagePayload.length!
 
     while (startPos < totalLength) {
       dataLen = startPos + dataLen > totalLength ? totalLength - startPos : dataLen
       const result: GrpcGetMsgImageType = await this.wechatGateway.callApi('GrpcGetMsgImage', {
-        CompressType: 0,
         DataLen: dataLen,
         MsgId,
         StartPos: startPos,

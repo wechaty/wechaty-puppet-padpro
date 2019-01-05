@@ -96,6 +96,7 @@ import {
 import { PadproManager } from './manager/padpro-manager'
 
 import {
+  CDNFileType,
   FriendshipPayloadReceive,
   GrpcContactRawPayload,
   GrpcVoiceFormat,
@@ -861,12 +862,41 @@ export class PuppetPadpro extends Puppet {
           log.error(PRE, `Can not parse image message, content: ${rawPayload.content}`)
           return FileBox.fromBase64('', filename)
         }
-        result = await this.padproManager.GrpcGetMsgImage(rawPayload, imagePayload)
+        if (imagePayload.hdLength) {
+          if (!this.cdnManager) {
+            throw new Error(`CDN manager not exist`)
+          }
+          result = await this.cdnManager.downloadFile(
+            imagePayload.cdnBigImgUrl!,
+            imagePayload.aesKey,
+            imagePayload.hdLength,
+            CDNFileType.IMAGE,
+          )
+        } else {
+          result = await this.padproManager.GrpcGetMsgImage(
+            rawPayload,
+            imagePayload,
+          )
+        }
 
-        return FileBox.fromBase64(result, filename)
+        return FileBox.fromBase64(result.toString('base64'), filename)
 
       case MessageType.Video:
-        throw new Error('Can not download video message yet.')
+        const videoPayload = await videoPayloadParser(rawPayload)
+        if (videoPayload === null) {
+          log.error(PRE, `Can not parse video message, content: ${rawPayload.content}`)
+          return FileBox.fromBase64('', filename)
+        }
+        if (!this.cdnManager) {
+          throw new Error(`CDN manager not exist`)
+        }
+        result = await this.cdnManager.downloadFile(
+          videoPayload.cdnVideoUrl,
+          videoPayload.aesKey,
+          videoPayload.length,
+          CDNFileType.VIDEO,
+        )
+        return FileBox.fromBase64(result.toString('base64'), filename)
 
       case MessageType.Attachment:
         const attachmentPayload = await appMessageParser(rawPayload)
@@ -884,6 +914,7 @@ export class PuppetPadpro extends Puppet {
           cdnInfo.cdnattachurl || '',
           cdnInfo.aeskey || '',
           cdnInfo.totallen || 0,
+          CDNFileType.ATTACHMENT,
         )
 
         return FileBox.fromBase64(
