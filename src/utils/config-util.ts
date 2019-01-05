@@ -1,7 +1,7 @@
 import { FileBox } from 'file-box'
 import promiseRetry = require('promise-retry')
 import qrImage from 'qr-image'
-import { WrapOptions } from 'retry'
+import { OperationOptions } from 'retry'
 
 import { log } from '../config'
 
@@ -49,7 +49,7 @@ export async function retry<T> (
   const retries    = 9
   // const unref      = true
 
-  const retryOptions: WrapOptions = {
+  const retryOptions: OperationOptions = {
     factor,
     maxTimeout,
     minTimeout,
