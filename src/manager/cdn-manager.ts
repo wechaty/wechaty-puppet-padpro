@@ -180,14 +180,15 @@ export class CDNManager {
     let result = Buffer.from('')
 
     if (!this.cdnInfo) {
-      try {
-        await Promise.race([
-          await this.getCDNServerIP(),
-          await new Promise((_, reject) => setTimeout(reject, 20000)),
-        ])
-      } catch (e) {
-        throw new Error(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
-      }
+      await Promise.race([
+        await this.getCDNServerIP(),
+        await new Promise((_, reject) => {
+          const timeoutTimer = setTimeout(() => {
+            clearTimeout(timeoutTimer)
+            reject(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
+          }, 20000)
+        }),
+      ])
     }
     while (curIndex + 1 < dataLen) {
       const endIndex = dataLen > curIndex + MAX_TRUNK_SIZE ? curIndex + MAX_TRUNK_SIZE : dataLen
