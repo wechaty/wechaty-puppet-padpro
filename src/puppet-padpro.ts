@@ -597,6 +597,7 @@ export class PuppetPadpro extends Puppet {
     }
 
     await this.padproManager.GrpcSetContactAlias(contactId, alias || '')
+    await this.contactPayloadDirty(contactId)
 
     return
   }
