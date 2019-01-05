@@ -866,12 +866,12 @@ export class PuppetPadpro extends Puppet {
           if (!this.cdnManager) {
             throw new Error(`CDN manager not exist`)
           }
-          result = await this.cdnManager.downloadFile(
+          result = (await this.cdnManager.downloadFile(
             imagePayload.cdnBigImgUrl!,
             imagePayload.aesKey,
             imagePayload.hdLength,
             CDNFileType.IMAGE,
-          )
+          )).toString('base64')
         } else {
           result = await this.padproManager.GrpcGetMsgImage(
             rawPayload,
@@ -879,7 +879,7 @@ export class PuppetPadpro extends Puppet {
           )
         }
 
-        return FileBox.fromBase64(result.toString('base64'), filename)
+        return FileBox.fromBase64(result, filename)
 
       case MessageType.Video:
         const videoPayload = await videoPayloadParser(rawPayload)
