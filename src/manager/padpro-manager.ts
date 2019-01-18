@@ -400,13 +400,11 @@ export class PadproManager extends PadproGrpc {
 
         if (this.loginScanStatus !== result.Status && this.loginScanQrCode) {
           this.loginScanStatus = result.Status
-          if (result.Status === CheckQRCodeStatus.WaitScan) {
-            this.emit(
-              'scan',
-              this.loginScanQrCode,
-              this.loginScanStatus,
-            )
-          }
+          this.emit(
+            'scan',
+            this.loginScanQrCode,
+            this.loginScanStatus,
+          )
         }
 
         if (result.Status === CheckQRCodeStatus.WaitScan && result.ExpiredTime && result.ExpiredTime < 10) {
