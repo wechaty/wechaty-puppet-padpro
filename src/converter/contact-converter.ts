@@ -42,7 +42,7 @@ export const convertMemberToContact = (input: GrpcRoomMemberDetail): PadproConta
     labelLists       : '',
     nickName         : input.NickName,
     province         : '',
-    remark           : '',
+    remark           : input.DisplayName,
     sex              : ContactGender.Unknown,
     signature        : '',
     smallHeadUrl     : input.SmallHeadImgUrl,
