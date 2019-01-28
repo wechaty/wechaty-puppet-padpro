@@ -10,6 +10,7 @@ export function roomRawPayloadParser (
   rawPayload: PadproRoomPayload,
 ): RoomPayload {
   const payload: RoomPayload = {
+    avatar       : rawPayload.bigHeadUrl,
     id           : rawPayload.chatroomId,
     memberIdList : rawPayload.members.map(m => m.userName) || [],
     ownerId      : rawPayload.chatRoomOwner,
