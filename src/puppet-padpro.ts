@@ -1445,11 +1445,6 @@ export class PuppetPadpro extends Puppet {
       log.verbose(PRE, `roomAdd(${roomId}, ${contactId}) try to Invite`)
       await this.padproManager.GrpcInviteRoomMember(roomId, contactId)
     }
-
-    // Reload room information here
-    await this.roomMemberPayloadDirty(roomId)
-    await new Promise(r => setTimeout(r, 500))
-    await this.roomMemberPayload(roomId, contactId)
   }
 
   public async roomTopic (roomId: string)                : Promise<string>

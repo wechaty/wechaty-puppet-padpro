@@ -643,10 +643,13 @@ export class PadproGrpc extends EventEmitter {
       Membernames = contactId.join(',')
     }
 
-    await this.wechatGateway.callApi('GrpcAddRoomMember', {
+    const result = await this.wechatGateway.callApi('GrpcAddRoomMember', {
       Membernames,
       Roomeid: roomId,
     })
+    if (result !== null) {
+      throw new Error('Add member to room failed.')
+    }
   }
 
   /**

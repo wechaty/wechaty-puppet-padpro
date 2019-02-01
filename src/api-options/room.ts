@@ -10,7 +10,9 @@ export const GrpcQuitRoom: ApiOption = {}
 
 export const GrpcAddRoomMember: ApiOption = {}
 
-export const GrpcInviteRoomMember: ApiOption = {}
+export const GrpcInviteRoomMember: ApiOption = {
+  noParse: true,
+}
 
 export const GrpcDeleteRoomMember: ApiOption = {}
 
