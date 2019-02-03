@@ -128,7 +128,7 @@ export class PadproGrpc extends EventEmitter {
   }
 
   public async GrpcCheckQRCode (): Promise<GrpcCheckQRCode> {
-    log.info(PRE, `GrpcCheckQRCode()`)
+    log.verbose(PRE, `GrpcCheckQRCode()`)
     return this.wechatGateway.callApi('GrpcCheckQRCode')
   }
 
