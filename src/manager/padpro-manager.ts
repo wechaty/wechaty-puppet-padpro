@@ -40,7 +40,11 @@ import {
   voicePayloadParser,
 }                   from '../pure-function-helpers'
 
-import { log, WAIT_FOR_READY_TIME } from '../config'
+import {
+  log,
+  PADPRO_REPLAY_MESSAGE,
+  WAIT_FOR_READY_TIME,
+} from '../config'
 import { retry, updateContact } from '../utils'
 
 import {
@@ -1031,7 +1035,9 @@ export class PadproManager extends PadproGrpc {
     atUserList?: string[],
   ) {
     await super.GrpcSendMessage(contactId, content, atUserList)
-    this.replayTextMsg(contactId, content)
+    if (PADPRO_REPLAY_MESSAGE) {
+      this.replayTextMsg(contactId, content)
+    }
   }
 
   public async GrpcSendImage (
@@ -1039,7 +1045,9 @@ export class PadproManager extends PadproGrpc {
     data: string,
   ) {
     await super.GrpcSendImage(contactId, data)
-    this.replayImageMsg(contactId, data)
+    if (PADPRO_REPLAY_MESSAGE) {
+      this.replayImageMsg(contactId, data)
+    }
   }
 
   public async GrpcSendApp (
@@ -1047,7 +1055,9 @@ export class PadproManager extends PadproGrpc {
     content: string,
   ) {
     await super.GrpcSendApp(contactId, content)
-    this.replayAppMsg(contactId, content)
+    if (PADPRO_REPLAY_MESSAGE) {
+      this.replayAppMsg(contactId, content)
+    }
   }
   private replayTextMsg (to: string, text: string, atUserList?: string[]): void {
     const payload = this.generateBaseMsg(to)

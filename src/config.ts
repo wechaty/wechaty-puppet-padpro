@@ -8,6 +8,9 @@ import readPkgUp from 'read-pkg-up'
 const WECHATY_PUPPET_PADPRO_ENDPOINT_ENV_VAR = 'WECHATY_PUPPET_PADPRO_ENDPOINT'
 
 export const WECHATY_PUPPET_PADPRO_ENDPOINT = process.env[WECHATY_PUPPET_PADPRO_ENDPOINT_ENV_VAR]  || 'padpro.botorange.com:6666'
+
+export const PADPRO_REPLAY_MESSAGE = process.env.PADPRO_REPLAY_MESSAGE || false
+
 export const SELF_QRCODE_MAX_RETRY = 5
 
 export const PUPPET_PADPRO_TIMEOUT = 60 * 4
