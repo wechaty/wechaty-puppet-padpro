@@ -859,8 +859,12 @@ export class PuppetPadpro extends Puppet {
       case MessageType.Image:
         const imagePayload = await imagePayloadParser(rawPayload)
         if (imagePayload === null) {
-          log.error(PRE, `Can not parse image message, content: ${rawPayload.content}`)
-          return FileBox.fromBase64('', filename)
+          if (rawPayload.data) {
+            return FileBox.fromBase64(rawPayload.data, filename)
+          } else {
+            log.error(PRE, `Can not parse image message, content: ${rawPayload.content}`)
+            return FileBox.fromBase64('', filename)
+          }
         }
         if (imagePayload.hdLength) {
           if (!this.cdnManager) {

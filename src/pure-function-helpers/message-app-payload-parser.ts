@@ -65,6 +65,7 @@ export async function appMessageParser (rawPayload: PadproMessagePayload): Promi
     }
     return { title, des, url, thumburl, md5, type: parseInt(type, 10), appattach }
   } catch (e) {
+    console.error(e.stack)
     return null
   }
 }

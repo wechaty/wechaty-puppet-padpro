@@ -6,6 +6,8 @@ import {
 import { Subscription }       from 'rxjs'
 import { StateSwitch }        from 'state-switch'
 
+import uuid = require('uuid')
+
 import {
   AutoLoginError,
   CheckQRCodeStatus,
@@ -21,6 +23,7 @@ import {
   PadproContactPayload,
   PadproMemberBrief,
   PadproMessagePayload,
+  PadproMessageStatus,
   PadproMessageType,
   PadproRoomInvitationPayload,
   PadproRoomInviteEvent,
@@ -1020,6 +1023,72 @@ export class PadproManager extends PadproGrpc {
     }
 
     await this.GrpcShareCard(toId, contactRawPayload)
+  }
+
+  public async GrpcSendMessage (
+    contactId: string,
+    content: string,
+    atUserList?: string[],
+  ) {
+    await super.GrpcSendMessage(contactId, content, atUserList)
+    this.replayTextMsg(contactId, content)
+  }
+
+  public async GrpcSendImage (
+    contactId: string,
+    data: string,
+  ) {
+    await super.GrpcSendImage(contactId, data)
+    this.replayImageMsg(contactId, data)
+  }
+
+  public async GrpcSendApp (
+    contactId: string,
+    content: string,
+  ) {
+    await super.GrpcSendApp(contactId, content)
+    this.replayAppMsg(contactId, content)
+  }
+  private replayTextMsg (to: string, text: string, atUserList?: string[]): void {
+    const payload = this.generateBaseMsg(to)
+    payload.messageType = PadproMessageType.Text
+    payload.content = text
+    if (atUserList) {
+      payload.messageSource = `<msgsource>\n\t<atuserlist>${atUserList.join(',')}</atuserlist>\n</msgsource>\n`
+    }
+    log.silly(PRE, 'replayTextMsg replaying message: %s', JSON.stringify(payload))
+    this.emit('message', payload)
+  }
+
+  private replayImageMsg (to: string, data: string): void {
+    const payload = this.generateBaseMsg(to)
+    payload.messageType = PadproMessageType.Image
+    payload.data = data
+    log.silly(PRE, 'replayImageMsg replaying message: %s', JSON.stringify(payload))
+    this.emit('message', payload)
+  }
+
+  private replayAppMsg (to: string, content: string): void {
+    const payload = this.generateBaseMsg(to)
+    payload.messageType = PadproMessageType.App
+    payload.content = `<msg>${content}</msg>`
+    log.silly(PRE, 'replayAppMsg replaying message: %s', JSON.stringify(payload))
+    this.emit('message', payload)
+  }
+
+  private generateBaseMsg (to: string): PadproMessagePayload {
+    const msg: PadproMessagePayload = {
+      content: '',
+      fromUser: this.userId!,
+      messageId: uuid.v4(),
+      messageSource: '',
+      messageType: PadproMessageType.Text,
+      status: PadproMessageStatus.One,
+      timestamp: new Date().getTime() / 1000,
+      toUser: to,
+    }
+    log.silly(PRE, 'generateBaseMsg(%s) %s', to, JSON.stringify(msg))
+    return msg
   }
 
   private memberIsSame (memberA: PadproMemberBrief[], memberB: PadproMemberBrief[]): boolean {

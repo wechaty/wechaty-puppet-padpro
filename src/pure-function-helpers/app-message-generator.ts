@@ -1,20 +1,20 @@
 import { UrlLinkPayload } from 'wechaty-puppet'
-import { PadproAppMessagePayload } from '../schemas'
+import { PadproAppMessagePayload, WechatAppMessageType } from '../schemas'
 
 export const generateAppXMLMessage = ({ title, description, url, thumbnailUrl }: UrlLinkPayload): string => {
-  return `
-    <appmsg appid="" sdkver="0">
-      <title>${title}</title>
-      <des>${description}</des>
-      <username></username>
-      <action>view</action>
-      <type>5</type>
-      <showtype>0</showtype>
-      <url>${url.replace(/&/g, '&amp;')}</url>
-      <contentattr>0</contentattr>
-      ${thumbnailUrl ? '<thumburl>' + thumbnailUrl.replace(/&/g, '&amp;') + '</thumburl>' : ''}
-    </appmsg>
-  `
+  return '' +
+    '<appmsg appid="" sdkver="0">' +
+      `<title>${title}</title>` +
+      `<des>${description}</des>` +
+      `<type>${WechatAppMessageType.Url}</type>` +
+      `<username></username>` +
+      `<action>view</action>` +
+      `<type>5</type>` +
+      `<showtype>0</showtype>` +
+      `<url>${url.replace(/&/g, '&amp;')}</url>` +
+      `<contentattr>0</contentattr>` +
+      `${thumbnailUrl ? '<thumburl>' + thumbnailUrl.replace(/&/g, '&amp;') + '</thumburl>' : ''}` +
+    `</appmsg>`
 }
 
 export const generateAttachmentXMLMessageFromRaw = (payload: PadproAppMessagePayload): string => {
