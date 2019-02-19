@@ -32,18 +32,16 @@ npm install wechaty-puppet-padpro
 
 ```ts
 import { Wechaty } from 'wechaty'
+import { PuppetPadpro } from 'wechaty-puppet-padpro'
 
 const WECHATY_PUPPET_PADPRO_TOKEN = 'your-token-here'
 
-const puppet = 'wechaty-puppet-padpro' // 使用ipad 的方式接入。
-
-const puppetOptions = {
+const puppet = new PuppetPadpro({
   token: WECHATY_PUPPET_PADPRO_TOKEN,
-}
+})
 
 const bot = new Wechaty({
   puppet,
-  puppetOptions,
 })
 
 // 设置完成
