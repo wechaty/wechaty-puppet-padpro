@@ -700,6 +700,11 @@ export class PadproGrpc extends EventEmitter {
     })
   }
 
+  public async GrpcNewInit () {
+    log.silly(PRE, `GrpcNewInit()`)
+    return this.wechatGateway.callApi('GrpcNewInit')
+  }
+
   /**
    * Underlying function to do contact operations
    * @param option Contact operation option

@@ -198,6 +198,8 @@ export class PadproManager extends PadproGrpc {
   private async initData (): Promise<void> {
     log.silly(PRE, `initData() started`)
 
+    const result = await this.GrpcNewInit()
+    await this.processMessages(result)
     await this.initDataInternalLoop()
   }
 
@@ -601,7 +603,10 @@ export class PadproManager extends PadproGrpc {
   }
 
   private tryEmitLogin () {
-    if (this.selfContact.UserName !== '' && this.selfContact.BigHeadImgUrl !== '' && !this.userId) {
+    if (this.selfContact.UserName !== ''
+      && this.selfContact.BigHeadImgUrl !== 'null'
+      && this.selfContact.SmallHeadImgUrl !== 'null'
+      && !this.userId) {
 
       if (!this.cacheManager) {
         throw Error(`${PRE} tryEmitLogin() has no contact cache.`)
@@ -622,11 +627,12 @@ export class PadproManager extends PadproGrpc {
 
   /**
    * Return an empty contact which can be used as the self contact
+   * Fix issue when avatar is empty, initialize the head img url as a string 'null'
    */
   private getEmptySelfContact () {
     return {
       Alias          : '',
-      BigHeadImgUrl  : '',
+      BigHeadImgUrl  : 'null',
       City           : '',
       ContactType    : ContactType.Personal,
       EncryptUsername: '',
@@ -637,7 +643,7 @@ export class PadproManager extends PadproGrpc {
       Remark         : '',
       Sex            : 0,
       Signature      : '',
-      SmallHeadImgUrl: '',
+      SmallHeadImgUrl: 'null',
       Ticket         : '',
       UserName       : '',
       VerifyFlag     : 0,
