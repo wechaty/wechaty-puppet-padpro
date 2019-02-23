@@ -64,6 +64,16 @@ bot
 
 当前文件相关功能需要获取当前运行的主机的IP地址，目前项目使用了[public-ip](https://www.npmjs.com/package/public-ip)包来实现，但是对于某些运行环境，这个包可能无法获取当前的IP地址，因此项目中增加了对环境变量`PADPRO_IP`的处理。用户可以自行传入`PADPRO_IP`环境变量来指定自己的IP地址，然后根据这个IP地址获取文件功能相关的CDN服务器地址。务必保证自己传入了一个**公网地址**，否则传入参数无效，无法正确运行文件的收发功能。
 
+## 通过wechaty发送的消息并不会在`message`事件中接收到
+
+`wechaty-puppet-padpro`增加了一个环境变量`PADPRO_REPLAY_MESSAGE`，来控制通过wechaty发送出去的消息，是否在`message`事件中被触发
+
+如果希望所有的消息都被触发，则可以在运行自己的代码时，在前面设置`PADPRO_REPLAY_MESSAGE`为`true`即可，如下：
+
+```shell
+PADPRO_REPLAY_MESSAGE=true node bot.js
+```
+
 ## 文档
 
 [http://wechaty.botorange.com](http://wechaty.botorange.com)
