@@ -1483,7 +1483,7 @@ export class PuppetPadpro extends Puppet {
 
   public async roomCreate (
     contactIdList : string[],
-    topic         : string,
+    topic?        : string,
   ): Promise<string> {
     log.verbose(PRE, `roomCreate(${contactIdList}, ${topic})`)
 
@@ -1494,6 +1494,9 @@ export class PuppetPadpro extends Puppet {
     const payload = await this.padproManager.GrpcCreateRoom(contactIdList)
     const roomId = payload.Roomeid
 
+    if (topic) {
+      await this.padproManager.GrpcSetRoomName(roomId, topic)
+    }
     // Load new created room payload
     await this.roomPayload(roomId)
 
