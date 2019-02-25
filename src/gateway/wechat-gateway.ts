@@ -199,8 +199,19 @@ export class WechatGateway extends EventEmitter {
     })
   }
 
-  public async callApi (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) {
-    return this.dedupeApi.dedupe(this._callApi.bind(this), apiName, params, forceLongOrShort)
+  public async callApi (
+    apiName: string,
+    params?: ApiParams,
+    forceCall?: boolean,
+    forceLongOrShort?: boolean,
+  ) {
+    return this.dedupeApi.dedupe(
+      this._callApi.bind(this),
+      apiName,
+      params,
+      forceCall,
+      forceLongOrShort
+    )
   }
 
   private async _callApi (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) {
@@ -222,7 +233,7 @@ export class WechatGateway extends EventEmitter {
       } else {
         const res = await this.grpcGateway.packShort(apiName, params)
         const wxResponse = await this.sendShort(res, noParse)
-        const result = await this.grpcGateway.parse(apiName, wxResponse)
+        const result = noParse ? wxResponse : await this.grpcGateway.parse(apiName, wxResponse)
         return result
       }
     } catch (e) {

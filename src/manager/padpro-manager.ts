@@ -867,6 +867,7 @@ export class PadproManager extends PadproGrpc {
    */
   public async contactRawPayloadDirty (
     contactId: string,
+    forceCall?: boolean,
   ): Promise<void> {
     log.verbose(PRE, `contactRawPayloadDirty(${contactId})`)
     if (!this.cacheManager) {
@@ -877,7 +878,7 @@ export class PadproManager extends PadproGrpc {
       log.verbose(PRE, `contactRawPayloadDirty() trying to dirty a contact that does not exist in cache.`)
       return
     }
-    const current = await this.GrpcGetContactPayload(contactId)
+    const current = await this.GrpcGetContactPayload(contactId, forceCall)
     if (current === null) {
       log.verbose(PRE, `contactRawPayloadDirty() found invalid contact, remove it from cache.`)
       this.cacheManager.deleteContact(contactId)

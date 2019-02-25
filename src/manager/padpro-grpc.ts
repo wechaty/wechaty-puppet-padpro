@@ -147,11 +147,12 @@ export class PadproGrpc extends EventEmitter {
    * This function will fetch contact data for the given contact id(s)
    * @param contact This is either one wxid or an array of wxid
    */
-  protected async GrpcGetContactPayload (contact: string)  : Promise<GrpcContactRawPayload | null>
+  protected async GrpcGetContactPayload (contact: string, forceCall?: boolean)  : Promise<GrpcContactRawPayload | null>
   protected async GrpcGetContactPayload (contact: string[]): Promise<GrpcContactRawPayload[]>
 
   protected async GrpcGetContactPayload (
-    contact: string | string[]
+    contact: string | string[],
+    forceCall?: boolean,
   )        : Promise<GrpcContactRawPayload | GrpcContactRawPayload[] | null> {
     log.silly(PRE, `GrpcGetContactPayload(${contact})`)
     let UserNameList: string
@@ -161,7 +162,7 @@ export class PadproGrpc extends EventEmitter {
       UserNameList = contact.join(',')
     }
 
-    const result: GrpcContactRawPayload[] = await this.wechatGateway.callApi('GrpcGetContact', { UserNameList })
+    const result: GrpcContactRawPayload[] = await this.wechatGateway.callApi('GrpcGetContact', { UserNameList }, forceCall)
     // log.silly(PRE, `GrpcGetContactPayload() result: ${JSON.stringify(result)}`)
 
     if (typeof contact === 'string') {

@@ -48,6 +48,7 @@ export class DedupeApi {
     func: (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) => Promise<any>,
     apiName: string,
     params?: ApiParams,
+    forceCall?: boolean,
     forceLongOrShort?: boolean,
   ): Promise<any> {
     if (DEDUPE_API.indexOf(apiName) === -1) {
@@ -56,6 +57,9 @@ export class DedupeApi {
     }
     log.silly(PRE, `dedupeApi(${apiName}, ${params ? JSON.stringify(params) : ''})`)
     const key = this.getKey(apiName, params)
+    if (forceCall) {
+      delete this.pool[key]
+    }
     const existCall = this.pool[key]
     const now = new Date().getTime()
     if (existCall && now - existCall.timestamp < EXPIRE_TIME * 1000) {

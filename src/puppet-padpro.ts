@@ -598,7 +598,7 @@ export class PuppetPadpro extends Puppet {
     }
 
     await this.padproManager.GrpcSetContactAlias(contactId, alias || '')
-    await this.contactPayloadDirty(contactId)
+    await this.contactPayloadDirty(contactId, true)
 
     return
   }
@@ -712,11 +712,11 @@ export class PuppetPadpro extends Puppet {
     }
   }
 
-  public async contactPayloadDirty (contactId: string): Promise<void> {
+  public async contactPayloadDirty (contactId: string, forceCall?: boolean): Promise<void> {
     log.verbose(PRE, 'contactPayloadDirty(%s)', contactId)
 
     if (this.padproManager) {
-      await this.padproManager.contactRawPayloadDirty(contactId)
+      await this.padproManager.contactRawPayloadDirty(contactId, forceCall)
     }
 
     await super.contactPayloadDirty(contactId)
