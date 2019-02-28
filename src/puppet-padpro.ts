@@ -123,7 +123,7 @@ export class PuppetPadpro extends Puppet {
   public static readonly VERSION = VERSION
 
   private padproCounter: number
-  private readonly cachePadproMessagePayload: LRU.Cache<string, PadproMessagePayload>
+  private readonly cachePadproMessagePayload: LRU<string, PadproMessagePayload>
 
   private padproManager?: PadproManager
   private cdnManager?   : CDNManager
@@ -136,7 +136,7 @@ export class PuppetPadpro extends Puppet {
       ...options,
     })
 
-    const lruOptions: LRU.Options = {
+    const lruOptions: LRU.Options<string, PadproMessagePayload> = {
       max: MESSAGE_CACHE_MAX,
       dispose (key: string, val: any) {
         log.silly(PRE, `constructor() lruOptions.dispose(${key}, ${JSON.stringify(val)})`)
