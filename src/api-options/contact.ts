@@ -1,6 +1,8 @@
 import { ApiOption } from './interface'
 
-export const GrpcGetContact: ApiOption = {}
+export const GrpcGetContact: ApiOption = {
+  longRequest: true,
+}
 
 export const GrpcSyncContact: ApiOption = {
   longRequest: true,
