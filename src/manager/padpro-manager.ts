@@ -14,6 +14,7 @@ import {
   ContactType,
   EncryptionServiceError,
   GrpcContactRawPayload,
+  GrpcDeletedPayload,
   GrpcMessagePayload,
   GrpcRoomRawPayload,
   GrpcSelfAvatarPayload,
@@ -550,6 +551,18 @@ export class PadproManager extends PadproGrpc {
           this.cacheManager.setContact(contact.UserName, convertContact(contact))
         }
 
+        return
+      }
+
+      if (m.MsgType === PadproMessageType.Deleted) {
+        const payload = m as GrpcDeletedPayload
+        const contactOrRoomId = payload.Username
+        if (isRoomId(contactOrRoomId)) {
+          CacheManager.Instance.deleteRoom(contactOrRoomId)
+          CacheManager.Instance.deleteRoomMember(contactOrRoomId)
+        } else {
+          CacheManager.Instance.deleteContact(contactOrRoomId)
+        }
         return
       }
 

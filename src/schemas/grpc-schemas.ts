@@ -161,11 +161,17 @@ export interface GrpcSelfAvatarPayload {
   SmallHeadImgUrl: string,                         // "http://wx.qlogo.cn/mmhead/KDLS0fhbZw1jQScfCqfVaPM/0"
 }
 
+export interface GrpcDeletedPayload {
+  MsgType: PadproMessageType,
+  Username: string,
+}
+
 export type GrpcSyncMessagePayload = GrpcMessagePayload
                                    | GrpcContactRawPayload
                                    | GrpcRoomRawPayload
                                    | GrpcSelfInfoPayload
                                    | GrpcSelfAvatarPayload
+                                   | GrpcDeletedPayload
 
 /**
  * ******************************************************************************************************************

@@ -137,6 +137,7 @@ export enum PadproMessageType {
   Text              = 1,
   Contact           = 2,
   Image             = 3,
+  Deleted           = 4,
   Voice             = 34,
   SelfAvatar        = 35,
   VerifyMsg         = 37,

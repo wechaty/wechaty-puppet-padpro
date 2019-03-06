@@ -4,7 +4,9 @@ export const GrpcSyncMessage: ApiOption = {
   longRequest: true,
 }
 
-export const GrpcSendMessage: ApiOption = {}
+export const GrpcSendMessage: ApiOption = {
+  longRequest: true,
+}
 
 export const GrpcSendImage: ApiOption = {
   longRequest: true,

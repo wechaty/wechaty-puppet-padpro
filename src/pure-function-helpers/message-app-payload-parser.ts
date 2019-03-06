@@ -6,6 +6,8 @@ import {
   PadproMessagePayload,
 }                       from '../schemas'
 
+import { log } from '../config'
+
 import { isPayload } from './is-type'
 
 export async function appMessageParser (rawPayload: PadproMessagePayload): Promise<PadproAppMessagePayload | null> {
@@ -65,7 +67,7 @@ export async function appMessageParser (rawPayload: PadproMessagePayload): Promi
     }
     return { title, des, url, thumburl, md5, type: parseInt(type, 10), appattach }
   } catch (e) {
-    console.error(e.stack)
+    log.verbose(e.stack)
     return null
   }
 }

@@ -258,7 +258,7 @@ export class WechatGateway extends EventEmitter {
       const result = await this._sendShort(res, noParse)
       return result
     } catch (e) {
-      if (retry > 0) {
+      if (retry > 0 && e !== 'UNKNOWN_PACKAGE') {
         log.info(PRE, `sendShort() failed for error: ${e}, retry the api.`)
         return this.sendShort(res, noParse, retry - 1)
       } else {
@@ -304,7 +304,8 @@ export class WechatGateway extends EventEmitter {
           const buffer = Buffer.concat(rawData, dataLen)
           // Short request parse judgement
           if (!noParse && buffer[0] !== 191) {
-            reject(`sendShort receive unknown package: [${buffer[0]}] ${buffer.toString('hex')} ${buffer.toString()}]`)
+            log.warn(`sendShort receive unknown package: [${buffer[0]}] ${buffer.toString('hex')} ${buffer.toString()}]`)
+            reject('UNKNOWN_PACKAGE')
           }
           resolve(buffer)
         })
@@ -335,7 +336,8 @@ export class WechatGateway extends EventEmitter {
           if (judgeFlag === 126) {
             this.emit('reset')
           } else if (judgeFlag !== 191) {
-            reject(`sendLong receive unknown package: [${judgeFlag}] ${buffer.toString('hex')}]`)
+            log.warn(`sendLong receive unknown package: [${judgeFlag}] ${buffer.toString('hex')}]`)
+            reject('UNKNOWN_PACKAGE')
           }
         }
         delete this.backs[reqSeq]
