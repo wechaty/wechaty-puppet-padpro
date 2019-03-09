@@ -1218,8 +1218,6 @@ export class PuppetPadpro extends Puppet {
         receiver,
         await this.messageUrl(messageId)
       )
-    } else if (payload.type === MessageType.Attachment) {
-      await this.forwardAttachment(receiver, messageId)
     } else if (payload.type === MessageType.Video) {
       await this.forwardVideo(receiver, messageId)
     } else {
