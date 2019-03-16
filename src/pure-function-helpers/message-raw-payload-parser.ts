@@ -24,6 +24,12 @@ import {
   messageType,
 }                         from './message-type'
 
+import {
+  log,
+}                         from '../config'
+
+const PRE = 'messageRawPayloadParser'
+
 export async function messageRawPayloadParser (
   rawPayload: PadproMessagePayload,
 ): Promise<MessagePayload> {
@@ -34,6 +40,7 @@ export async function messageRawPayloadParser (
    * 0. Set Message Type
    */
   const type = messageType(rawPayload.messageType)
+  log.silly(PRE, `messageType ${type}`)
 
   const payloadBase = {
     id        : rawPayload.messageId,
@@ -215,6 +222,7 @@ export async function messageRawPayloadParser (
           break
         case WechatAppMessageType.Attach:
           payload.type = MessageType.Attachment
+          payload.filename = appPayload.title
           break
         case WechatAppMessageType.ChatHistory:
           payload.type = MessageType.ChatHistory

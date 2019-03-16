@@ -819,7 +819,7 @@ export class PuppetPadpro extends Puppet {
    *
    */
   public async messageFile (messageId: string): Promise<FileBox> {
-    log.warn(PRE, 'messageFile(%s)', messageId)
+    log.silly(PRE, 'messageFile(%s)', messageId)
 
     if (!this.padproManager) {
       throw new Error('no padpro manager')
@@ -836,7 +836,7 @@ export class PuppetPadpro extends Puppet {
       case MessageType.Audio:
         const voicePayload = await voicePayloadParser(rawPayload)
         if (voicePayload === null) {
-          log.error(PRE, `Can not parse image message, content: ${rawPayload.content}`)
+          log.error(PRE, `Can not parse voice message, content: ${rawPayload.content}`)
           return FileBox.fromBase64('', filename)
         }
         const name = `${rawPayload.messageId}.${voicePayload.voiceLength}.slk`
@@ -921,8 +921,10 @@ export class PuppetPadpro extends Puppet {
           CDNFileType.ATTACHMENT,
         )
 
-        return FileBox.fromBase64(
-          data.toString('base64'),
+        log.silly(PRE, `downloaded attachment ${filename} - ${data.byteLength} bytes`)
+
+        return FileBox.fromBuffer(
+          data,
           filename,
         )
 
@@ -1214,30 +1216,30 @@ export class PuppetPadpro extends Puppet {
     }
   }
 
-  private async forwardAttachment (
-    receiver: Receiver,
-    messageId: string,
-  ): Promise<void> {
-    if (!this.padproManager) {
-      throw new Error('no padpro manager')
-    }
+  // private async forwardAttachment (
+  //   receiver: Receiver,
+  //   messageId: string,
+  // ): Promise<void> {
+  //   if (!this.padproManager) {
+  //     throw new Error('no padpro manager')
+  //   }
 
-    const rawPayload = await this.messageRawPayload(messageId)
+  //   const rawPayload = await this.messageRawPayload(messageId)
 
-    // Send to the Room if there's a roomId
-    const id = receiver.roomId || receiver.contactId
+  //   // Send to the Room if there's a roomId
+  //   const id = receiver.roomId || receiver.contactId
 
-    if (!id) {
-      throw new Error('There is no receiver id when trying to forward attachment.')
-    }
-    const appPayload = await appMessageParser(rawPayload)
-    if (appPayload === null) {
-      throw new Error('Can not forward attachment, failed to parse xml message.')
-    }
+  //   if (!id) {
+  //     throw new Error('There is no receiver id when trying to forward attachment.')
+  //   }
+  //   const appPayload = await appMessageParser(rawPayload)
+  //   if (appPayload === null) {
+  //     throw new Error('Can not forward attachment, failed to parse xml message.')
+  //   }
 
-    const content = generateAttachmentXMLMessageFromRaw(appPayload)
-    await this.padproManager.GrpcSendApp(id, content)
-  }
+  //   const content = generateAttachmentXMLMessageFromRaw(appPayload)
+  //   await this.padproManager.GrpcSendApp(id, content)
+  // }
 
   private async forwardVideo (
     receiver: Receiver,
