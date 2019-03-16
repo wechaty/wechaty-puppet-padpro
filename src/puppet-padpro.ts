@@ -1407,7 +1407,6 @@ export class PuppetPadpro extends Puppet {
     const roomPayload = await this.roomPayload(roomId)
     const roomName    = roomPayload.topic || roomPayload.id
     const fileBox     = FileBox.fromBase64(base64, `${roomName}-qrcode.jpg`)
-    await fileBox.toFile()
 
     const qrcode = await fileBoxToQrcode(fileBox)
 
