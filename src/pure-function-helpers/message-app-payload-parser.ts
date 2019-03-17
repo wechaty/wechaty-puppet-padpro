@@ -51,7 +51,7 @@ export async function appMessageParser (rawPayload: PadproMessagePayload): Promi
   try {
     const jsonPayload: XmlSchema = await xmlToJson(tryXmlText)
 
-    const { title, des, url, thumburl, type, md5 } = jsonPayload.msg.appmsg
+    const { title, des, url, thumburl, type, md5, recorditem } = jsonPayload.msg.appmsg
     let appattach: PadproAppAttachPayload | undefined
     const tmp = jsonPayload.msg.appmsg.appattach
     if (tmp) {
@@ -67,7 +67,7 @@ export async function appMessageParser (rawPayload: PadproMessagePayload): Promi
         islargefilemsg: parseInt(tmp.islargefilemsg, 10),
       }
     }
-    return { title, des, url, thumburl, md5, type: parseInt(type, 10), appattach }
+    return { title, des, url, thumburl, md5, type: parseInt(type, 10), appattach, recorditem }
   } catch (e) {
     log.verbose(e.stack)
     return null
