@@ -120,6 +120,7 @@ export class CDNManager {
       log.verbose(PRE, `uploadFile() file ${fileName} not exists in cdn, upload it...`)
       const fileKey = md5(uuid.v4())
       aesKey = getAesKey()
+      log.silly(PRE, `new aesKey - ${JSON.stringify(aesKey)}`)
       const encryptedData = encryptAes(rawData, aesKey)
       const totalSize = encryptedData.length
 
@@ -171,6 +172,7 @@ export class CDNManager {
         cdnattachurl: fileid,
         aeskey: aesKey.toString('hex'),
         encryver: 1,
+        islargefilemsg: 0, // TODO: we need to test when this is not 0
       },
       type: WechatAppMessageType.Attach,
       md5: fileMd5,

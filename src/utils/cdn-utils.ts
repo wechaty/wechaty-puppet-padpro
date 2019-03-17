@@ -9,6 +9,10 @@ import {
 
 import { packCdnData, unpackCdnData } from '../pure-function-helpers'
 
+import { log } from '../config'
+
+const PRE = 'CDNUtils'
+
 export const packDownloadRequest = (request: CDNDownloadDataRequest): Buffer => {
   return packCdnData(request)
 }
@@ -107,6 +111,9 @@ export const unpackCheckMd5Response = (rawResponse: Buffer): CDNCheckMd5Response
   if (rawRes.cachesize) {
     result.cachesize = parseInt(rawRes.cachesize.toString(), 10)
   }
+
+  log.silly(PRE, `checkMd5Response - ${JSON.stringify(result)}`)
+
   return result
 }
 
@@ -161,18 +168,18 @@ export const unpackUploadRequest = (buf: Buffer): CDNUploadDataRequest => {
 export const unpackUploadResponse = (rawResponse: Buffer): CDNUploadDataResponse => {
   const rawRes = unpackCdnData(rawResponse)
   const result: CDNUploadDataResponse = {
-    'ver': parseInt(rawRes.ver.toString(), 10),
-    'filekey': rawRes.filekey.toString(),
-    'rangestart': parseInt(rawRes.rangestart.toString(), 10),
-    'rangeend': parseInt(rawRes.rangeend.toString(), 10),
-    'seq': parseInt(rawRes.seq.toString(), 10),
-    'retcode': parseInt(rawRes.retcode.toString(), 10),
-    'existflag': parseInt(rawRes.existflag.toString(), 10),
-    'retrysec': parseInt(rawRes.retrysec.toString(), 10),
-    'isretry': parseInt(rawRes.isretry.toString(), 10),
-    'isoverload': parseInt(rawRes.isoverload.toString(), 10),
-    'isgetcdn': parseInt(rawRes.isgetcdn.toString(), 10),
-    'x-ClientIp': rawRes['x-ClientIp'].toString(),
+    'ver': rawRes.ver && parseInt(rawRes.ver.toString(), 10),
+    'filekey': rawRes.filekey && rawRes.filekey.toString(),
+    'rangestart': rawRes.rangestart && parseInt(rawRes.rangestart.toString(), 10),
+    'rangeend': rawRes.rangeend && parseInt(rawRes.rangeend.toString(), 10),
+    'seq': rawRes.seq && parseInt(rawRes.seq.toString(), 10),
+    'retcode': rawRes.retcode && parseInt(rawRes.retcode.toString(), 10),
+    'existflag': rawRes.retrysec && parseInt(rawRes.existflag.toString(), 10),
+    'retrysec': rawRes.retrysec && parseInt(rawRes.retrysec.toString(), 10),
+    'isretry': rawRes.isretry && parseInt(rawRes.isretry.toString(), 10),
+    'isoverload': rawRes.isoverload && parseInt(rawRes.isoverload.toString(), 10),
+    'isgetcdn': rawRes.isgetcdn && parseInt(rawRes.isgetcdn.toString(), 10),
+    'x-ClientIp': rawRes['x-ClientIp'] && rawRes['x-ClientIp'].toString(),
   }
   if (rawRes.fileid) {
     result.fileid = rawRes.fileid.toString()

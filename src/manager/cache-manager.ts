@@ -258,7 +258,14 @@ export class CacheManager {
     if (!this.cacheFile) {
       throw new Error(`${PRE} getFileCache() has no cache.`)
     }
-    return this.cacheFile.get(fileId)
+
+    const fileCache = this.cacheFile.get(fileId)
+
+    if (!fileCache) {
+      return fileCache
+    }
+
+    return this.parseJSON(JSON.stringify(fileCache))
   }
 
   public setFileCache (
@@ -268,6 +275,7 @@ export class CacheManager {
     if (!this.cacheFile) {
       throw new Error(`${PRE} setFileCache() has no cache.`)
     }
+    log.silly(PRE, `setFileCache(${fileId}, ${JSON.stringify(cache)})`)
     this.cacheFile.set(fileId, cache)
   }
 
@@ -276,6 +284,23 @@ export class CacheManager {
    * Private Method Section
    * --------------------------------
    */
+
+  private parseJSON(payload: any) {
+    log.silly(PRE, `parseJSON(${payload})`)
+    return JSON.parse(payload, (_, v) => {
+      if (
+        v !== null            &&
+        typeof v === 'object' &&
+        'type' in v           &&
+        v.type === 'Buffer'   &&
+        'data' in v           &&
+        Array.isArray(v.data)) {
+        return new Buffer(v.data)
+      }
+      return v
+    })
+  }
+
   private async initCache (
     token: string,
     userId: string,
