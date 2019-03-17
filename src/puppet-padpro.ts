@@ -1208,6 +1208,8 @@ export class PuppetPadpro extends Puppet {
       )
     } else if (payload.type === MessageType.Video) {
       await this.forwardVideo(receiver, messageId)
+    } else if (payload.type === MessageType.Attachment) {
+      await this.forwardAttachment(receiver, messageId)
     } else {
       await this.messageSendFile(
         receiver,
@@ -1216,30 +1218,34 @@ export class PuppetPadpro extends Puppet {
     }
   }
 
-  // private async forwardAttachment (
-  //   receiver: Receiver,
-  //   messageId: string,
-  // ): Promise<void> {
-  //   if (!this.padproManager) {
-  //     throw new Error('no padpro manager')
-  //   }
+  private async forwardAttachment (
+    receiver: Receiver,
+    messageId: string,
+  ): Promise<void> {
+    if (!this.padproManager) {
+      throw new Error('no padpro manager')
+    }
 
-  //   const rawPayload = await this.messageRawPayload(messageId)
+    const rawPayload = await this.messageRawPayload(messageId)
 
-  //   // Send to the Room if there's a roomId
-  //   const id = receiver.roomId || receiver.contactId
+    // Send to the Room if there's a roomId
+    const id = receiver.roomId || receiver.contactId
 
-  //   if (!id) {
-  //     throw new Error('There is no receiver id when trying to forward attachment.')
-  //   }
-  //   const appPayload = await appMessageParser(rawPayload)
-  //   if (appPayload === null) {
-  //     throw new Error('Can not forward attachment, failed to parse xml message.')
-  //   }
+    if (!id) {
+      throw new Error('There is no receiver id when trying to forward attachment.')
+    }
+    const appPayload = await appMessageParser(rawPayload)
+    if (appPayload === null) {
+      throw new Error('Can not forward attachment, failed to parse xml message.')
+    }
 
-  //   const content = generateAttachmentXMLMessageFromRaw(appPayload)
-  //   await this.padproManager.GrpcSendApp(id, content)
-  // }
+    appPayload.fromusername = this.selfId()
+
+    log.silly(PRE, `forwardAttachment(${JSON.stringify(appPayload)})`)
+
+    const content = generateAttachmentXMLMessageFromRaw(appPayload)
+    await this.padproManager.GrpcSendApp(id, content)
+  }
 
   private async forwardVideo (
     receiver: Receiver,
