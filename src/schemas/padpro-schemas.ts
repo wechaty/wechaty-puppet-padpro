@@ -172,6 +172,7 @@ export interface PadproAppMessagePayload {
   type          : WechatAppMessageType,
   md5?          : string,
   fromusername? : string,
+  recorditem?   : string,
 }
 
 export interface PadproAppAttachPayload {

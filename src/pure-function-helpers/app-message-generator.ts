@@ -87,7 +87,7 @@ export const generateAttachmentXMLMessageFromRaw = (payload: PadproAppMessagePay
 			<publisherId />
 		</webviewshared>
 		<template_id />
-		<md5>${payload.md5}</md5>
+		<md5>${payload.md5 || ''}</md5>
 		<weappinfo>
 			<username />
 			<appid />
@@ -98,7 +98,8 @@ export const generateAttachmentXMLMessageFromRaw = (payload: PadproAppMessagePay
 				<fromopensdk>0</fromopensdk>
 			</videopageinfo>
 		</weappinfo>
-		<statextstr />
+    <statextstr />
+    <recorditem><![CDATA[${payload.recorditem || ''}]]></recorditem>
 		<websearch>
 			<rec_category>0</rec_category>
 			<channelId>0</channelId>

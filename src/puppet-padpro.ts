@@ -1216,13 +1216,17 @@ export class PuppetPadpro extends Puppet {
         GrpcVoiceFormat.Silk,
       )
     } else if (payload.type === MessageType.Url) {
+      // TODO: currently this strips out the app information
       await this.messageSendUrl(
         receiver,
         await this.messageUrl(messageId)
       )
     } else if (payload.type === MessageType.Video) {
       await this.forwardVideo(receiver, messageId)
-    } else if (payload.type === MessageType.Attachment) {
+    } else if (
+      payload.type === MessageType.Attachment ||
+      payload.type === MessageType.ChatHistory
+    ) {
       await this.forwardAttachment(receiver, messageId)
     } else {
       await this.messageSendFile(
