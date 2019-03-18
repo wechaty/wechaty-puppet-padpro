@@ -35,11 +35,11 @@ export async function locationPayloadParser (rawPayload: PadproMessagePayload): 
 
     const data = jsonPayload.msg.location.$
     const result: PadproLocationMessagePayload = {
-      x: parseInt(data.x, 10),
-      y: parseInt(data.y, 10),
+      x: parseFloat(data.x),
+      y: parseFloat(data.y),
       scale: parseInt(data.scale, 10),
       label: data.label,
-      mapType: parseInt(data.maptype, 10),
+      mapType: data.maptype,
       poiName: data.poiname,
       poiId: data.poiid,
       fromUsername: data.fromusername,
