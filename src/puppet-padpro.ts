@@ -1211,8 +1211,9 @@ export class PuppetPadpro extends Puppet {
       )
     } else if (payload.type === MessageType.Video) {
       await this.forwardVideo(receiver, messageId)
-    } else if (payload.type === MessageType.Location) {
-      await this.forwardLocation(receiver, messageId)
+    // commenting this out because currently there is no way to directly send location
+    // } else if (payload.type === MessageType.Location) {
+    //   await this.forwardLocation(receiver, messageId)
     } else if (
       payload.type === MessageType.Attachment ||
       payload.type === MessageType.ChatHistory
@@ -1226,34 +1227,35 @@ export class PuppetPadpro extends Puppet {
     }
   }
 
-  private async forwardLocation (
-    receiver: Receiver,
-    messageId: string,
-  ): Promise<void> {
-    if (!this.padproManager) {
-      throw new Error('no padpro manager')
-    }
+  // commenting this out because currently there is no way to directly send location
+  // private async forwardLocation (
+  //   receiver: Receiver,
+  //   messageId: string,
+  // ): Promise<void> {
+  //   if (!this.padproManager) {
+  //     throw new Error('no padpro manager')
+  //   }
 
-    const rawPayload = await this.messageRawPayload(messageId)
+  //   const rawPayload = await this.messageRawPayload(messageId)
 
-    // Send to the Room if there's a roomId
-    const id = receiver.roomId || receiver.contactId
+  //   // Send to the Room if there's a roomId
+  //   const id = receiver.roomId || receiver.contactId
 
-    if (!id) {
-      throw new Error('There is no receiver id when trying to forward location.')
-    }
-    const locationPayload = await locationPayloadParser(rawPayload)
-    if (locationPayload === null) {
-      throw new Error('Can not forward location, failed to parse xml message.')
-    }
+  //   if (!id) {
+  //     throw new Error('There is no receiver id when trying to forward location.')
+  //   }
+  //   const locationPayload = await locationPayloadParser(rawPayload)
+  //   if (locationPayload === null) {
+  //     throw new Error('Can not forward location, failed to parse xml message.')
+  //   }
 
-    locationPayload.fromUsername = this.selfId()
+  //   locationPayload.fromUsername = this.selfId()
 
-    log.silly(PRE, `forwardLocation(${JSON.stringify(locationPayload)})`)
+  //   log.silly(PRE, `forwardLocation(${JSON.stringify(locationPayload)})`)
 
-    const content = generateLocationMessage(locationPayload)
-    await this.padproManager.GrpcSendApp(id, content)
-  }
+  //   const content = generateLocationMessage(locationPayload)
+  //   await this.padproManager.GrpcSendApp(id, content)
+  // }
 
   private async forwardAttachment (
     receiver: Receiver,

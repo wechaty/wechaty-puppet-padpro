@@ -231,7 +231,7 @@ export interface PadproLocationMessagePayload {
   x: number,
   y: number,
   scale: number,
-  mapType: number,
+  mapType: string,
   label: string,
   poiId: string,
   poiName: string,
