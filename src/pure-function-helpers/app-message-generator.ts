@@ -1,5 +1,16 @@
 import { UrlLinkPayload } from 'wechaty-puppet'
-import { PadproAppMessagePayload, WechatAppMessageType } from '../schemas'
+import { PadproAppMessagePayload, WechatAppMessageType, PadproLocationMessagePayload } from '../schemas'
+
+export const generateLocationMessage = (payload: PadproLocationMessagePayload): string => {
+  return `<location x="${payload.x || ''}"` +
+                  ` y="${payload.y || ''}"` +
+                  ` scale="${payload.scale || ''}"` +
+                  ` label="${payload.label || ''}"` +
+                  ` maptype="${payload.mapType || ''}"` +
+                  ` poiname="${payload.poiName || ''}"` +
+                  ` poiid="${payload.poiId || ''}"` +
+                  ` fromusername="${payload.fromUsername || ''}" />`
+}
 
 export const generateAppXMLMessage = ({ title, description, url, thumbnailUrl }: UrlLinkPayload): string => {
   return '' +

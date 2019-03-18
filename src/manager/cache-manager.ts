@@ -294,7 +294,8 @@ export class CacheManager {
         'type' in v           &&
         v.type === 'Buffer'   &&
         'data' in v           &&
-        Array.isArray(v.data)) {
+        Array.isArray(v.data)
+      ) {
         return Buffer.from(v.data)
       }
       return v

@@ -227,6 +227,17 @@ export interface PadproVoiceMessagePayload {
   bufId: number,
 }
 
+export interface PadproLocationMessagePayload {
+  x: number,
+  y: number,
+  scale: number,
+  mapType: number,
+  label: string,
+  poiId: string,
+  poiName: string,
+  fromUsername: string,
+}
+
 export interface PadproVideoMessagePayload {
   aesKey: string,
   cdnThumbAesKey: string,
