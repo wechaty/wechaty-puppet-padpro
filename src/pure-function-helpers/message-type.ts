@@ -37,6 +37,11 @@ export function messageType (
       // console.log(rawPayload)
       break
 
+    case PadproMessageType.Location:
+      type = MessageType.Location
+      // console.log(rawPayload)
+      break
+
     case PadproMessageType.Video:
       type = MessageType.Video
       // console.log(rawPayload)
