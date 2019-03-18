@@ -75,6 +75,7 @@ import {
 
   videoPayloadParser,
   voicePayloadParser,
+  generateLocationMessage,
 }                                         from './pure-function-helpers'
 
 import {
@@ -111,6 +112,7 @@ import {
 
 import { WechatGateway } from './gateway/wechat-gateway'
 import { CDNManager } from './manager/cdn-manager'
+import { locationPayloadParser } from './pure-function-helpers/message-location-payload-parser';
 
 let PADPRO_COUNTER = 0 // PuppetPadpro Instance Counter
 
@@ -1223,6 +1225,8 @@ export class PuppetPadpro extends Puppet {
       )
     } else if (payload.type === MessageType.Video) {
       await this.forwardVideo(receiver, messageId)
+    } else if (payload.type === MessageType.Location) {
+      await this.forwardLocation(receiver, messageId)
     } else if (
       payload.type === MessageType.Attachment ||
       payload.type === MessageType.ChatHistory
@@ -1234,6 +1238,35 @@ export class PuppetPadpro extends Puppet {
         await this.messageFile(messageId),
       )
     }
+  }
+
+  private async forwardLocation (
+    receiver: Receiver,
+    messageId: string,
+  ): Promise<void> {
+    if (!this.padproManager) {
+      throw new Error('no padpro manager')
+    }
+
+    const rawPayload = await this.messageRawPayload(messageId)
+
+    // Send to the Room if there's a roomId
+    const id = receiver.roomId || receiver.contactId
+
+    if (!id) {
+      throw new Error('There is no receiver id when trying to forward location.')
+    }
+    const locationPayload = await locationPayloadParser(rawPayload)
+    if (locationPayload === null) {
+      throw new Error('Can not forward location, failed to parse xml message.')
+    }
+
+    locationPayload.fromUsername = this.selfId()
+
+    log.silly(PRE, `forwardLocation(${JSON.stringify(locationPayload)})`)
+
+    const content = generateLocationMessage(locationPayload)
+    await this.padproManager.GrpcSendApp(id, content)
   }
 
   private async forwardAttachment (
