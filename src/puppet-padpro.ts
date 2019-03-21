@@ -1442,11 +1442,13 @@ export class PuppetPadpro extends Puppet {
       log.verbose(PRE, `roomAdd(${roomId}, ${contactId}) try to Add`)
       await this.padproManager.GrpcAddRoomMember(roomId, contactId)
     } catch (e) {
-      // FIXME
-      console.error(e)
-      log.warn(PRE, `roomAdd() Add exception: ${e}`)
-      log.verbose(PRE, `roomAdd(${roomId}, ${contactId}) try to Invite`)
-      await this.padproManager.GrpcInviteRoomMember(roomId, contactId)
+      if (e.indexOf('Add member to room failed')) {
+        log.verbose(PRE, `roomAdd(${roomId}, ${contactId}) try to Invite`)
+        await this.padproManager.GrpcInviteRoomMember(roomId, contactId)
+      } else {
+        log.warn(PRE, `roomAdd() Add exception: ${e}`)
+        console.error(e)
+      }
     }
   }
 
