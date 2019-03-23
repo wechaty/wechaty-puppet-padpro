@@ -75,7 +75,7 @@ import {
 
   videoPayloadParser,
   voicePayloadParser,
-  generateLocationMessage,
+  // generateLocationMessage,
 }                                         from './pure-function-helpers'
 
 import {
@@ -112,7 +112,7 @@ import {
 
 import { WechatGateway } from './gateway/wechat-gateway'
 import { CDNManager } from './manager/cdn-manager'
-import { locationPayloadParser } from './pure-function-helpers/message-location-payload-parser';
+// import { locationPayloadParser } from './pure-function-helpers/message-location-payload-parser';
 
 let PADPRO_COUNTER = 0 // PuppetPadpro Instance Counter
 
@@ -1230,7 +1230,8 @@ export class PuppetPadpro extends Puppet {
     //   await this.forwardLocation(receiver, messageId)
     } else if (
       payload.type === MessageType.Attachment ||
-      payload.type === MessageType.ChatHistory
+      payload.type === MessageType.ChatHistory ||
+      payload.type === MessageType.MiniProgram
     ) {
       await this.forwardAttachment(receiver, messageId)
     } else {
