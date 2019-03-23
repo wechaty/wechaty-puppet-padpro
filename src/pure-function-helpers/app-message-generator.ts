@@ -30,7 +30,7 @@ export const generateAppXMLMessage = ({ title, description, url, thumbnailUrl }:
 
 export const generateAttachmentXMLMessageFromRaw = (payload: PadproAppMessagePayload): string => {
   return `
-	<appmsg appid="" sdkver="0">
+	<appmsg appid="${payload.$appid}" sdkver="0">
 		<title>${payload.title}</title>
 		<des></des>
 		<username />
@@ -59,6 +59,11 @@ export const generateAttachmentXMLMessageFromRaw = (payload: PadproAppMessagePay
 		<appattach>
 			<attachid>${payload.appattach && payload.appattach.attachid}</attachid>
 			<cdnattachurl>${payload.appattach && payload.appattach.cdnattachurl}</cdnattachurl>
+			<cdnthumburl>${payload.appattach && payload.appattach.cdnthumburl}</cdnthumburl>
+			<cdnthumblength>${payload.appattach && payload.appattach.cdnthumblength}</cdnthumblength>
+			<cdnthumbwidth>${payload.appattach && payload.appattach.cdnthumbwidth}</cdnthumbwidth>
+			<cdnthumbheight>${payload.appattach && payload.appattach.cdnthumbheight}</cdnthumbheight>
+			<cdnthumbaeskey>${payload.appattach && payload.appattach.cdnthumbaeskey}</cdnthumbaeskey>
 			<totallen>${payload.appattach && payload.appattach.totallen}</totallen>
 			<aeskey>${payload.appattach && payload.appattach.aeskey}</aeskey>
 			<encryver>${payload.appattach && payload.appattach.encryver}</encryver>
@@ -100,9 +105,16 @@ export const generateAttachmentXMLMessageFromRaw = (payload: PadproAppMessagePay
 		<template_id />
 		<md5>${payload.md5 || ''}</md5>
 		<weappinfo>
-			<username />
-			<appid />
+			<username><![CDATA[${payload.weappinfo && payload.weappinfo.username}]]</username>
+			<appid><![CDATA[${payload.weappinfo && payload.weappinfo.appid}]]</appid>
+			<pagepath><![CDATA[${payload.weappinfo && payload.weappinfo.pagepath}]]</pagepath>
+			<version>${payload.weappinfo && payload.weappinfo.version}</version>
+			<weappiconurl><![CDATA[${payload.weappinfo && payload.weappinfo.weappiconurl}]]</weappiconurl>
 			<appservicetype>0</appservicetype>
+			<pkginfo>
+				<type>${payload.weappinfo && payload.weappinfo.pkginfo && payload.weappinfo.pkginfo.type}</type>
+				<md5><![CDATA[${payload.weappinfo && payload.weappinfo.pkginfo && payload.weappinfo.pkginfo.md5}]]></md5>
+			</pkginfo>
 			<videopageinfo>
 				<thumbwidth>0</thumbwidth>
 				<thumbheight>0</thumbheight>
@@ -119,8 +131,8 @@ export const generateAttachmentXMLMessageFromRaw = (payload: PadproAppMessagePay
 	<fromusername>${payload.fromusername}</fromusername>
 	<scene>0</scene>
 	<appinfo>
-		<version>1</version>
-		<appname></appname>
+		<version>${payload.appinfo && payload.appinfo.version || '1'}</version>
+		<appname>${payload.appinfo && payload.appinfo.appname}</appname>
 	</appinfo>
 	<commenturl></commenturl>`
 }
