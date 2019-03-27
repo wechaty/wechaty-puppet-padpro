@@ -54,6 +54,9 @@ export class WechatGateway extends EventEmitter {
 
   private dedupeApi: DedupeApi
 
+  private apiCounter: { [apiName: string]: number }
+  private bootTime: number
+
   public static init (
     token: string,
     endpoint: string,
@@ -93,6 +96,8 @@ export class WechatGateway extends EventEmitter {
       this.proxyAgent = new HttpProxyAgent(proxyEndpoint)
     }
     this.dedupeApi = new DedupeApi()
+    this.apiCounter = {}
+    this.bootTime = new Date().getTime()
   }
   public emit (event: 'newMessage' | 'rawMessage', message: Buffer): boolean
   public emit (event: 'socketClose' | 'socketEnd' | 'reset'): boolean
@@ -215,6 +220,11 @@ export class WechatGateway extends EventEmitter {
   }
 
   private async _callApi (apiName: string, params?: ApiParams, forceLongOrShort?: boolean) {
+    if (!this.apiCounter[apiName]) {
+      this.apiCounter[apiName] = 0
+    }
+    this.apiCounter[apiName] ++
+    log.silly(PRE, `_callApi(${apiName}, ${JSON.stringify(params)}) the ${this.apiCounter[apiName]} times, booted ${(new Date().getTime() - this.bootTime) / 1000} seconds since boot.`)
     const option = ApiOptions[apiName]
     if (!option) {
       throw new Error(`Unknown API name: ${apiName}`)
@@ -240,8 +250,11 @@ export class WechatGateway extends EventEmitter {
       if (apiName === 'GrpcAutoLogin' && e.details === EncryptionServiceError.NO_SESSION) {
         throw new Error(EncryptionServiceError.NO_SESSION)
       }
-      log.error(PRE, `Error happened when call api: ${apiName}, params: ${JSON.stringify(params)}`)
-      console.error(e)
+      if (apiName === 'GrpcSyncMessage') {
+        // Suppress errors for sync message
+        return null
+      }
+      log.error(PRE, `Error happened when call api: ${apiName}, params: ${JSON.stringify(params)}\n${e.stack}`)
       return null
     }
   }
@@ -334,6 +347,7 @@ export class WechatGateway extends EventEmitter {
         const judgeFlag = buffer[16]
         if (!noParse) {
           if (judgeFlag === 126) {
+            log.silly(PRE, `sendLong() receive flag 126 back.`)
             this.emit('reset')
           } else if (judgeFlag !== 191) {
             log.warn(`sendLong receive unknown package: [${judgeFlag}] ${buffer.toString('hex')}]`)

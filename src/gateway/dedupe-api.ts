@@ -1,3 +1,4 @@
+import { DelayQueueExector } from 'rx-queue'
 import { log } from '../config'
 import { ApiParams } from './grpc-gateway'
 
@@ -39,9 +40,12 @@ export class DedupeApi {
 
   private cleaner: NodeJS.Timer
 
+  private apiQueue: DelayQueueExector
+
   constructor () {
     this.pool = {}
     this.cleaner = setInterval(this.cleanData, EXPIRE_TIME * 1000)
+    this.apiQueue = new DelayQueueExector(200)
   }
 
   public async dedupe (
@@ -84,7 +88,7 @@ export class DedupeApi {
       }
       let result: any
       try {
-        result = await func(apiName, params, forceLongOrShort)
+        result = await this.apiQueue.execute(() => func(apiName, params, forceLongOrShort))
       } catch (e) {
         log.silly(PRE, `dedupeApi(${apiName}) failed from external service, reject ${this.pool[key].listener.length} duplicate api calls.`)
         this.pool[key].listener.map(api => {

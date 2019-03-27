@@ -51,11 +51,15 @@ export class PadproGrpc extends EventEmitter {
 
   protected async GrpcSyncMessage ()
     : Promise<GrpcSyncMessagePayload[] | null> {
-    const result: any = await this.wechatGateway.callApi('GrpcSyncMessage')
-    if (result === null) {
-      return null
-    } else {
-      return result.data !== null ? result.data : []
+    try {
+      const result: any = await this.wechatGateway.callApi('GrpcSyncMessage')
+      if (result === null) {
+        return null
+      } else {
+        return result.data !== null ? result.data : []
+      }
+    } catch (e) {
+      return []
     }
   }
 
@@ -208,7 +212,9 @@ export class PadproGrpc extends EventEmitter {
    * Get room member list for a given room id
    * @param roomId room id
    */
-  public async GrpcGetChatRoomMember (roomId: string): Promise<GrpcRoomMemberRawPayload> {
+  public async GrpcGetChatRoomMember (
+    roomId: string
+  ): Promise<GrpcRoomMemberRawPayload> {
     log.silly(PRE, `GrpcGetChatRoomMember(${roomId})`)
     const result: GrpcRoomMemberRawPayload = await this.wechatGateway.callApi('GrpcGetChatRoomMember', {
       Chatroom: roomId
@@ -298,13 +304,14 @@ export class PadproGrpc extends EventEmitter {
     content: string,
   ) {
     log.silly(PRE, `GrpcAddFriend(${stranger}, ${ticket}, ${type}, ${content})`)
-    await this.wechatGateway.callApi('GrpcAddFriend', {
+    const result = await this.wechatGateway.callApi('GrpcAddFriend', {
       Content: content,
       Encryptusername: stranger,
       Sence: type,
       Ticket: ticket,
-      Type: type,
+      Type: 2,
     })
+    return result
   }
 
   /**
@@ -317,13 +324,14 @@ export class PadproGrpc extends EventEmitter {
     ticket: string,
   ) {
     log.silly(PRE, `GrpcAcceptFriend(${stranger}, ${ticket})`)
-    await this.wechatGateway.callApi('GrpcAcceptFriend', {
+    const result = await this.wechatGateway.callApi('GrpcAcceptFriend', {
       Content: '',
       Encryptusername: stranger,
       Sence: 3,
       Ticket: ticket,
       Type: 3,
     })
+    return result
   }
 
   /**
@@ -355,11 +363,12 @@ export class PadproGrpc extends EventEmitter {
     if (atUserList) {
       messageSource = `${atUserList.join(',')}`
     }
-    await this.wechatGateway.callApi('GrpcSendMessage', {
+    const result = await this.wechatGateway.callApi('GrpcSendMessage', {
       Content: content,
       MsgSource:  messageSource,
       ToUserName: contactId,
     })
+    return result
   }
 
   /**
@@ -456,12 +465,13 @@ export class PadproGrpc extends EventEmitter {
     content: string,
   ) {
     log.silly(PRE, `GrpcSendApp(${contactId})`)
-    await this.wechatGateway.callApi('GrpcSendApp', {
+    const result = await this.wechatGateway.callApi('GrpcSendApp', {
       AppId: '',
       Content: content,
       ToUserName: contactId,
       Type: 5,
     })
+    return result
   }
 
   /**

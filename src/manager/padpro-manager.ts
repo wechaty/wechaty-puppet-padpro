@@ -1,6 +1,7 @@
 import { FileBox }            from 'file-box'
 import {
   DebounceQueue,
+  DelayQueueExector,
   ThrottleQueue,
 }                             from 'rx-queue'
 import { Subscription }       from 'rxjs'
@@ -78,6 +79,8 @@ export class PadproManager extends PadproGrpc {
   private throttleQueue?: ThrottleQueue
   private throttleQueueSubscription?: Subscription
 
+  private syncQueueExecutor: DelayQueueExector
+
   private selfContact: GrpcContactRawPayload
 
   private messageBuffer: GrpcMessagePayload[]
@@ -121,7 +124,7 @@ export class PadproManager extends PadproGrpc {
       log.info(PRE, `Connection has problem, reset self to recover the connection.`)
       this.emit('reset')
     })
-
+    this.syncQueueExecutor = new DelayQueueExector(1000)
   }
 
   /**
@@ -199,13 +202,17 @@ export class PadproManager extends PadproGrpc {
   private async initData (): Promise<void> {
     log.silly(PRE, `initData() started`)
 
-    const result = await this.GrpcNewInit()
-    await this.processMessages(result)
+    try {
+      const result = await this.GrpcNewInit()
+      await this.processMessages(result)
+    } catch (e) {
+      log.warn(`Error happened when calling GrpcNewInit: ${e.stack}`)
+    }
     await this.initDataInternalLoop()
   }
 
   private async initDataInternalLoop (): Promise<void> {
-    const data = await this.GrpcSyncMessage()
+    const data = await this.syncQueueExecutor.execute(() => this.GrpcSyncMessage())
     if (data === null) {
       await new Promise(r => setTimeout(r, 1000))
     } else if (data.length === 0) {
@@ -486,7 +493,7 @@ export class PadproManager extends PadproGrpc {
 
   private async syncMessage () {
     log.silly(PRE, `syncMessage()`)
-    const messages = await this.GrpcSyncMessage()
+    const messages = await this.syncQueueExecutor.execute(() => this.GrpcSyncMessage())
     if (messages === null) {
       log.verbose(PRE, `syncMessage() got empty response.`)
       return
@@ -523,7 +530,9 @@ export class PadproManager extends PadproGrpc {
           }
           const savedRoom = this.cacheManager.getRoom(room.UserName)
           const newRoom = convertRoom(room)
-
+          if (newRoom.memberCount === 0) {
+            return
+          }
           if (!savedRoom || !this.memberIsSame(savedRoom.members, newRoom.members)) {
             const roomMemberDict = await this.syncRoomMember(newRoom.chatroomId)
             if (Object.keys(roomMemberDict).length === 0) {
@@ -1054,10 +1063,11 @@ export class PadproManager extends PadproGrpc {
     content: string,
     atUserList?: string[],
   ) {
-    await super.GrpcSendMessage(contactId, content, atUserList)
+    const result = await super.GrpcSendMessage(contactId, content, atUserList)
     if (PADPRO_REPLAY_MESSAGE) {
       this.replayTextMsg(contactId, content)
     }
+    return result
   }
 
   public async GrpcSendImage (

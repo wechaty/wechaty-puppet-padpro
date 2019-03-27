@@ -2,7 +2,7 @@
 
 /// <reference path="./typings.d.ts" />
 
-import { log } from 'brolog'
+import Brolog from 'brolog'
 import readPkgUp from 'read-pkg-up'
 
 const WECHATY_PUPPET_PADPRO_ENDPOINT_ENV_VAR = 'WECHATY_PUPPET_PADPRO_ENDPOINT'
@@ -41,6 +41,7 @@ export const VERSION = pkg.version
 /**
  * LOG LEVEL
  */
+const log = new Brolog()
 const logLevel = process.env.PADPRO_LOG
 if (logLevel) {
   log.level(logLevel.toLowerCase() as any)

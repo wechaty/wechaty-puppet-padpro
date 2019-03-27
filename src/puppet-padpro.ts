@@ -999,7 +999,8 @@ export class PuppetPadpro extends Puppet {
     if (!this.padproManager) {
       throw new Error('no padpro manager')
     }
-    await this.padproManager.GrpcSendMessage(id, text, atUserList)
+    const result = await this.padproManager.GrpcSendMessage(id, text, atUserList)
+    log.verbose(PRE, `Send Message results: ${JSON.stringify(result)}`)
   }
 
   public async messageSendFile (
@@ -1610,7 +1611,6 @@ export class PuppetPadpro extends Puppet {
 
     const rawSearchPayload: GrpcContactRawPayload = await this.padproManager.GrpcSearchContact(contactId)
 
-    console.log(JSON.stringify(rawSearchPayload, null, 2))
     /**
      * If the contact is not stranger, than using WXSearchContact can get userName
      */
@@ -1630,8 +1630,6 @@ export class PuppetPadpro extends Puppet {
     } else {
       throw new Error('stranger neither v1 nor v2!')
     }
-
-    // Issue #1252 : what's wrong here?, Trying to fix now...
 
     await this.padproManager.GrpcAddFriend(
       strangerV1 || '',
