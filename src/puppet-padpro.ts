@@ -374,7 +374,7 @@ export class PuppetPadpro extends Puppet {
       log.silly(PRE, 'onPadproMessageRoomEventJoin() roomJoinEvent="%s"', JSON.stringify(roomJoinEvent))
 
       const inviteeIdList = await retry(async (retryException, attempt) => {
-        log.verbose(PRE, 'onPadproMessageRoomEvent({id=%s}) roomJoin retry(attempt=%d)', attempt)
+        log.verbose(PRE, 'onPadproMessageRoomEventJoin({id=%s}) roomJoin retry(attempt=%d)', attempt)
 
         const tryIdList = flatten<string>(
           await Promise.all(
@@ -400,7 +400,7 @@ export class PuppetPadpro extends Puppet {
         return retryException(new Error('roomMemberSearch() not found'))
 
       }).catch(e => {
-        log.warn(PRE, 'onPadproMessageRoomEvent({id=%s}) roomJoin retry() fail: %s', e.message)
+        log.warn(PRE, 'onPadproMessageRoomEventJoin({id=%s}) roomJoin retry() fail: %s', e.message)
         return [] as string[]
       })
 
@@ -409,7 +409,7 @@ export class PuppetPadpro extends Puppet {
       if (inviterIdList.length < 1) {
         throw new Error('no inviterId found')
       } else if (inviterIdList.length > 1) {
-        log.warn(PRE, 'onPadproMessageRoomEvent() case PadproMesssageSys: inviterId found more than 1, use the first one.')
+        log.warn(PRE, 'onPadproMessageRoomEventJoin() inviterId found more than 1, use the first one.')
       }
 
       const inviterId = inviterIdList[0]
@@ -449,7 +449,7 @@ export class PuppetPadpro extends Puppet {
       if (removerIdList.length < 1) {
         throw new Error('no removerId found')
       } else if (removerIdList.length > 1) {
-        log.warn(PRE, 'onPadproMessage() case PadproMesssageSys: removerId found more than 1, use the first one.')
+        log.warn(PRE, 'onPadproMessageRoomEventLeave(): removerId found more than 1, use the first one.')
       }
       const removerId = removerIdList[0]
 
@@ -488,7 +488,7 @@ export class PuppetPadpro extends Puppet {
       if (changerIdList.length < 1) {
         throw new Error('no changerId found')
       } else if (changerIdList.length > 1) {
-        log.warn(PRE, 'onPadproMessage() case PadproMesssageSys: changerId found more than 1, use the first one.')
+        log.warn(PRE, 'onPadproMessageRoomEventTopic() changerId found more than 1, use the first one.')
       }
       const changerId = changerIdList[0]
 
@@ -927,7 +927,7 @@ export class PuppetPadpro extends Puppet {
         )
 
       default:
-        log.warn(PRE, 'messageFile(%s) unsupport type: %s(%s) because it is not fully implemented yet, PR is welcome.',
+        log.warn(PRE, 'messageFile(%s) un-support type: %s(%s) because it is not fully implemented yet, PR is welcome.',
                                   messageId,
                                   PadproMessageType[rawPayload.messageType],
                                   rawPayload.messageType,

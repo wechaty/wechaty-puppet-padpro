@@ -1,6 +1,7 @@
 import * as Attach from './attach'
 import * as Base from './base'
 import * as Contact from './contact'
+import * as Label from './label'
 import * as Message from './message'
 import * as Room from './room'
 
@@ -12,4 +13,5 @@ export const ApiOptions: { [apiName: string]: ApiOption } = {
   ...Message,
   ...Contact,
   ...Room,
+  ...Label,
 }

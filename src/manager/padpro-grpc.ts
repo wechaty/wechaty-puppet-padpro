@@ -716,6 +716,36 @@ export class PadproGrpc extends EventEmitter {
     return this.wechatGateway.callApi('GrpcNewInit')
   }
 
+  public async GrpcGetLabelList () {
+    log.silly(PRE, `GrpcGetLabelList()`)
+    return this.wechatGateway.callApi('GrpcGetLabelList')
+  }
+
+  public async GrpcAddLabel (
+    labelName: string,
+  ) {
+    log.silly(PRE, `GrpcAddLabel()`)
+    return this.wechatGateway.callApi('GrpcAddLabel', {
+      LabelName: labelName,
+    })
+  }
+
+  /**
+   * TODO: not working right now, need to fix this
+   * @param contactId contact id
+   * @param labelIds label ids
+   */
+  public async GrpcModifyLabelList (
+    contactId: string,
+    labelIds: number[],
+  ) {
+    log.silly(PRE, `GrpcModifyLabelList(${contactId}, ${labelIds})`)
+    return this.wechatGateway.callApi('GrpcModifyLabelList', {
+      Username: contactId,
+      Labelids: labelIds.join(','),
+    })
+  }
+
   /**
    * Underlying function to do contact operations
    * @param option Contact operation option
