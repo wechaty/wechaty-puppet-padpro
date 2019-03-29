@@ -138,10 +138,19 @@ export async function messageRawPayloadParser (
   if (type === MessageType.Recalled) {
 
     const recalledPayload = await recalledPayloadParser(rawPayload)
+    const pattern = [
+      /"(.+)" 撤回了一条消息/,
+      /"(.+)" has recalled a message/
+    ]
     if (recalledPayload) {
-      text = recalledPayload.msgId
+      const isRecalled = pattern.some(regex => regex.test(recalledPayload.replaceMsg))
+      if (isRecalled) {
+        text = recalledPayload.msgId
+      } else {
+        payloadBase.type = MessageType.Unknown
+      }
     } else {
-      text = ''
+      payloadBase.type = MessageType.Unknown
     }
 
   }

@@ -284,3 +284,30 @@ test.skip('attachment file with ext .xlsx', async t => {
 
   t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse share card message peer to peer')
 })
+
+test('recalled message in room', async t => {
+  const MESSAGE_PAYLOAD: PadproMessagePayload = {
+    content: '<sysmsg type=\"revokemsg\">\n\t<revokemsg>\n\t\t<session>lylezhuifeng</session>\n\t\t<msgid>1062840803</msgid>\n\t\t<newmsgid>2244146148648143901</newmsgid>\n\t\t<replacemsg><![CDATA[\"高原ོ\" 撤回了一条消息]]></replacemsg>\n\t</revokemsg>\n</sysmsg>\n',
+    data: null,
+    fromUser: 'lylezhuifeng',
+    messageId: '1062840804',
+    messageSource: '',
+    messageType: 10002,
+    status: 4,
+    timestamp: 1553853738,
+    toUser: 'wxid_zovb9ol86m7l22'
+  }
+
+  const EXPECTED_PAYLOAD: MessagePayload = {
+    id: '1062840804',
+    timestamp: 1553853738,
+    type: 11,
+    mentionIdList: undefined,
+    fromId: 'lylezhuifeng',
+    roomId: undefined,
+    text: '1062840803',
+    toId: 'wxid_zovb9ol86m7l22'
+  }
+  const payload = await messageRawPayloadParser(MESSAGE_PAYLOAD)
+  t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse recalled message in room')
+})
