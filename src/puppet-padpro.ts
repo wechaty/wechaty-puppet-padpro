@@ -308,6 +308,7 @@ export class PuppetPadpro extends Puppet {
          */
         await Promise.all([
           this.onPadproMessageRoomEventJoin(rawPayload),
+          this.onPadproMessageRecalled(rawPayload),
         ])
         break
 
@@ -339,6 +340,18 @@ export class PuppetPadpro extends Puppet {
       default:
         this.emit('message', messageId)
         break
+    }
+  }
+
+  protected async onPadproMessageRecalled (rawPayload: PadproMessagePayload): Promise<void> {
+    log.verbose(PRE, `onPadproMessageRecalled(%s)`, rawPayload)
+    const pattern = [
+      /"(.+)" 撤回了一条消息/,
+      /"(.+)" has recalled a message/
+    ]
+    const isRecalled = pattern.some(regex => regex.test(rawPayload.content))
+    if (isRecalled) {
+      this.emit('message', rawPayload.messageId)
     }
   }
 

@@ -211,6 +211,13 @@ export interface PadproImageMessagePayload {
   md5: string,
 }
 
+export interface PadproRecalledMessagePayload {
+  session: string,
+  msgId: string,
+  newMsgId: string,
+  replaceMsg: string,
+}
+
 export interface PadproVoiceMessagePayload {
   endFlag: number,
   length: number,

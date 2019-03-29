@@ -18,6 +18,9 @@ import {
   messageFileName,
 }                         from './message-file-name'
 import {
+  recalledPayloadParser
+}                         from './message-recalled-payload-parser'
+import {
   messageSourceParser
 }                         from './message-source-parser'
 import {
@@ -129,6 +132,17 @@ export async function messageRawPayloadParser (
   } else {
 
     text = rawPayload.content
+
+  }
+
+  if (type === MessageType.Recalled) {
+
+    const recalledPayload = await recalledPayloadParser(rawPayload)
+    if (recalledPayload) {
+      text = recalledPayload.msgId
+    } else {
+      text = ''
+    }
 
   }
 

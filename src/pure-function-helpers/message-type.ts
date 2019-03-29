@@ -52,6 +52,9 @@ export function messageType (
 
     case PadproMessageType.VoipMsg:
     case PadproMessageType.Recalled:
+      type = MessageType.Recalled
+      break
+
     case PadproMessageType.StatusNotify:
     case PadproMessageType.SysNotice:
       type = MessageType.Unknown
