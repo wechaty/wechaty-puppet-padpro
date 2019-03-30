@@ -1,7 +1,7 @@
 import { FileBox }            from 'file-box'
 import {
   DebounceQueue,
-  DelayQueueExector,
+  DelayQueueExecutor,
   ThrottleQueue,
 }                             from 'rx-queue'
 import { Subscription }       from 'rxjs'
@@ -79,7 +79,7 @@ export class PadproManager extends PadproGrpc {
   private throttleQueue?: ThrottleQueue
   private throttleQueueSubscription?: Subscription
 
-  private syncQueueExecutor: DelayQueueExector
+  private syncQueueExecutor: DelayQueueExecutor
 
   private selfContact: GrpcContactRawPayload
 
@@ -124,7 +124,7 @@ export class PadproManager extends PadproGrpc {
       log.info(PRE, `Connection has problem, reset self to recover the connection.`)
       this.emit('reset')
     })
-    this.syncQueueExecutor = new DelayQueueExector(1000)
+    this.syncQueueExecutor = new DelayQueueExecutor(1000)
   }
 
   /**

@@ -1,4 +1,4 @@
-import { DelayQueueExector } from 'rx-queue'
+import { DelayQueueExecutor } from 'rx-queue'
 import { log } from '../config'
 import { ApiParams } from './grpc-gateway'
 
@@ -40,12 +40,12 @@ export class DedupeApi {
 
   private cleaner: NodeJS.Timer
 
-  private apiQueue: DelayQueueExector
+  private apiQueue: DelayQueueExecutor
 
   constructor () {
     this.pool = {}
     this.cleaner = setInterval(this.cleanData, EXPIRE_TIME * 1000)
-    this.apiQueue = new DelayQueueExector(200)
+    this.apiQueue = new DelayQueueExecutor(200)
   }
 
   public async dedupe (
@@ -68,10 +68,10 @@ export class DedupeApi {
     const now = new Date().getTime()
     if (existCall && now - existCall.timestamp < EXPIRE_TIME * 1000) {
       if (existCall.returned) {
-        log.silly(PRE, `dedupeApi(${apiName}) deduped api call with existing results.`)
+        log.silly(PRE, `dedupeApi(${apiName}) dedupe api call with existing results.`)
         return existCall.result
       } else {
-        log.silly(PRE, `dedupeApi(${apiName}) deduped api call with pending listener.`)
+        log.silly(PRE, `dedupeApi(${apiName}) dedupe api call with pending listener.`)
         return new Promise((resolve, reject) => {
           existCall.listener.push({
             reject,
@@ -80,7 +80,7 @@ export class DedupeApi {
         })
       }
     } else {
-      log.silly(PRE, `dedupeApi(${apiName}) deduped api call missed, call the external service.`)
+      log.silly(PRE, `dedupeApi(${apiName}) dedupe api call missed, call the external service.`)
       this.pool[key] = {
         listener: [],
         returned: false,
