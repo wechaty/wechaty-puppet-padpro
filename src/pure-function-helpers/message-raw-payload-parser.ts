@@ -118,16 +118,9 @@ export async function messageRawPayloadParser (
    */
   if (isRoomId(rawPayload.fromUser)) {
 
-    const parts = rawPayload.content.split(':\n')
-    if (parts && parts.length > 1) {
+    const startIndex = rawPayload.content.indexOf(':\n')
 
-      text = parts[1]
-
-    } else {
-
-      text = rawPayload.content
-
-    }
+    text = rawPayload.content.slice(startIndex !== -1 ? startIndex + 2 : 0)
 
   } else {
 
@@ -140,7 +133,7 @@ export async function messageRawPayloadParser (
     const recalledPayload = await recalledPayloadParser(rawPayload)
     const pattern = [
       /"(.+)" 撤回了一条消息/,
-      /"(.+)" has recalled a message/
+      /"(.+)" has recalled a message./
     ]
     if (recalledPayload) {
       const isRecalled = pattern.some(regex => regex.test(recalledPayload.replaceMsg))

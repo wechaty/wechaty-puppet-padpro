@@ -1,5 +1,5 @@
 import { PadproMessagePayload, PadproRecalledMessagePayload } from '../schemas'
-import { isPayload } from './is-type'
+import { isPayload, isRoomId } from './is-type'
 import { xmlToJson } from './xml-to-json'
 
 export async function recalledPayloadParser (
@@ -9,34 +9,54 @@ export async function recalledPayloadParser (
     return null
   }
 
-  const { content } = rawPayload
+  let text: string
+  if (isRoomId(rawPayload.fromUser)) {
+
+    const startIndex = rawPayload.content.indexOf(':\n')
+
+    text = rawPayload.content.slice(startIndex !== -1 ? startIndex + 2 : 0)
+
+  } else {
+
+    text = rawPayload.content
+
+  }
+
   // {
-  //   revokemsg: {
-  //     session: 'lylezhuifeng',
-  //     msgid: '1062840772',
-  //     newmsgid: '6275297999442173836',
-  //     replacemsg: '"高原ོ" 撤回了一条消息'
+  //   "sysmsg": {
+  //     "$": {
+  //       "type": "revokemsg"
+  //     },
+  //     "revokemsg": {
+  //       "session": "12511063195@chatroom",
+  //       "msgid": "1684265107",
+  //       "newmsgid": "4275856478804543592",
+  //       "replacemsg": "\"高原ོ\" 撤回了一条消息"
+  //     }
   //   }
   // }
 
   interface XmlSchema {
-    revokemsg: {
-      session: string,
-      msgid: string,
-      newmsgid: string,
-      replacemsg: string,
+    sysmsg: {
+      $: {
+        type: string
+      },
+      revokemsg: {
+        session: string,
+        msgid: string,
+        newmsgid: string,
+        replacemsg: string,
+      }
     }
   }
 
-  const tryXmlText = content.replace(/^[^\n]+\n/, '')
-
   try {
-    const jsonPayload: XmlSchema = await xmlToJson(tryXmlText)
+    const jsonPayload: XmlSchema = await xmlToJson(text)
     const result: PadproRecalledMessagePayload = {
-      session: jsonPayload.revokemsg.session,
-      msgId: jsonPayload.revokemsg.msgid,
-      newMsgId: jsonPayload.revokemsg.newmsgid,
-      replaceMsg: jsonPayload.revokemsg.replacemsg,
+      session: jsonPayload.sysmsg.revokemsg.session,
+      msgId: jsonPayload.sysmsg.revokemsg.msgid,
+      newMsgId: jsonPayload.sysmsg.revokemsg.newmsgid,
+      replaceMsg: jsonPayload.sysmsg.revokemsg.replacemsg,
     }
 
     return result
