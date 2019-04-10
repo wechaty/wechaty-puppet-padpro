@@ -1456,7 +1456,7 @@ export class PuppetPadpro extends Puppet {
       log.verbose(PRE, `roomAdd(${roomId}, ${contactId}) try to Add`)
       await this.padproManager.GrpcAddRoomMember(roomId, contactId)
     } catch (e) {
-      if (e.indexOf('Add member to room failed')) {
+      if (e && e.message && e.message === 'Add member to room failed.') {
         log.verbose(PRE, `roomAdd(${roomId}, ${contactId}) try to Invite`)
         await this.padproManager.GrpcInviteRoomMember(roomId, contactId)
       } else {

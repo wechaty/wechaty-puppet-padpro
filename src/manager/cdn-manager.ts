@@ -69,6 +69,7 @@ export class CDNManager {
    * Get CDN DNS server to send large file
    */
   public async getCDNServerIP () {
+    log.silly(PRE, `getCDNServerIP()`)
     const ip = process.env.PADPRO_IP || await publicIp.v4()
     const result: GrpcGetCdnDnsPayload = await this.wechatGateway.callApi('GrpcGetCdnDns', { ip })
     this.cdnInfo = {
