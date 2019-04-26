@@ -164,7 +164,6 @@ export interface PadproRoomInvitationPayload {
 }
 
 export interface PadproAppMessagePayload {
-  $appid?       : string,
   des?          : string,
   thumburl?     : string,
   title         : string,
@@ -174,13 +173,6 @@ export interface PadproAppMessagePayload {
   md5?          : string,
   fromusername? : string,
   recorditem?   : string,
-  weappinfo?    : PadproWeAppInfoPayload,
-  appinfo?      : PadproAppInfoPayload,
-}
-
-export interface PadproAppInfoPayload {
-  version: string,
-  appname: string,
 }
 
 export interface PadproAppAttachPayload {
@@ -188,28 +180,11 @@ export interface PadproAppAttachPayload {
   attachid?      : string,
   emoticonmd5?   : string,
   fileext?       : string,
-  aeskey?        : string,
   cdnattachurl?  : string,
-  cdnthumburl?   : string,
-  cdnthumbmd5?   : string,
-  cdnthumblength?: string,
-  cdnthumbwidth? : string,
-  cdnthumbheight?: string,
+  aeskey?        : string,
   cdnthumbaeskey?: string,
   encryver?      : number,
-  islargefilemsg?: number,
-}
-
-export interface PadproWeAppInfoPayload {
-  username: string,
-  appid: string,
-  pagepath: string,
-  version: string,
-  weappiconurl: string,
-  pkginfo?: {
-    type: string,
-    md5: string,
-  },
+  islargefilemsg : number,
 }
 
 export interface PadproEmojiMessagePayload {
