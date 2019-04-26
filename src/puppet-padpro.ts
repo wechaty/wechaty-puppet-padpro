@@ -75,6 +75,7 @@ import {
 
   videoPayloadParser,
   voicePayloadParser,
+  // generateLocationMessage,
 }                                         from './pure-function-helpers'
 
 import {
@@ -111,6 +112,7 @@ import {
 
 import { WechatGateway } from './gateway/wechat-gateway'
 import { CDNManager } from './manager/cdn-manager'
+// import { locationPayloadParser } from './pure-function-helpers/message-location-payload-parser';
 
 let PADPRO_COUNTER = 0 // PuppetPadpro Instance Counter
 
@@ -832,7 +834,7 @@ export class PuppetPadpro extends Puppet {
    *
    */
   public async messageFile (messageId: string): Promise<FileBox> {
-    log.warn(PRE, 'messageFile(%s)', messageId)
+    log.silly(PRE, 'messageFile(%s)', messageId)
 
     if (!this.padproManager) {
       throw new Error('no padpro manager')
@@ -849,7 +851,7 @@ export class PuppetPadpro extends Puppet {
       case MessageType.Audio:
         const voicePayload = await voicePayloadParser(rawPayload)
         if (voicePayload === null) {
-          log.error(PRE, `Can not parse image message, content: ${rawPayload.content}`)
+          log.error(PRE, `Can not parse voice message, content: ${rawPayload.content}`)
           return FileBox.fromBase64('', filename)
         }
         const name = `${rawPayload.messageId}.${voicePayload.voiceLength}.slk`
@@ -934,8 +936,10 @@ export class PuppetPadpro extends Puppet {
           CDNFileType.ATTACHMENT,
         )
 
-        return FileBox.fromBase64(
-          data.toString('base64'),
+        log.silly(PRE, `downloaded attachment ${filename} - ${data.byteLength} bytes`)
+
+        return FileBox.fromBuffer(
+          data,
           filename,
         )
 
@@ -1214,14 +1218,21 @@ export class PuppetPadpro extends Puppet {
         GrpcVoiceFormat.Silk,
       )
     } else if (payload.type === MessageType.Url) {
+      // TODO: currently this strips out the app information
       await this.messageSendUrl(
         receiver,
         await this.messageUrl(messageId)
       )
-    } else if (payload.type === MessageType.Attachment) {
-      await this.forwardAttachment(receiver, messageId)
     } else if (payload.type === MessageType.Video) {
       await this.forwardVideo(receiver, messageId)
+    // commenting this out because currently there is no way to directly send location
+    // } else if (payload.type === MessageType.Location) {
+    //   await this.forwardLocation(receiver, messageId)
+    } else if (
+      payload.type === MessageType.Attachment ||
+      payload.type === MessageType.ChatHistory
+    ) {
+      await this.forwardAttachment(receiver, messageId)
     } else {
       await this.messageSendFile(
         receiver,
@@ -1229,6 +1240,36 @@ export class PuppetPadpro extends Puppet {
       )
     }
   }
+
+  // commenting this out because currently there is no way to directly send location
+  // private async forwardLocation (
+  //   receiver: Receiver,
+  //   messageId: string,
+  // ): Promise<void> {
+  //   if (!this.padproManager) {
+  //     throw new Error('no padpro manager')
+  //   }
+
+  //   const rawPayload = await this.messageRawPayload(messageId)
+
+  //   // Send to the Room if there's a roomId
+  //   const id = receiver.roomId || receiver.contactId
+
+  //   if (!id) {
+  //     throw new Error('There is no receiver id when trying to forward location.')
+  //   }
+  //   const locationPayload = await locationPayloadParser(rawPayload)
+  //   if (locationPayload === null) {
+  //     throw new Error('Can not forward location, failed to parse xml message.')
+  //   }
+
+  //   locationPayload.fromUsername = this.selfId()
+
+  //   log.silly(PRE, `forwardLocation(${JSON.stringify(locationPayload)})`)
+
+  //   const content = generateLocationMessage(locationPayload)
+  //   await this.padproManager.GrpcSendApp(id, content)
+  // }
 
   private async forwardAttachment (
     receiver: Receiver,
@@ -1250,6 +1291,10 @@ export class PuppetPadpro extends Puppet {
     if (appPayload === null) {
       throw new Error('Can not forward attachment, failed to parse xml message.')
     }
+
+    // appPayload.fromusername = this.selfId()
+
+    log.silly(PRE, `forwardAttachment(${JSON.stringify(appPayload)})`)
 
     const content = generateAttachmentXMLMessageFromRaw(appPayload)
     await this.padproManager.GrpcSendApp(id, content)

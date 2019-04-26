@@ -110,6 +110,7 @@ export class CDNManager {
       if (checkMd5Response.fileid) {
         fileid = checkMd5Response.fileid
         const fileCache = this.cacheManager.getFileCache(fileid)
+        log.silly(PRE, `fileCache ${JSON.stringify(fileCache)}, aesKey = ${fileCache && JSON.stringify(fileCache.aesKey)}`)
         if (fileCache) {
           aesKey = fileCache.aesKey
         }
@@ -119,6 +120,7 @@ export class CDNManager {
       log.verbose(PRE, `uploadFile() file ${fileName} not exists in cdn, upload it...`)
       const fileKey = md5(uuid.v4())
       aesKey = getAesKey()
+      log.silly(PRE, `new aesKey - ${JSON.stringify(aesKey)}`)
       const encryptedData = encryptAes(rawData, aesKey)
       const totalSize = encryptedData.length
 
@@ -157,7 +159,10 @@ export class CDNManager {
     if (!fileid) {
       throw new Error(`${PRE} uploadFile() failed, can not get fileid.`)
     }
-    return {
+
+    log.silly(PRE, `Aeskey ${JSON.stringify(aesKey.toString('hex'))}`)
+
+    const finalPayload = {
       title: fileName,
       url: '',
       appattach: {
@@ -167,10 +172,15 @@ export class CDNManager {
         cdnattachurl: fileid,
         aeskey: aesKey.toString('hex'),
         encryver: 1,
+        islargefilemsg: 0, // TODO: we need to test when this is not 0
       },
       type: WechatAppMessageType.Attach,
       md5: fileMd5,
     }
+
+    log.silly(PRE, JSON.stringify(finalPayload))
+
+    return finalPayload
   }
 
   public async downloadFile (
