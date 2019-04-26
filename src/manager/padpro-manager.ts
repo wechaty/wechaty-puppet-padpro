@@ -31,11 +31,13 @@ import {
   PadproRoomInviteEvent,
   PadproRoomMemberPayload,
   PadproRoomPayload,
+  WechatAppMessageType,
 }                             from '../schemas'
 
 import { PadproGrpc } from './padpro-grpc'
 
 import {
+  appMessageParser,
   fileBoxToQrcode,
   isRoomId,
   isStrangerV1,
@@ -619,7 +621,26 @@ export class PadproManager extends PadproGrpc {
       if (!this.userId) {
         this.messageBuffer.push(m as GrpcMessagePayload)
       } else {
-        this.emit('message', convertMessage(m as GrpcMessagePayload))
+        const rawPayload = convertMessage(m as GrpcMessagePayload)
+        /**
+         * Save attachment message's fileid and aesKey here.
+         */
+        if (m.MsgType === PadproMessageType.App) {
+          const appPayload = await appMessageParser(rawPayload)
+          if (appPayload && appPayload.type === WechatAppMessageType.Attach) {
+            const fileId = appPayload.appattach && appPayload.appattach.cdnattachurl
+            const aesKey = appPayload.appattach && appPayload.appattach.aeskey
+
+            if (fileId && aesKey) {
+              CacheManager.Instance.setFileCache(fileId, {
+                fileId,
+                aesKey: Buffer.from(aesKey, 'hex'),
+                timestamp: new Date().getTime(),
+              })
+            }
+          }
+        }
+        this.emit('message', rawPayload)
       }
     })
   }

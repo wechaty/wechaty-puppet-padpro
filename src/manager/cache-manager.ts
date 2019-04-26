@@ -285,7 +285,7 @@ export class CacheManager {
    * --------------------------------
    */
 
-  private parseJSON(payload: any) {
+  private parseJSON (payload: any) {
     log.silly(PRE, `parseJSON(${payload})`)
     return JSON.parse(payload, (_, v) => {
       if (

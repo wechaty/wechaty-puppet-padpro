@@ -75,7 +75,7 @@ import {
 
   videoPayloadParser,
   voicePayloadParser,
-  generateLocationMessage,
+  // generateLocationMessage,
 }                                         from './pure-function-helpers'
 
 import {
@@ -112,7 +112,7 @@ import {
 
 import { WechatGateway } from './gateway/wechat-gateway'
 import { CDNManager } from './manager/cdn-manager'
-import { locationPayloadParser } from './pure-function-helpers/message-location-payload-parser';
+// import { locationPayloadParser } from './pure-function-helpers/message-location-payload-parser';
 
 let PADPRO_COUNTER = 0 // PuppetPadpro Instance Counter
 
@@ -1292,7 +1292,7 @@ export class PuppetPadpro extends Puppet {
       throw new Error('Can not forward attachment, failed to parse xml message.')
     }
 
-    appPayload.fromusername = this.selfId()
+    // appPayload.fromusername = this.selfId()
 
     log.silly(PRE, `forwardAttachment(${JSON.stringify(appPayload)})`)
 

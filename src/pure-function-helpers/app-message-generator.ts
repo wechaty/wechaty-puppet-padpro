@@ -1,5 +1,5 @@
 import { UrlLinkPayload } from 'wechaty-puppet'
-import { PadproAppMessagePayload, WechatAppMessageType, PadproLocationMessagePayload } from '../schemas'
+import { PadproAppMessagePayload, PadproLocationMessagePayload, WechatAppMessageType } from '../schemas'
 
 export const generateLocationMessage = (payload: PadproLocationMessagePayload): string => {
   return `<location x="${payload.x || ''}"` +
