@@ -1,5 +1,5 @@
 ---
-name: wechaty puppet padpro Bug report
+name: wechaty puppet padpro Bug report (English issue template)
 about: 'Create a bug report for a bug you found in the wechaty puppet padpro '
 
 ---
