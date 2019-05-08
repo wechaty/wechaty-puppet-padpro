@@ -144,7 +144,9 @@ export class PadproManager extends PadproGrpc {
     this.debounceQueueSubscription = this.debounceQueue.subscribe(() => {
       const heartbeatResult = this.GrpcHeartBeat()
 
-      this.setContactAndRoomData()
+      if (this.userId) {
+        this.setContactAndRoomData()
+      }
 
       log.silly(PRE, `debounceQueue heartbeat result: ${JSON.stringify(heartbeatResult)}`)
     })
@@ -158,7 +160,7 @@ export class PadproManager extends PadproGrpc {
 
   private setContactAndRoomData () {
     if (!this.cacheManager) {
-      log.warn(PRE, `setContactAndRoomData() can not proceed due to no cache.`)
+      log.verbose(PRE, `setContactAndRoomData() can not proceed due to no cache.`)
       return
     }
     const contactTotal = this.cacheManager.getContactCount()
@@ -208,7 +210,7 @@ export class PadproManager extends PadproGrpc {
       const result = await this.GrpcNewInit()
       await this.processMessages(result)
     } catch (e) {
-      log.warn(`Error happened when calling GrpcNewInit: ${e.stack}`)
+      log.verbose(`Error happened when calling GrpcNewInit: ${e.stack}`)
     }
     await this.initDataInternalLoop()
   }
@@ -262,7 +264,7 @@ export class PadproManager extends PadproGrpc {
     if (!this.throttleQueueSubscription ||
         !this.debounceQueueSubscription
     ) {
-      log.warn(PRE, `releaseQueue() subscriptions have been released.`)
+      log.verbose(PRE, `releaseQueue() subscriptions have been released.`)
     } else {
       this.throttleQueueSubscription.unsubscribe()
       this.debounceQueueSubscription.unsubscribe()
@@ -272,7 +274,7 @@ export class PadproManager extends PadproGrpc {
     }
 
     if (!this.debounceQueue || !this.throttleQueue) {
-      log.warn(PRE, `releaseQueue() queues have been released.`)
+      log.verbose(PRE, `releaseQueue() queues have been released.`)
     } else {
       this.debounceQueue.unsubscribe()
       this.throttleQueue.unsubscribe()
@@ -390,13 +392,13 @@ export class PadproManager extends PadproGrpc {
     log.verbose(PRE, `startCheckScan()`)
 
     if (this.userId) {
-      log.warn(PRE, 'startCheckScan() this.userId exist.')
+      log.verbose(PRE, 'startCheckScan() this.userId exist.')
       await this.onLogin(this.userId)
       return
     }
 
     if (this.loginScanTimer) {
-      log.warn(PRE, 'startCheckScan() this.loginScanTimer exist.')
+      log.verbose(PRE, 'startCheckScan() this.loginScanTimer exist.')
       return
     }
 
@@ -464,7 +466,7 @@ export class PadproManager extends PadproGrpc {
             break
 
           default:
-            log.warn(PRE, `startCheckScan() unknown CheckQRCodeStatus: ${result.Status}`)
+            log.verbose(PRE, `startCheckScan() unknown CheckQRCodeStatus: ${result.Status}`)
             clearStatus()
             break
         }
@@ -485,8 +487,7 @@ export class PadproManager extends PadproGrpc {
       log.silly(PRE, `startCheckScan() checkScanInternalLoop() resolved`)
     })
     .catch(e => {
-      console.error(e)
-      log.warn(PRE, `startCheckScan() checkScanLoop() exception: ${e}`)
+      log.verbose(PRE, `startCheckScan() checkScanLoop() exception: ${e.stack}`)
       this.reset('startCheckScan() checkScanLoop() exception')
     })
 
@@ -720,12 +721,15 @@ export class PadproManager extends PadproGrpc {
         case AutoLoginError.UNKNOWN_STATUS:
           log.warn(PRE, `tryAutoLogin receive unknown api call status, if you keep seeing this status, please file an issue with detailed log to us, we will fix it ASAP.`)
           break
+
         case AutoLoginError.CALL_FAILED:
           await new Promise(r => setTimeout(r, 5000))
           return this.tryAutoLogin()
+
         case AutoLoginError.USER_LOGOUT:
           // Stop auto login since user has logged out
           break
+
         case EncryptionServiceError.NO_SESSION:
           // Stop auto login since this is the first time login
           break
