@@ -37,7 +37,7 @@ export class CacheManager {
   ) {
     log.info(PRE, `init()`)
     if (this._instance) {
-      log.warn(PRE, `init() CacheManager has been initialized, no need to initialize again.`)
+      log.verbose(PRE, `init() CacheManager has been initialized, no need to initialize again.`)
       return
     }
     this._instance = new CacheManager()
@@ -47,7 +47,7 @@ export class CacheManager {
   public static async release () {
     log.info(PRE, `release()`)
     if (!this._instance) {
-      log.warn(PRE, `init() CacheManager not exist, no need to release it.`)
+      log.verbose(PRE, `release() CacheManager not exist, no need to release it.`)
       return
     }
     await this._instance.releaseCache()
