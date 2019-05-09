@@ -212,7 +212,7 @@ export class GrpcGateway extends EventEmitter {
     return true
   }
 
-  private async cleanUpErrorCounter () {
+  private cleanUpErrorCounter () {
     this.errorCounter = 0
     this.errorStartTimestamp = 0
   }

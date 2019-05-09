@@ -201,11 +201,20 @@ export class PadproGrpc extends EventEmitter {
       UserNameList = contact.join(',')
     }
 
-    const result: GrpcContactRawPayload[] = await this.wechatGateway.callApi('GrpcGetContact', { UserNameList }, forceCall)
+    let result: GrpcContactRawPayload[]
+    try {
+      result = await this.wechatGateway.callApi('GrpcGetContact', { UserNameList }, forceCall)
+    } catch (e) {
+      if (typeof contact === 'string') {
+        return null
+      } else {
+        return []
+      }
+    }
     // log.silly(PRE, `GrpcGetContactPayload() result: ${JSON.stringify(result)}`)
 
     if (typeof contact === 'string') {
-      return !result || result.length === 0 ? null : result[0]
+      return result.length === 0 ? null : result[0]
     } else {
       return result
     }
@@ -233,7 +242,16 @@ export class PadproGrpc extends EventEmitter {
       UserNameList = room.join(',')
     }
 
-    const result: GrpcRoomRawPayload[] = await this.wechatGateway.callApi('GrpcGetContact', { UserNameList })
+    let result: GrpcRoomRawPayload[]
+    try {
+      result = await this.wechatGateway.callApi('GrpcGetContact', { UserNameList })
+    } catch (e) {
+      if (typeof room === 'string') {
+        return null
+      } else {
+        return []
+      }
+    }
     // log.silly(PRE, `GrpcGetRoomPayload() result: ${JSON.stringify(result)}`)
 
     if (typeof room === 'string') {
@@ -249,13 +267,17 @@ export class PadproGrpc extends EventEmitter {
    */
   public async GrpcGetChatRoomMember (
     roomId: string
-  ): Promise<GrpcRoomMemberRawPayload> {
+  ): Promise<GrpcRoomMemberRawPayload | null> {
     log.silly(PRE, `GrpcGetChatRoomMember(${roomId})`)
-    const result: GrpcRoomMemberRawPayload = await this.wechatGateway.callApi('GrpcGetChatRoomMember', {
-      Chatroom: roomId
-    })
-    // log.silly(PRE, `GrpcGetChatRoomMember() result: ${JSON.stringify(result)}`)
-    return result
+    let result: GrpcRoomMemberRawPayload
+    try {
+      result = await this.wechatGateway.callApi('GrpcGetChatRoomMember', {
+        Chatroom: roomId
+      })
+      return result
+    } catch (e) {
+      return null
+    }
   }
 
   /**
@@ -263,7 +285,11 @@ export class PadproGrpc extends EventEmitter {
    */
   public async GrpcLogout () {
     log.silly(PRE, `GrpcLogout()`)
-    await this.wechatGateway.callApi('GrpcLogout')
+    try {
+      await this.wechatGateway.callApi('GrpcLogout')
+    } catch (e) {
+      return
+    }
   }
 
   /**
@@ -292,7 +318,6 @@ export class PadproGrpc extends EventEmitter {
     const result: GrpcGetContactQrcodePayload = await this.wechatGateway.callApi('GrpcGetContactQrcode', {
       Username: contactId,
     })
-
     return result
   }
 
@@ -375,10 +400,15 @@ export class PadproGrpc extends EventEmitter {
    */
   public async GrpcSearchContact (contactId: string) {
     log.silly(PRE, `GrpcSearchContact(${contactId})`)
-    const result = await this.wechatGateway.callApi('GrpcSearchContact', {
-      Username: contactId,
-    })
-    return result
+    let result
+    try {
+      result = await this.wechatGateway.callApi('GrpcSearchContact', {
+        Username: contactId,
+      })
+      return result
+    } catch (e) {
+      return null
+    }
   }
 
   /**
@@ -436,7 +466,7 @@ export class PadproGrpc extends EventEmitter {
           TotalLen: dataBuffer.length,
         })
       } catch (e) {
-        console.error(e)
+        log.verbose(PRE, `GrpcSendImage() failed:\n${e.stack}`)
         throw new Error(`Send image failed.`)
       }
 
@@ -748,7 +778,14 @@ export class PadproGrpc extends EventEmitter {
 
   public async GrpcNewInit () {
     log.silly(PRE, `GrpcNewInit()`)
-    return this.wechatGateway.callApi('GrpcNewInit')
+    let result
+    try {
+      result = this.wechatGateway.callApi('GrpcNewInit')
+    } catch (e) {
+      log.verbose(PRE, `GrpcNewInit() failed:\n${e.stack}`)
+      return null
+    }
+    return result
   }
 
   public async GrpcGetLabelList () {
