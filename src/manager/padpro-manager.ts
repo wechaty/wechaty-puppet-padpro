@@ -472,9 +472,10 @@ export class PadproManager extends PadproGrpc {
               throw Error('PuppetPadproManager, checkQrcode, cannot get username or password here, return!')
             }
 
-            const username = await this.GrpcQRCodeLogin(result.Username, result.Password)
-
-            await this.onLogin(username)
+            const username = await this.qrCodeLogin(result.Username, result.Password)
+            if (username) {
+              await this.onLogin(username)
+            }
             return
 
           case CheckQRCodeStatus.Timeout:
@@ -514,6 +515,30 @@ export class PadproManager extends PadproGrpc {
     })
 
     log.silly(PRE, `startCheckScan() checkScanInternalLoop() set`)
+  }
+
+  private async qrCodeLogin (
+    userName: string,
+    password: string,
+  ): Promise<string | undefined> {
+    try {
+      return await this.GrpcQRCodeLogin(userName, password)
+    } catch (e) {
+      if (e.message !== EncryptionServiceError.INTERNAL_ERROR) {
+        const error = new Error(`QRCODE_LOGIN_FAILED Qrcode login failed`)
+        error.stack = e.stack
+        this.emit('error', error)
+        return undefined
+      }
+
+      // Keep retry qrcode login until logged in
+      await new Promise(r => setTimeout(r, 3000))
+      if (this.state.on()) {
+        return this.qrCodeLogin(userName, password)
+      } else {
+        return undefined
+      }
+    }
   }
 
   private async syncMessage () {

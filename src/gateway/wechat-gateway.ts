@@ -149,7 +149,7 @@ export class WechatGateway extends EventEmitter {
     log.info(PRE, `stop() finished`)
   }
 
-  public async switchHost ({ shortHost, longHost }: SwitchHostOption) {
+  public switchHost ({ shortHost, longHost }: SwitchHostOption) {
     log.silly(PRE, `switchHost({ shortHost: ${shortHost}, longHost: ${longHost} })`)
     if (this.shortHost !== shortHost) {
       this.shortHost = shortHost

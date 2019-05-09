@@ -10,7 +10,6 @@ import {
   GrpcGetMsgImageType,
   GrpcGetMsgVoiceType,
   GrpcGetQRCodeType,
-  GrpcQrcodeLoginType,
   GrpcRoomMemberRawPayload,
   GrpcRoomRawPayload,
   GrpcSyncMessagePayload,
@@ -102,7 +101,7 @@ export class PadproGrpc extends EventEmitter {
      */
     if (result.status === -301) {
       log.silly(PRE, `GrpcAutoLogin() redirect host ${JSON.stringify(result)}`)
-      await this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
+      this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
       // Max gap between the first and the redirect login api is 30 seconds
       try {
         result = await this.wechatGateway.callApi('GrpcAutoLogin')
@@ -156,29 +155,15 @@ export class PadproGrpc extends EventEmitter {
 
   public async GrpcQRCodeLogin (userName: string, password: string): Promise<string> {
     log.info(PRE, `GrpcQRCodeLogin(${userName}, ${password})`)
-    let result = await this._GrpcQRCodeLogin(userName, password)
+    let result = await this.wechatGateway.callApi('GrpcQRCodeLogin', { userName, password })
 
     if (result.status === -301) {
-      await this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
+      this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
       log.silly(PRE, 'GrpcQRCodeLogin() Redirect to long connection')
-      result = await this._GrpcQRCodeLogin(userName, password)
+      result = await await this.wechatGateway.callApi('GrpcQRCodeLogin', { userName, password })
     }
 
     return result.userName
-  }
-
-  private async _GrpcQRCodeLogin (userName: string, password: string): Promise<GrpcQrcodeLoginType> {
-    try {
-      const result = await this.wechatGateway.callApi('GrpcQRCodeLogin', { userName, password })
-      return result
-    } catch (e) {
-      if (e.message !== EncryptionServiceError.INTERNAL_ERROR) {
-        await new Promise(r => setTimeout(r, 1000))
-        log.verbose(PRE, `GrpcQRCodeLogin() failed, retry login.`)
-        return this._GrpcQRCodeLogin(userName, password)
-      }
-      throw e
-    }
   }
 
   public async GrpcCheckQRCode (): Promise<GrpcCheckQRCode> {
