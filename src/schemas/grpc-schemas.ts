@@ -38,6 +38,14 @@ export interface GrpcQrcodeLoginType {
   userName: string,
 }
 
+export interface GrpcAutoLoginType {
+  longHost: string,
+  shortHost: string,
+  status: number,
+  userName: string,
+  payload?: string,
+}
+
 /**
  * ******************************************************************************************************************
  * ----------------------------------------- Contact related interface ----------------------------------------------

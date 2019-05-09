@@ -123,8 +123,10 @@ export class PadproManager extends PadproGrpc {
     })
 
     this.wechatGateway.on('reset', async () => {
-      log.info(PRE, `Connection has problem, reset self to recover the connection.`)
-      this.emit('reset')
+      if (this.userId) {
+        log.info(PRE, `Connection has problem, reset self to recover the connection.`)
+        this.emit('reset')
+      }
     })
     this.syncQueueExecutor = new DelayQueueExecutor(1000)
   }
@@ -139,16 +141,23 @@ export class PadproManager extends PadproGrpc {
    */
 
   private initQueue () {
+    log.silly(PRE, `initQueue()`)
 
     this.debounceQueue = new DebounceQueue(30 * 1000)
-    this.debounceQueueSubscription = this.debounceQueue.subscribe(() => {
-      const heartbeatResult = this.GrpcHeartBeat()
+    this.debounceQueueSubscription = this.debounceQueue.subscribe(async () => {
+      log.silly(PRE, `initQueue() debounceQueue subscribe`)
+      try {
+        const heartbeatResult = await this.GrpcHeartBeat()
+        log.silly(PRE, `debounceQueue heartbeat result: ${JSON.stringify(heartbeatResult)}`)
+      } catch (e) {
+        if (e.message === EncryptionServiceError.INTERNAL_ERROR && this.debounceQueue) {
+          this.debounceQueue.next('re-trigger heartbeat')
+        }
+      }
 
       if (this.userId) {
         this.setContactAndRoomData()
       }
-
-      log.silly(PRE, `debounceQueue heartbeat result: ${JSON.stringify(heartbeatResult)}`)
     })
 
     this.throttleQueue = new ThrottleQueue(30 * 1000)
@@ -159,6 +168,7 @@ export class PadproManager extends PadproGrpc {
   }
 
   private setContactAndRoomData () {
+    log.silly(PRE, `setContactAndRoomData()`)
     if (!this.cacheManager) {
       log.verbose(PRE, `setContactAndRoomData() can not proceed due to no cache.`)
       return
@@ -216,26 +226,33 @@ export class PadproManager extends PadproGrpc {
   }
 
   private async initDataInternalLoop (): Promise<void> {
-    const data = await this.syncQueueExecutor.execute(() => this.GrpcSyncMessage())
-    if (data === null) {
-      await new Promise(r => setTimeout(r, 1000))
-    } else if (data.length === 0) {
-      if (this.state.off()) {
-        log.verbose(PRE, `initDataInternalLoop() in off state, skip processing message.`)
-        return
-      }
-      if (!this.cacheManager) {
-        throw new Error(`${PRE} initDataInternalLoop() has no cache.`)
-      }
+    let data
+    try {
+      data = await this.syncQueueExecutor.execute(() => this.GrpcSyncMessage())
+      if (data.length === 0) {
+        if (!this.cacheManager) {
+          throw new Error(`${PRE} initDataInternalLoop() has no cache.`)
+        }
 
-      log.info(PRE, `initData() finished with contacts: ${this.cacheManager.getContactCount()}, rooms: ${this.cacheManager.getRoomCount()}`)
-      return
-    } else {
-      await this.processMessages(data)
+        log.info(PRE, `initData() finished with contacts: ${this.cacheManager.getContactCount()}, rooms: ${this.cacheManager.getRoomCount()}`)
+        return
+      } else {
+        await this.processMessages(data)
+      }
+    } catch (e) {
+      if (e.message === EncryptionServiceError.INTERNAL_ERROR) {
+        log.verbose(PRE, `initDataInternalLoop() encounter encryption service error`)
+      } else {
+        log.verbose(PRE, `initDataInternalLoop() encounter error when sync message: ${e.stack}`)
+      }
+      await new Promise(r => setTimeout(r, 1000))
     }
+
     this.initDataTimer = setTimeout(async () => {
       this.initDataTimer = undefined
-      await this.initDataInternalLoop()
+      if (this.state.on()) {
+        await this.initDataInternalLoop()
+      }
     }, 500)
   }
 
@@ -261,6 +278,7 @@ export class PadproManager extends PadproGrpc {
    */
 
   private releaseQueue (): void {
+    log.silly(PRE, `releaseQueue()`)
     if (!this.throttleQueueSubscription ||
         !this.debounceQueueSubscription
     ) {
@@ -294,9 +312,8 @@ export class PadproManager extends PadproGrpc {
    */
 
   public async start (): Promise<void> {
-    this.initQueue()
-
     log.verbose(PRE, `start()`)
+    this.initQueue()
 
     if (this.userId) {
       throw new Error('userId exist')
@@ -337,6 +354,7 @@ export class PadproManager extends PadproGrpc {
     this.clearContactAndRoomData()
 
     this.state.off(true)
+    log.verbose(PRE, `stop() finished`)
   }
 
   protected async onLogin (userId: string): Promise<void> {
@@ -355,7 +373,7 @@ export class PadproManager extends PadproGrpc {
     await CacheManager.init(this.options.token, userId)
     this.cacheManager = CacheManager.Instance
 
-    await this.initData()
+    void this.initData()
   }
 
   public async logout (): Promise<void> {
@@ -389,6 +407,10 @@ export class PadproManager extends PadproGrpc {
   }
 
   protected async startCheckScan (): Promise<void> {
+    if (this.state.off()) {
+      log.verbose(PRE, `startCheckScan() skip check scan since manager is not on.`)
+      return
+    }
     log.verbose(PRE, `startCheckScan()`)
 
     if (this.userId) {
@@ -496,12 +518,18 @@ export class PadproManager extends PadproGrpc {
 
   private async syncMessage () {
     log.silly(PRE, `syncMessage()`)
-    const messages = await this.syncQueueExecutor.execute(() => this.GrpcSyncMessage())
-    if (messages === null) {
-      log.verbose(PRE, `syncMessage() got empty response.`)
+    let messages
+    try {
+      messages = await this.syncQueueExecutor.execute(() => this.GrpcSyncMessage())
+      log.verbose(PRE, `syncMessage() got ${messages.length} message(s).`)
+    } catch (e) {
+      if (e.message === EncryptionServiceError.INTERNAL_ERROR) {
+        log.verbose(PRE, `syncMessage() encountered Encryption internal error.`)
+      } else {
+        log.verbose(PRE, `syncMessage() encountered unknown error: ${e.stack}`)
+      }
       return
     }
-    log.verbose(PRE, `syncMessage() got ${messages.length} message(s).`)
 
     await this.processMessages(messages)
   }
@@ -718,30 +746,27 @@ export class PadproManager extends PadproGrpc {
       return result
     } catch (e) {
       switch (e.message) {
-        case AutoLoginError.UNKNOWN_STATUS:
-          log.warn(PRE, `tryAutoLogin receive unknown api call status, if you keep seeing this status, please file an issue with detailed log to us, we will fix it ASAP.`)
-          break
+
+        case AutoLoginError.LOGIN_ERROR:
+          // Stop auto login since user can not be auto login or user logged out
+          return undefined
 
         case AutoLoginError.CALL_FAILED:
-          await new Promise(r => setTimeout(r, 5000))
-          return this.tryAutoLogin()
-
-        case AutoLoginError.USER_LOGOUT:
-          // Stop auto login since user has logged out
-          break
-
-        case EncryptionServiceError.NO_SESSION:
-          // Stop auto login since this is the first time login
           break
 
         default:
-          // Some other errors related to connection, retry the login
-          await new Promise(r => setTimeout(r, 5000))
-          return this.tryAutoLogin()
+          log.verbose(PRE, `tryAutoLogin() encountered unknown error: ${e.stack}`)
+          break
       }
-      log.verbose(PRE, `tryAutoLogin() failed: ${e}`)
+
+      // Keep retry auto login until logged in
+      await new Promise(r => setTimeout(r, 5000))
+      if (this.state.on()) {
+        return this.tryAutoLogin()
+      } else {
+        return undefined
+      }
     }
-    return undefined
   }
 
   protected async emitLoginQrcode (): Promise<void> {

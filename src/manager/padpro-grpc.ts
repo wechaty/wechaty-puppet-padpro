@@ -25,6 +25,7 @@ import {
   AutoLoginError,
   ContactOperationBitVal,
   ContactOperationCmdId,
+  EncryptionServiceError,
   GrpcA8KeyScene,
   PadproContactPayload,
   PadproImageMessagePayload,
@@ -49,17 +50,12 @@ export class PadproGrpc extends EventEmitter {
     log.silly(PRE, `constructor()`)
   }
 
-  protected async GrpcSyncMessage ()
-    : Promise<GrpcSyncMessagePayload[] | null> {
-    try {
-      const result: any = await this.wechatGateway.callApi('GrpcSyncMessage')
-      if (result === null) {
-        return null
-      } else {
-        return result.data !== null ? result.data : []
-      }
-    } catch (e) {
+  protected async GrpcSyncMessage (): Promise<GrpcSyncMessagePayload[] | null> {
+    const result = await this.wechatGateway.callApi('GrpcSyncMessage')
+    if (result === null) {
       return []
+    } else {
+      return result.data !== null ? result.data : []
     }
   }
 
@@ -72,63 +68,117 @@ export class PadproGrpc extends EventEmitter {
   }
 
   protected async GrpcHeartBeat () {
-    const payloads = await this.wechatGateway.callApi('GrpcHeartBeat')
+    log.silly(PRE, `GrpcHeartBeat()`)
+    let payloads
+    try {
+      payloads = await this.wechatGateway.callApi('GrpcHeartBeat')
+    } catch (e) {
+      if (e.message !== EncryptionServiceError.INTERNAL_ERROR) {
+        return null
+      }
+      throw e
+    }
     if (payloads !== null && (payloads[3] !== 20 || payloads[5] !== 16)) {
-      throw new Error()
+      // This is might indicate something wrong with wechat connection, but not clear so far
+      return null
     }
     return payloads
   }
 
   public async GrpcAutoLogin (): Promise<string> {
 
-    let result = await this.wechatGateway.callApi('GrpcAutoLogin')
-
-    /**
-     * Redirect to another service endpoint, need second login request.
-     */
-    if (result !== null && result.status === -301) {
-      log.silly(PRE, `GrpcAutoLogin() redirect host ${JSON.stringify(result)}`)
-      await this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
+    let result
+    try {
       result = await this.wechatGateway.callApi('GrpcAutoLogin')
-    }
-
-    if (result === null) {
+    } catch (e) {
+      if (e.message !== EncryptionServiceError.INTERNAL_ERROR) {
+        log.verbose(PRE, `GrpcAutoLogin() encountered unexpected error: ${e.stack}`)
+      }
       throw new Error(AutoLoginError.CALL_FAILED)
     }
 
     /**
-     * Wechat account has been logout or signed on another device: Mac or Web etc.
+     * Redirect to another service endpoint, need second login request.
      */
-    if (result.status === -2023) {
-      log.verbose(PRE, `GrpcAutoLogin() login failed with result: ${JSON.stringify(result)}`)
-      throw new Error(AutoLoginError.USER_LOGOUT)
+    if (result.status === -301) {
+      log.silly(PRE, `GrpcAutoLogin() redirect host ${JSON.stringify(result)}`)
+      await this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
+      // Max gap between the first and the redirect login api is 30 seconds
+      try {
+        result = await this.wechatGateway.callApi('GrpcAutoLogin')
+      } catch (e) {
+        if (e.message === EncryptionServiceError.NO_SESSION) {
+          throw new Error(AutoLoginError.LOGIN_ERROR)
+        } else if (e.message !== EncryptionServiceError.INTERNAL_ERROR) {
+          log.verbose(PRE, `GrpcAutoLogin() encountered unexpected error: ${e.stack}`)
+        }
+        throw new Error(AutoLoginError.CALL_FAILED)
+      }
     }
 
-    /**
-     * Unknown auto login status
-     */
-    if (result.status !== 0) {
-      log.warn(PRE, `GrpcAutoLogin() login failed with result: ${JSON.stringify(result)}`)
-      throw new Error(AutoLoginError.UNKNOWN_STATUS)
-    }
+    switch (result.status) {
 
-    /**
-     * Successfully sign in to wechat.
-     */
-    log.verbose(PRE, `GrpcAutoLogin() success with result: ${JSON.stringify(result)}`)
-    return result.userName
+      /**
+       * Successfully sign in to wechat.
+       */
+      case 0:
+        log.verbose(PRE, `GrpcAutoLogin() success with result: ${JSON.stringify(result)}`)
+        return result.userName
+
+      /**
+       * Wechat account has been logout or signed on another device: Mac or Web etc.
+       */
+      case -2023:
+        log.verbose(PRE, `GrpcAutoLogin() login failed with result: ${JSON.stringify(result)}`)
+        throw new Error(AutoLoginError.LOGIN_ERROR)
+
+      /**
+       * Exceptions happened for wechat user status
+       */
+      case -100:
+        log.verbose(PRE, `GrpcAutoLogin() login failed, usually this is disconnected by wechat.`)
+        throw new Error(AutoLoginError.LOGIN_ERROR)
+
+      case -106:
+        log.warn(PRE, `GrpcAutoLogin() login failed, this is not an expected status,
+        if you see this, please open an issue and report to us with the detailed log.
+        Here is the detailed response from wechat:\n${JSON.stringify(result)}`)
+        throw new Error(AutoLoginError.LOGIN_ERROR)
+
+      /**
+       * Unknown auto login status
+       */
+      default:
+        log.warn(PRE, `GrpcAutoLogin() login failed with result: ${JSON.stringify(result)}`)
+        throw new Error(AutoLoginError.LOGIN_ERROR)
+    }
   }
 
   public async GrpcQRCodeLogin (userName: string, password: string): Promise<string> {
     log.info(PRE, `GrpcQRCodeLogin(${userName}, ${password})`)
-    let result: GrpcQrcodeLoginType = await this.wechatGateway.callApi('GrpcQRCodeLogin', { userName, password })
+    let result = await this._GrpcQRCodeLogin(userName, password)
+
     if (result.status === -301) {
       await this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
       log.silly(PRE, 'GrpcQRCodeLogin() Redirect to long connection')
-      result = await this.wechatGateway.callApi('GrpcQRCodeLogin', { userName, password }, true)
+      result = await this._GrpcQRCodeLogin(userName, password)
     }
 
     return result.userName
+  }
+
+  private async _GrpcQRCodeLogin (userName: string, password: string): Promise<GrpcQrcodeLoginType> {
+    try {
+      const result = await this.wechatGateway.callApi('GrpcQRCodeLogin', { userName, password })
+      return result
+    } catch (e) {
+      if (e.message !== EncryptionServiceError.INTERNAL_ERROR) {
+        await new Promise(r => setTimeout(r, 1000))
+        log.verbose(PRE, `GrpcQRCodeLogin() failed, retry login.`)
+        return this._GrpcQRCodeLogin(userName, password)
+      }
+      throw e
+    }
   }
 
   public async GrpcCheckQRCode (): Promise<GrpcCheckQRCode> {

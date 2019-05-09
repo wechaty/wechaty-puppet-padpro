@@ -198,12 +198,12 @@ export enum GrpcA8KeyScene {
 
 export enum AutoLoginError {
   CALL_FAILED = 'CALL_FAILED',
-  USER_LOGOUT = 'USER_LOGOUT',
-  UNKNOWN_STATUS = 'UNKNOWN_STATUS',
+  LOGIN_ERROR = 'LOGIN_ERROR',
 }
 
 export enum EncryptionServiceError {
   NO_SESSION = 'NO_SESSION',
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
 }
 
 export enum GrpcSelfAvatarType {

@@ -94,6 +94,7 @@ export class DedupeApi {
         this.pool[key].listener.map(api => {
           api.reject(e)
         })
+        this.pool[key].listener = []
         throw e
       }
 
@@ -103,14 +104,16 @@ export class DedupeApi {
       this.pool[key].listener.map(api => {
         api.resolve(result)
       })
+      this.pool[key].listener = []
 
       return result
     }
   }
 
-  public destroy () {
+  public clean () {
     for (const key in this.pool) {
       if (this.pool.hasOwnProperty(key)) {
+        this.pool[key].listener.forEach(api => api.reject('Clean up api calls.'))
         delete this.pool[key]
       }
     }

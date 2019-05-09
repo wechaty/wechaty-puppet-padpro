@@ -202,7 +202,7 @@ export class PuppetPadpro extends Puppet {
     log.verbose(PRE, `start() with ${this.memory.name}`)
 
     if (this.state.on()) {
-      log.warn(PRE, 'start() already on(pending)?')
+      log.verbose(PRE, 'start() already on(pending)?')
       await this.state.ready('on')
       return
     }
@@ -256,7 +256,7 @@ export class PuppetPadpro extends Puppet {
     manager.on('ready',   ()                                              => this.emit('ready'))
 
     manager.on('reset', async reason => {
-      log.warn(PRE, 'startManager() manager.on(reset) for %s. Restarting PuppetPadpro ... ', reason)
+      log.verbose(PRE, 'startManager() manager.on(reset) for %s. Restarting PuppetPadpro ... ', reason)
       // Puppet Base class will deal with this RESET event for you.
       await this.emit('reset', reason)
     })
@@ -273,7 +273,7 @@ export class PuppetPadpro extends Puppet {
      * 0. Discard messages when not logged in
      */
     if (!this.id) {
-      log.warn(PRE, 'onPadproMessage(%s) discarded message because puppet is not logged-in', JSON.stringify(rawPayload))
+      log.verbose(PRE, 'onPadproMessage(%s) discarded message because puppet is not logged-in', JSON.stringify(rawPayload))
       return
     }
 
@@ -415,7 +415,7 @@ export class PuppetPadpro extends Puppet {
         return retryException(new Error('roomMemberSearch() not found'))
 
       }).catch(e => {
-        log.warn(PRE, 'onPadproMessageRoomEventJoin({id=%s}) roomJoin retry() fail: %s', e.message)
+        log.verbose(PRE, 'onPadproMessageRoomEventJoin({id=%s}) roomJoin retry() fail: %s', e.message)
         return [] as string[]
       })
 
@@ -424,7 +424,7 @@ export class PuppetPadpro extends Puppet {
       if (inviterIdList.length < 1) {
         throw new Error('no inviterId found')
       } else if (inviterIdList.length > 1) {
-        log.warn(PRE, 'onPadproMessageRoomEventJoin() inviterId found more than 1, use the first one.')
+        log.verbose(PRE, 'onPadproMessageRoomEventJoin() inviterId found more than 1, use the first one.')
       }
 
       const inviterId = inviterIdList[0]
@@ -464,7 +464,7 @@ export class PuppetPadpro extends Puppet {
       if (removerIdList.length < 1) {
         throw new Error('no removerId found')
       } else if (removerIdList.length > 1) {
-        log.warn(PRE, 'onPadproMessageRoomEventLeave(): removerId found more than 1, use the first one.')
+        log.verbose(PRE, 'onPadproMessageRoomEventLeave(): removerId found more than 1, use the first one.')
       }
       const removerId = removerIdList[0]
 
@@ -503,7 +503,7 @@ export class PuppetPadpro extends Puppet {
       if (changerIdList.length < 1) {
         throw new Error('no changerId found')
       } else if (changerIdList.length > 1) {
-        log.warn(PRE, 'onPadproMessageRoomEventTopic() changerId found more than 1, use the first one.')
+        log.verbose(PRE, 'onPadproMessageRoomEventTopic() changerId found more than 1, use the first one.')
       }
       const changerId = changerIdList[0]
 
@@ -551,7 +551,7 @@ export class PuppetPadpro extends Puppet {
     }
 
     if (this.state.off()) {
-      log.warn(PRE, 'stop() is called on a OFF puppet. await ready(off) and return.')
+      log.verbose(PRE, 'stop() is called on a OFF puppet. await ready(off) and return.')
       await this.state.ready('off')
       return
     }
@@ -568,13 +568,14 @@ export class PuppetPadpro extends Puppet {
 
     await WechatGateway.release()
     this.state.off(true)
+    log.verbose(PRE, `stop() finished`)
   }
 
   public async logout (shallow = false): Promise<void> {
     log.verbose(PRE, 'logout()')
 
     if (!this.id) {
-      log.warn(PRE, 'logout() this.id not exist')
+      log.verbose(PRE, 'logout() this.id not exist')
       return
     }
 
@@ -1448,7 +1449,7 @@ export class PuppetPadpro extends Puppet {
     if (memberIdList.includes(contactId)) {
       await this.padproManager.GrpcDeleteRoomMember(roomId, contactId)
     } else {
-      log.warn(PRE, `roomDel() room(${roomId}) has no member contact(${contactId})`)
+      log.verbose(PRE, `roomDel() room(${roomId}) has no member contact(${contactId})`)
     }
   }
 
@@ -1481,7 +1482,7 @@ export class PuppetPadpro extends Puppet {
       return FileBox.fromUrl(payload.avatar)
     }
 
-    log.warn(PRE, 'roomAvatar() avatar not found, use the chatie default.')
+    log.verbose(PRE, 'roomAvatar() avatar not found, use the chatie default.')
     return qrCodeForChatie()
   }
 
@@ -1505,8 +1506,7 @@ export class PuppetPadpro extends Puppet {
         log.verbose(PRE, `roomAdd(${roomId}, ${contactId}) try to Invite`)
         await this.padproManager.GrpcInviteRoomMember(roomId, contactId)
       } else {
-        log.warn(PRE, `roomAdd() Add exception: ${e}`)
-        console.error(e)
+        log.verbose(PRE, `roomAdd() Add exception: ${e.stack}`)
       }
     }
   }
@@ -1673,7 +1673,7 @@ export class PuppetPadpro extends Puppet {
      * If the contact is not stranger, than using WXSearchContact can get userName
      */
     if (rawSearchPayload.UserName !== '' && !isStrangerV1(rawSearchPayload.UserName) && !isStrangerV2(rawSearchPayload.UserName)) {
-      log.warn(PRE, `friendshipAdd ${contactId} has been friend with bot, no need to send friend request!`)
+      log.verbose(PRE, `friendshipAdd ${contactId} has been friend with bot, no need to send friend request!`)
       return
     }
 

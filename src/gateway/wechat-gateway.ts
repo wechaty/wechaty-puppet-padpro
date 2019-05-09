@@ -6,6 +6,7 @@ import http, {
 } from 'http'
 import HttpProxyAgent from 'http-proxy-agent'
 import net, { Socket } from 'net'
+import StateSwitch from 'state-switch'
 
 import { ApiOptions } from '../api-options'
 import {
@@ -49,6 +50,8 @@ export class WechatGateway extends EventEmitter {
   private grpcGateway: GrpcGateway
   private backs: CallBackBuffer
   private proxyAgent?: HttpProxyAgent
+
+  private readonly state: StateSwitch
 
   private cacheBuf?: Buffer
 
@@ -95,9 +98,15 @@ export class WechatGateway extends EventEmitter {
     if (proxyEndpoint) {
       this.proxyAgent = new HttpProxyAgent(proxyEndpoint)
     }
+    this.state = new StateSwitch()
+    this.state.on(true)
     this.dedupeApi = new DedupeApi()
     this.apiCounter = {}
     this.bootTime = new Date().getTime()
+
+    this.grpcGateway.on('error', () => {
+      this.emit('reset')
+    })
   }
   public emit (event: 'newMessage' | 'rawMessage', message: Buffer): boolean
   public emit (event: 'socketClose' | 'socketEnd' | 'reset'): boolean
@@ -133,7 +142,11 @@ export class WechatGateway extends EventEmitter {
 
   public async stop () {
     log.info(PRE, `stop()`)
+    this.state.off('pending')
     await this.releaseLongSocket()
+    this.dedupeApi.clean()
+    this.state.off(true)
+    log.info(PRE, `stop() finished`)
   }
 
   public async switchHost ({ shortHost, longHost }: SwitchHostOption) {
@@ -144,7 +157,6 @@ export class WechatGateway extends EventEmitter {
     if (this.longHost !== longHost) {
       this.cleanLongSocket()
       this.longHost = longHost
-      await this.initLongSocket()
     }
   }
 
@@ -163,33 +175,50 @@ export class WechatGateway extends EventEmitter {
       log.verbose(PRE, `initLongSocket() socket has already been created, quit initialize.`)
       return
     }
-    return new Promise<void>(resolve => {
-      this.longSocket = new Socket()
-      this.longSocket.connect(80, this.longHost)
 
-      this.longSocket.on('data', this.onData.bind(this))
+    const longSocket = new Socket()
+    longSocket.connect(80, this.longHost)
+    longSocket.setTimeout(5000)
 
-      this.longSocket.on('close', async () => {
-        log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} closed.`)
-        this.cleanLongSocket()
-        this.emit('socketClose')
+    longSocket.on('data', this.onData.bind(this))
+
+    longSocket.on('close', async () => {
+      log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} closed.`)
+      this.cleanLongSocket()
+      this.emit('socketClose')
+    })
+
+    longSocket.on('error', (err: Error) => {
+      log.error(PRE, `initLongSocket() error happened with long host server connection: ${err}`)
+      this.emit('socketError', err)
+    })
+
+    longSocket.on('end', () => {
+      log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} ended.`)
+      this.emit('socketEnd')
+    })
+
+    await new Promise((resolve, reject) => {
+      longSocket.once('connect', () => {
+        log.silly(PRE, 'initLongSocket() Promise() longSocket.on(connect)')
+        return resolve()
       })
 
-      this.longSocket.on('error', (err: Error) => {
-        log.error(PRE, `initLongSocket() error happened with long host server connection: ${err}`)
-        this.emit('socketError', err)
+      longSocket.once('error', (e) => {
+        log.error(PRE, `initLongSocket() Promise() longSocket.on(error) ${e}`)
+        return reject('ERROR')
       })
-
-      this.longSocket.on('end', () => {
-        log.info(PRE, `initLongSocket() connection to wechat long host server: ${this.longHost} ended.`)
-        this.emit('socketEnd')
+      longSocket.once('close', () => {
+        log.silly(PRE, 'initLongSocket() Promise() longSocket.on(close)')
+        return reject('CLOSE')
       })
-
-      this.longSocket.on('connect', () => {
-        log.info(PRE, `initLongSocket() connected to wechat long host server: ${this.longHost}.`)
-        resolve()
+      longSocket.once('timeout', () => {
+        log.silly(PRE, `initLongSocket() Promise() longSocket.on(timeout)`)
+        return reject('TIMEOUT')
       })
     })
+
+    this.longSocket = longSocket
   }
 
   private async releaseLongSocket (): Promise<void> {
@@ -210,6 +239,10 @@ export class WechatGateway extends EventEmitter {
     forceCall?: boolean,
     forceLongOrShort?: boolean,
   ) {
+    if (this.state.off()) {
+      // When state is off, ignore api call
+      return
+    }
     return this.dedupeApi.dedupe(
       this._callApi.bind(this),
       apiName,
@@ -250,12 +283,8 @@ export class WechatGateway extends EventEmitter {
       if (apiName === 'GrpcAutoLogin' && e.details === EncryptionServiceError.NO_SESSION) {
         throw new Error(EncryptionServiceError.NO_SESSION)
       }
-      if (apiName === 'GrpcSyncMessage') {
-        // Suppress errors for sync message
-        return null
-      }
-      log.error(PRE, `Error happened when call api: ${apiName}, params: ${JSON.stringify(params)}\n${e.stack}`)
-      return null
+      log.verbose(PRE, `_callApi() Error happened when call api: ${apiName}, params: ${JSON.stringify(params)}\n${e.stack}`)
+      throw e
     }
   }
 
@@ -360,7 +389,12 @@ export class WechatGateway extends EventEmitter {
 
       try {
         if (!this.longSocket) {
-          await this.initLongSocket()
+          try {
+            await this.initLongSocket()
+          } catch (e) {
+            this.emit('reset')
+            throw e
+          }
         }
         this.longSocket!.write(sendBuff)
       } catch (e) {

@@ -20,16 +20,24 @@ export const MESSAGE_CACHE_MAX = 1000
 
 export const WAIT_FOR_READY_TIME = 3 * 60 * 1000
 
+export const GRPC_GATEWAY_MAX_ERROR_COUNT = 15
+
+export const GRPC_GATEWAY_DISCONNECT_MAX_DURATION = 30 * 1000
+
+export const GRPC_GATEWAY_DISCONNECT_MIN_ERROR = 5
+
+export const GRPC_GATEWAY_TIMEOUT = 15 * 1000 // In milliseconds
+
+export const GRPC_GATEWAY_MAX_RETRY = 3
+
 export const SEND_SHORT_TIMEOUT = 5 * 1000
 
 export const SEND_SHORT_RETRY_COUNT = 5
 
 export const SEND_CDN_RETRY_COUNT = 5
 
-export const NO_RETRY_ERROR_MESSAGE = [
+export const LOGIC_ERROR_MESSAGE = [
   'NO_SESSION',
-  'INVALID_TOKEN',
-  'EXPIRED_TOKEN',
 ]
 
 /**
