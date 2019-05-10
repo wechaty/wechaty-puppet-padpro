@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-padpro",
-  "version": "0.0.59",
+  "version": "0.2.0",
   "description": "Padpro Puppet for Wechaty",
   "directories": {
     "example": "examples"
