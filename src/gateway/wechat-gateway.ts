@@ -456,5 +456,4 @@ export class WechatGateway extends EventEmitter {
   private bufferToInt (buffer: Buffer, offset = 0): number {
     return buffer.readUIntBE(offset, 4)
   }
-
 }

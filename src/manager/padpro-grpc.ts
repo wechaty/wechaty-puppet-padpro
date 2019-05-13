@@ -93,6 +93,9 @@ export class PadproGrpc extends EventEmitter {
       if (e.message !== EncryptionServiceError.INTERNAL_ERROR) {
         log.verbose(PRE, `GrpcAutoLogin() encountered unexpected error: ${e.stack}`)
       }
+      if (e.message === EncryptionServiceError.NO_SESSION) {
+        throw new Error(AutoLoginError.LOGIN_ERROR)
+      }
       throw new Error(AutoLoginError.CALL_FAILED)
     }
 
