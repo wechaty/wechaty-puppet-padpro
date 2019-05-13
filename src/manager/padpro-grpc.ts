@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events'
 
 import {
+  GrpcAutoLoginType,
   GrpcCheckQRCode,
   GrpcContactOperationOption,
   GrpcContactRawPayload,
@@ -16,6 +17,7 @@ import {
 } from '../schemas/grpc-schemas'
 
 import { generateContactXMLMessage, isRoomId } from '../pure-function-helpers'
+import { loginErrorParser } from '../pure-function-helpers/login-error-parser'
 
 import { log } from '../config'
 
@@ -34,6 +36,7 @@ import {
   PadproVoiceMessagePayload,
   SearchContactTypeStatus,
 } from '../schemas'
+import { PadproAutoLoginError } from '../schemas/padpro-auto-login-error'
 
 const PRE = 'PadproGrpc'
 
@@ -86,7 +89,7 @@ export class PadproGrpc extends EventEmitter {
 
   public async GrpcAutoLogin (): Promise<string> {
 
-    let result
+    let result: GrpcAutoLoginType
     try {
       result = await this.wechatGateway.callApi('GrpcAutoLogin')
     } catch (e) {
@@ -132,6 +135,13 @@ export class PadproGrpc extends EventEmitter {
        */
       case -2023:
         log.verbose(PRE, `GrpcAutoLogin() login failed with result: ${JSON.stringify(result)}`)
+        if (result.payload) {
+          const parsedPayload = await loginErrorParser(result.payload)
+          this.emit('error', new PadproAutoLoginError(
+            parsedPayload.type,
+            parsedPayload.message,
+          ).toString())
+        }
         throw new Error(AutoLoginError.LOGIN_ERROR)
 
       /**
@@ -139,12 +149,26 @@ export class PadproGrpc extends EventEmitter {
        */
       case -100:
         log.verbose(PRE, `GrpcAutoLogin() login failed, usually this is disconnected by wechat.`)
+        if (result.payload) {
+          const parsedPayload = await loginErrorParser(result.payload)
+          this.emit('error', new PadproAutoLoginError(
+            parsedPayload.type,
+            parsedPayload.message,
+          ).toString())
+        }
         throw new Error(AutoLoginError.LOGIN_ERROR)
 
       case -106:
         log.warn(PRE, `GrpcAutoLogin() login failed, this is not an expected status,
         if you see this, please open an issue and report to us with the detailed log.
         Here is the detailed response from wechat:\n${JSON.stringify(result)}`)
+        if (result.payload) {
+          const parsedPayload = await loginErrorParser(result.payload)
+          this.emit('error', new PadproAutoLoginError(
+            parsedPayload.type,
+            parsedPayload.message,
+          ).toString())
+        }
         throw new Error(AutoLoginError.LOGIN_ERROR)
 
       /**

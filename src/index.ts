@@ -17,6 +17,10 @@
  *
  */
 import { PuppetPadpro }  from './puppet-padpro'
+import {
+  PadproAutoLoginErrorType,
+  PadproErrorType,
+} from './schemas/padpro-enums'
 
 export {
   VERSION,
@@ -25,6 +29,8 @@ export {
 
 export {
   PuppetPadpro,
+  PadproErrorType,
+  PadproAutoLoginErrorType,
 }
 
 export default PuppetPadpro
