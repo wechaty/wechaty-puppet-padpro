@@ -90,11 +90,11 @@ export class PadproGrpc extends EventEmitter {
     try {
       result = await this.wechatGateway.callApi('GrpcAutoLogin')
     } catch (e) {
-      if (e.message !== EncryptionServiceError.INTERNAL_ERROR) {
-        log.verbose(PRE, `GrpcAutoLogin() encountered unexpected error: ${e.stack}`)
-      }
       if (e.message === EncryptionServiceError.NO_SESSION) {
         throw new Error(AutoLoginError.LOGIN_ERROR)
+      }
+      if (e.message !== EncryptionServiceError.INTERNAL_ERROR) {
+        log.verbose(PRE, `GrpcAutoLogin() encountered unexpected error: ${e.stack}`)
       }
       throw new Error(AutoLoginError.CALL_FAILED)
     }
