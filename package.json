@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@types/blue-tape": "^0.1.31",
-    "@types/fs-extra": "^5.0.3",
+    "@types/fs-extra": "^7.0.0",
     "@types/google-protobuf": "^3.2.7",
     "@types/http-proxy-agent": "^2.0.0",
     "@types/lru-cache": "^5.1.0",
