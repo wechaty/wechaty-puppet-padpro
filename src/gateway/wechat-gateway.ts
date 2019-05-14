@@ -345,9 +345,15 @@ export class WechatGateway extends EventEmitter {
         response.on('end', () => {
           const buffer = Buffer.concat(rawData, dataLen)
           // Short request parse judgement
-          if (!noParse && buffer[0] !== 191) {
-            log.warn(`sendShort receive unknown package: [${buffer[0]}] ${buffer.toString('hex')} ${buffer.toString()}]`)
-            reject('UNKNOWN_PACKAGE')
+          const judgeFlag = buffer[0]
+          if (!noParse) {
+            if (judgeFlag === 126) {
+              log.silly(PRE, `sendShort() receive flag 126 back.`)
+              this.emit('reset')
+            } else if (judgeFlag !== 191) {
+              log.warn(`sendShort receive unknown package: [${judgeFlag}] ${buffer.toString('hex')} ${buffer.toString()}]`)
+              reject('UNKNOWN_PACKAGE')
+            }
           }
           resolve(buffer)
         })
