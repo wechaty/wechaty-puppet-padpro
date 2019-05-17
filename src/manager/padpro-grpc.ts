@@ -430,7 +430,7 @@ export class PadproGrpc extends EventEmitter {
     let result
     try {
       result = await this.wechatGateway.callApi('GrpcSearchContact', {
-        Username: contactId,
+        UserName: contactId,
       })
       return result
     } catch (e) {
