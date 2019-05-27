@@ -353,7 +353,7 @@ export class CDNManager {
       filekey: fileKey,
       totalsize: totalSize,
       rawtotalsize: rawTotalSize,
-      localname: fileName,
+      localname: encodeURIComponent(fileName),
       thumbtotalsize: 0,
       rawthumbsize: 0,
       rawthumbmd5: null,
