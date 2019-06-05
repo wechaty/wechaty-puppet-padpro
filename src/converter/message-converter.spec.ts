@@ -63,3 +63,63 @@ test('Special official account sent url', async t => {
   const payload = convertMessage(MESSAGE_PAYLOAD)
   t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse special official account sent url')
 })
+
+test('Transfer money message', async t => {
+  const MESSAGE_PAYLOAD = {
+    MsgId: 1006688402,
+    FromUserName: 'lylezhuifeng',
+    ToUserName: 'wxid_x01jgln69ath22',
+    MsgType: 49,
+    Content: '<msg><appmsg appid=\"\" sdkver=\"\"><title><![CDATA[微信转账]]></title><des><![CDATA[收到转账0.10元。如需收钱，请点此升级至最新版本]]></des><action></action><type>2000</type><content><![CDATA[]]></content><url><![CDATA[https://support.weixin.qq.com/cgi-bin/mmsupport-bin/readtemplate?t=page/common_page__upgrade&text=text001&btn_text=btn_text_0]]></url><thumburl><![CDATA[https://support.weixin.qq.com/cgi-bin/mmsupport-bin/readtemplate?t=page/common_page__upgrade&text=text001&btn_text=btn_text_0]]></thumburl><lowurl></lowurl><extinfo></extinfo><wcpayinfo><paysubtype>1</paysubtype><feedesc><![CDATA[￥0.10]]></feedesc><transcationid><![CDATA[100005010119060500065311386661495024]]></transcationid><transferid><![CDATA[1000050101201906050603597352768]]></transferid><invalidtime><![CDATA[1559807491]]></invalidtime><begintransfertime><![CDATA[1559715691]]></begintransfertime><effectivedate><![CDATA[1]]></effectivedate><pay_memo><![CDATA[]]></pay_memo></wcpayinfo></appmsg></msg>',
+    Status: 3,
+    ImgStatus: 1,
+    ImgBuf: null,
+    CreateTime: 1559715691,
+    MsgSource: '',
+    PushContent: '高原ོ : [转账]',
+    NewMsgId: 4461168140975614000
+  }
+  const EXPECTED_PAYLOAD: PadproMessagePayload = {
+    content: '<msg><appmsg appid="" sdkver=""><title><![CDATA[微信转账]]></title><des><![CDATA[收到转账0.10元。如需收钱，请点此升级至最新版本]]></des><action></action><type>2000</type><content><![CDATA[]]></content><url><![CDATA[https://support.weixin.qq.com/cgi-bin/mmsupport-bin/readtemplate?t=page/common_page__upgrade&text=text001&btn_text=btn_text_0]]></url><thumburl><![CDATA[https://support.weixin.qq.com/cgi-bin/mmsupport-bin/readtemplate?t=page/common_page__upgrade&text=text001&btn_text=btn_text_0]]></thumburl><lowurl></lowurl><extinfo></extinfo><wcpayinfo><paysubtype>1</paysubtype><feedesc><![CDATA[￥0.10]]></feedesc><transcationid><![CDATA[100005010119060500065311386661495024]]></transcationid><transferid><![CDATA[1000050101201906050603597352768]]></transferid><invalidtime><![CDATA[1559807491]]></invalidtime><begintransfertime><![CDATA[1559715691]]></begintransfertime><effectivedate><![CDATA[1]]></effectivedate><pay_memo><![CDATA[]]></pay_memo></wcpayinfo></appmsg></msg>',
+    data: null,
+    fromUser: 'lylezhuifeng',
+    messageId: '1006688402',
+    messageSource: '',
+    messageType: 49,
+    status: 3,
+    timestamp: 1559715691,
+    toUser: 'wxid_x01jgln69ath22'
+  }
+  const payload = convertMessage(MESSAGE_PAYLOAD)
+  t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse transfer money message')
+})
+
+test('Transfer money confirm message', async t => {
+  const MESSAGE_PAYLOAD = {
+    MsgId: 1601417905,
+    FromUserName: 'wxid_x01jgln69ath22',
+    ToUserName: 'lylezhuifeng',
+    MsgType: 49,
+    Content: '<msg>\n<appmsg appid=\"\" sdkver=\"\">\n<title><![CDATA[微信转账]]></title>\n<des><![CDATA[收到转账0.10元。如需收钱，请点此升级至最新版本]]></des>\n<action></action>\n<type>2000</type>\n<content><![CDATA[]]></content>\n<url><![CDATA[https://support.weixin.qq.com/cgi-bin/mmsupport-bin/readtemplate?t=page/common_page__upgrade&text=text001&btn_text=btn_text_0]]></url>\n<thumburl><![CDATA[https://support.weixin.qq.com/cgi-bin/mmsupport-bin/readtemplate?t=page/common_page__upgrade&text=text001&btn_text=btn_text_0]]></thumburl>\n<lowurl></lowurl>\n<extinfo>\n</extinfo>\n<wcpayinfo>\n<paysubtype>3</paysubtype>\n<feedesc><![CDATA[￥0.10]]></feedesc>\n<transcationid><![CDATA[100005010119060500065311386661495024]]></transcationid>\n<transferid><![CDATA[1000050101201906050603597352768]]></transferid>\n<invalidtime><![CDATA[1559802091]]></invalidtime>\n<begintransfertime><![CDATA[1559715691]]></begintransfertime>\n<effectivedate><![CDATA[1]]></effectivedate>\n<pay_memo><![CDATA[]]></pay_memo>\n\n\n</wcpayinfo>\n</appmsg>\n</msg>',
+    Status: 3,
+    ImgStatus: 1,
+    ImgBuf: null,
+    CreateTime: 1559715714,
+    MsgSource: '',
+    PushContent: '',
+    NewMsgId: 4157381389894612500
+  }
+  const EXPECTED_PAYLOAD: PadproMessagePayload = {
+    content: '<msg>\n<appmsg appid="" sdkver="">\n<title><![CDATA[微信转账]]></title>\n<des><![CDATA[收到转账0.10元。如需收钱，请点此升级至最新版本]]></des>\n<action></action>\n<type>2000</type>\n<content><![CDATA[]]></content>\n<url><![CDATA[https://support.weixin.qq.com/cgi-bin/mmsupport-bin/readtemplate?t=page/common_page__upgrade&text=text001&btn_text=btn_text_0]]></url>\n<thumburl><![CDATA[https://support.weixin.qq.com/cgi-bin/mmsupport-bin/readtemplate?t=page/common_page__upgrade&text=text001&btn_text=btn_text_0]]></thumburl>\n<lowurl></lowurl>\n<extinfo>\n</extinfo>\n<wcpayinfo>\n<paysubtype>3</paysubtype>\n<feedesc><![CDATA[￥0.10]]></feedesc>\n<transcationid><![CDATA[100005010119060500065311386661495024]]></transcationid>\n<transferid><![CDATA[1000050101201906050603597352768]]></transferid>\n<invalidtime><![CDATA[1559802091]]></invalidtime>\n<begintransfertime><![CDATA[1559715691]]></begintransfertime>\n<effectivedate><![CDATA[1]]></effectivedate>\n<pay_memo><![CDATA[]]></pay_memo>\n\n\n</wcpayinfo>\n</appmsg>\n</msg>',
+    data: null,
+    fromUser: 'wxid_x01jgln69ath22',
+    messageId: '1601417905',
+    messageSource: '',
+    messageType: 49,
+    status: 3,
+    timestamp: 1559715714,
+    toUser: 'lylezhuifeng'
+  }
+  const payload = convertMessage(MESSAGE_PAYLOAD)
+  t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse transfer money confirm message')
+})
