@@ -668,6 +668,8 @@ export class PadproManager extends PadproGrpc {
         return
       }
 
+      console.log(JSON.stringify(m))
+
       /**
        * Message emit here should all be valid message
        */

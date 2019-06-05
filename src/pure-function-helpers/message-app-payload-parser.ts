@@ -15,7 +15,7 @@ export async function appMessageParser (rawPayload: PadproMessagePayload): Promi
     return null
   }
 
-  const { content } = rawPayload
+  const content = rawPayload.content.trim()
 
   interface XmlSchema {
     msg: {
@@ -45,8 +45,10 @@ export async function appMessageParser (rawPayload: PadproMessagePayload): Promi
       }
     }
   }
-
-  const tryXmlText = content.replace(/^[^\n]+\n/, '')
+  let tryXmlText = content
+  if (!/^<msg>.*/.test(content)) {
+    tryXmlText = content.replace(/^[^\n]+\n/, '')
+  }
 
   try {
     const jsonPayload: XmlSchema = await xmlToJson(tryXmlText)
@@ -61,10 +63,10 @@ export async function appMessageParser (rawPayload: PadproMessagePayload): Promi
         cdnattachurl  : tmp.cdnattachurl,
         cdnthumbaeskey: tmp.cdnthumbaeskey,
         emoticonmd5   : tmp.emoticonmd5,
-        encryver      : parseInt(tmp.encryver, 10),
+        encryver      : tmp.encryver && parseInt(tmp.encryver, 10) || 0,
         fileext       : tmp.fileext,
-        totallen      : parseInt(tmp.totallen, 10),
-        islargefilemsg: parseInt(tmp.islargefilemsg, 10),
+        totallen      : tmp.totallen && parseInt(tmp.totallen, 10) || 0,
+        islargefilemsg: tmp.islargefilemsg && parseInt(tmp.islargefilemsg, 10) || 0,
       }
     }
     return { title, des, url, thumburl, md5, type: parseInt(type, 10), appattach, recorditem }
