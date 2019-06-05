@@ -224,6 +224,10 @@ export class PuppetPadpro extends Puppet {
     })
 
     await this.startManager(manager)
+    if (!this.padproManager) {
+      log.verbose(PRE, `start() failed to start the manager. Stop proceeding further.`)
+      return
+    }
     await this.startWatchdog()
 
     this.state.on(true)
@@ -259,6 +263,14 @@ export class PuppetPadpro extends Puppet {
       log.verbose(PRE, 'startManager() manager.on(reset) for %s. Restarting PuppetPadpro ... ', reason)
       // Puppet Base class will deal with this RESET event for you.
       await this.emit('reset', reason)
+    })
+
+    manager.on('unAuthorized', async () => {
+      if (this.state.on()) {
+        this.emit('error', new Error('UNAUTHORIZED'))
+        log.info(PRE, `Stopping puppet for unauthorized user...`)
+        await this.stop()
+      }
     })
 
     await manager.start()

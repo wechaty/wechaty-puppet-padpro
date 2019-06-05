@@ -35,7 +35,7 @@ export interface SwitchHostOption {
   longHost: string,
 }
 
-export type WechatGatewayEvent = 'newMessage' | 'socketClose' | 'socketError' | 'socketEnd' | 'rawMessage' | 'reset'
+export type WechatGatewayEvent = 'newMessage' | 'socketClose' | 'socketError' | 'socketEnd' | 'rawMessage' | 'reset' | 'unAuthorized'
 
 const PRE = 'WechatGateway'
 
@@ -107,9 +107,12 @@ export class WechatGateway extends EventEmitter {
     this.grpcGateway.on('error', () => {
       this.emit('reset')
     })
+    this.grpcGateway.on('unAuthorized', () => {
+      this.emit('unAuthorized')
+    })
   }
   public emit (event: 'newMessage' | 'rawMessage', message: Buffer): boolean
-  public emit (event: 'socketClose' | 'socketEnd' | 'reset'): boolean
+  public emit (event: 'socketClose' | 'socketEnd' | 'reset' | 'unAuthorized'): boolean
   public emit (event: 'socketError', err: Error): boolean
 
   public emit (event: never, listener: never): never
@@ -121,7 +124,7 @@ export class WechatGateway extends EventEmitter {
     return super.emit(event, ...args)
   }
   public on (event: 'newMessage' | 'rawMessage', listener: ((this: WechatGateway, message: Buffer) => void)): this
-  public on (event: 'socketClose' | 'socketEnd' | 'reset', listener: ((this: WechatGateway) => void)): this
+  public on (event: 'socketClose' | 'socketEnd' | 'reset' | 'unAuthorized', listener: ((this: WechatGateway) => void)): this
   public on (event: 'socketError', listener: ((this: WechatGateway, err: Error) => void)): this
 
   public on (event: never, listener: never): never

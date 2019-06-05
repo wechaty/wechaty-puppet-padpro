@@ -31,7 +31,7 @@ export interface PackShortRes {
   payload: Buffer,
 }
 
-export type GrpcGatewayEvent = 'error'
+export type GrpcGatewayEvent = 'error' | 'unAuthorized'
 
 const PRE = 'GrpcGateway'
 export class GrpcGateway extends EventEmitter {
@@ -69,6 +69,7 @@ export class GrpcGateway extends EventEmitter {
   // }
 
   public emit (event: 'error', err: Error): boolean
+  public emit (event: 'unAuthorized'): boolean
   public emit (event: never, listener: never): never
   public emit (
     event: GrpcGatewayEvent,
@@ -78,6 +79,7 @@ export class GrpcGateway extends EventEmitter {
   }
 
   public on (event: 'error', listener: ((this: GrpcGateway, err: Error) => void)): this
+  public on (event: 'unAuthorized', listener: ((this: GrpcGateway) => void)): this
   public on (event: never, listener: never): never
   public on (event: GrpcGatewayEvent, listener: ((...args: any[]) => any)): this {
     log.verbose(PRE, `on(${event}, ${typeof listener}) registered`)
@@ -234,7 +236,8 @@ export class GrpcGateway extends EventEmitter {
         log.verbose(`Unknown error: ${e.stack}`)
         throw e
       }
-      process.exit(-1)
+      this.emit('unAuthorized')
+      return
     }
     /**
      * Process logic error
@@ -247,7 +250,7 @@ export class GrpcGateway extends EventEmitter {
     /**
      * Process service status related error
      */
-    if (!retryLeft) {
+    if (typeof retryLeft === 'undefined') {
       retryLeft = GRPC_GATEWAY_MAX_RETRY
     }
     if (retryLeft === 0) {

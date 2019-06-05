@@ -66,6 +66,8 @@ export interface ManagerOptions {
 
 const PRE = 'PadproManager'
 
+export type PadproManagerEvent = 'error' | 'scan' | 'heartbeat' | 'login' | 'message' | 'logout' | 'dong' | 'ready' | 'reset' | 'unAuthorized'
+
 export class PadproManager extends PadproGrpc {
 
   private loginScanQrCode? : string
@@ -125,10 +127,53 @@ export class PadproManager extends PadproGrpc {
     this.wechatGateway.on('reset', async () => {
       if (this.userId) {
         log.info(PRE, `Connection has problem, reset self to recover the connection.`)
-        this.emit('reset')
+        this.emit('reset', 'wechaty gateway connection issue.')
       }
     })
+
+    this.wechatGateway.on('unAuthorized', () => {
+      this.emit('unAuthorized')
+    })
+
     this.syncQueueExecutor = new DelayQueueExecutor(1000)
+  }
+
+  public emit (event: 'scan', qrcode: string, status: number, data?: string): boolean
+  public emit (event: 'login' | 'reset' | 'heartbeat', userIdOrReasonOrData: string): boolean
+  public emit (event: 'error', err: Error): boolean
+  public emit (event: 'logout' | 'ready' | 'unAuthorized'): boolean
+  public emit (event: 'message', rawPayload: PadproMessagePayload): boolean
+  public emit (event: 'dong', data: any): boolean
+
+  public emit (event: never, listener: never): never
+
+  public emit (
+    event: PadproManagerEvent,
+    ...args: any[]
+  ): boolean {
+    return super.emit(event, ...args)
+  }
+  public on (event: 'scan', listener: ((this: PadproManager, qrcode: string, status: number, data?: string) => void)): this
+  public on (event: 'login' | 'reset' | 'heartbeat', listener: ((this: PadproManager, userIdOrReasonOrData: string) => void)): this
+  public on (event: 'error', listener: ((this: PadproManager, err: Error) => void)): this
+  public on (event: 'logout' | 'ready' | 'reset' | 'unAuthorized', listener: ((this: PadproManager) => void)): this
+  public on (event: 'message', listener: ((this: PadproManager, rawPayload: PadproMessagePayload) => void)): this
+  public on (event: 'dong', listener: ((this: PadproManager, data: any) => void)): this
+
+  public on (event: never, listener: never): never
+
+  public on (event: PadproManagerEvent, listener: ((...args: any[]) => any)): this {
+    log.verbose(PRE, `on(${event}, ${typeof listener}) registered`)
+
+    super.on(event, (...args: any[]) => {
+      try {
+        listener.apply(this, args)
+      } catch (e) {
+        log.error(PRE, 'onFunction(%s) listener exception: %s', event, e)
+      }
+    })
+
+    return this
   }
 
   /**
@@ -161,9 +206,9 @@ export class PadproManager extends PadproGrpc {
     })
 
     this.throttleQueue = new ThrottleQueue(30 * 1000)
-    this.throttleQueueSubscription = this.throttleQueue.subscribe(() => {
+    this.throttleQueueSubscription = this.throttleQueue.subscribe((data) => {
       log.silly(PRE, `throttleQueue emit heartbeat.`)
-      this.emit('heartbeat')
+      this.emit('heartbeat', data.toString())
     })
   }
 
@@ -668,8 +713,6 @@ export class PadproManager extends PadproGrpc {
         return
       }
 
-      console.log(JSON.stringify(m))
-
       /**
        * Message emit here should all be valid message
        */
@@ -1091,7 +1134,7 @@ export class PadproManager extends PadproGrpc {
   public ding (data?: string): void {
     log.verbose(PRE, `ding(${data || ''})`)
     if (this.wechatGateway.isAlive()) {
-      this.emit('dong')
+      this.emit('dong', data)
     }
   }
 
