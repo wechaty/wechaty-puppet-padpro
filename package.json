@@ -86,7 +86,7 @@
   "dependencies": {
     "@babel/runtime": "7.4.5",
     "array-flatten": "^2.1.1",
-    "axios": "^0.18.0",
+    "axios": "^0.19.0",
     "fast-xml-parser": "^3.12.12",
     "flash-store": "^0.14.1",
     "fs-extra": "^8.0.0",
