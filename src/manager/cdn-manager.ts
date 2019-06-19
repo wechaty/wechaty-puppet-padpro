@@ -109,7 +109,7 @@ export class CDNManager {
       log.verbose(PRE, `uploadFile() file ${fileName} exists in cdn, no need to upload it.`)
       if (checkMd5Response.fileid) {
         fileid = checkMd5Response.fileid
-        const fileCache = this.cacheManager.getFileCache(fileid)
+        const fileCache = await this.cacheManager.getFileCache(fileid)
         log.silly(PRE, `fileCache ${JSON.stringify(fileCache)}, aesKey = ${fileCache && JSON.stringify(fileCache.aesKey)}`)
         if (fileCache) {
           aesKey = fileCache.aesKey
@@ -146,7 +146,7 @@ export class CDNManager {
         )
         if (response.fileid) {
           fileid = response.fileid
-          this.cacheManager.setFileCache(fileid, {
+          await this.cacheManager.setFileCache(fileid, {
             fileId: fileid,
             aesKey,
             timestamp: new Date().getTime()

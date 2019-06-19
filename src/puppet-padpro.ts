@@ -1382,7 +1382,7 @@ export class PuppetPadpro extends Puppet {
   public async roomPayloadDirty (roomId: string): Promise<void> {
 
     if (this.padproManager) {
-      this.padproManager.roomRawPayloadDirty(roomId)
+      await this.padproManager.roomRawPayloadDirty(roomId)
     }
 
     await super.roomPayloadDirty(roomId)

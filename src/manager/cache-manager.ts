@@ -2,7 +2,7 @@ import fs     from 'fs-extra'
 import os     from 'os'
 import path   from 'path'
 
-import { FlashStoreSync } from 'flash-store'
+import { FlashStore } from 'flash-store'
 
 import { log } from '../config'
 import {
@@ -59,69 +59,78 @@ export class CacheManager {
    *                Instance Methods
    * ************************************************************************
    */
-  private cacheContactRawPayload?    : FlashStoreSync<string, PadproContactPayload>
-  private cacheRoomMemberRawPayload? : FlashStoreSync<string, {
+  private cacheContactRawPayload?    : FlashStore<string, PadproContactPayload>
+  private cacheRoomMemberRawPayload? : FlashStore<string, {
     [contactId: string]: PadproRoomMemberPayload,
   }>
-  private cacheRoomRawPayload?       : FlashStoreSync<string, PadproRoomPayload>
-  private cacheRoomInvitationRawPayload? : FlashStoreSync<string, PadproRoomInvitationPayload>
-  private cacheFile? : FlashStoreSync<string, FileCache>
+  private cacheRoomRawPayload?       : FlashStore<string, PadproRoomPayload>
+  private cacheRoomInvitationRawPayload? : FlashStore<string, PadproRoomInvitationPayload>
+  private cacheFile? : FlashStore<string, FileCache>
 
   /**
    * -------------------------------
    * Contact Section
    * --------------------------------
    */
-  public getContact (
+  public async getContact (
     contactId: string,
-  ): PadproContactPayload | undefined {
+  ): Promise<PadproContactPayload | undefined> {
     if (!this.cacheContactRawPayload) {
       throw new Error(`${PRE} getContact() has no cache.`)
     }
     return this.cacheContactRawPayload.get(contactId)
   }
 
-  public setContact (
+  public async setContact (
     contactId: string,
     payload: PadproContactPayload
-  ): void {
+  ): Promise<void> {
     if (!this.cacheContactRawPayload) {
       throw new Error(`${PRE} setContact() has no cache.`)
     }
-    this.cacheContactRawPayload.set(contactId, payload)
+    await this.cacheContactRawPayload.set(contactId, payload)
   }
 
-  public deleteContact (
+  public async deleteContact (
     contactId: string,
-  ): void {
+  ): Promise<void> {
     if (!this.cacheContactRawPayload) {
       throw new Error(`${PRE} deleteContact() has no cache.`)
     }
-    this.cacheContactRawPayload.delete(contactId)
+    await this.cacheContactRawPayload.delete(contactId)
   }
 
-  public getContactIds (): string[] {
+  public async getContactIds (): Promise<string[]> {
     if (!this.cacheContactRawPayload) {
       throw new Error(`${PRE} getContactIds() has no cache.`)
     }
-    return [...this.cacheContactRawPayload.keys()]
+    const result: string[] = []
+    for await (const key of this.cacheContactRawPayload.keys()) {
+      result.push(key)
+    }
+
+    return result
   }
 
-  public getAllContacts (): PadproContactPayload[] {
+  public async getAllContacts (): Promise<PadproContactPayload[]> {
     if (!this.cacheContactRawPayload) {
       throw new Error(`${PRE} getAllContacts() has no cache.`)
     }
-    return [...this.cacheContactRawPayload.values()]
+    const result: PadproContactPayload[] = []
+    for await (const value of this.cacheContactRawPayload.values()) {
+      result.push(value)
+    }
+    return result
   }
 
-  public hasContact (contactId: string): boolean {
+  public async hasContact (contactId: string): Promise<boolean> {
     if (!this.cacheContactRawPayload) {
       throw new Error(`${PRE} hasContact() has no cache.`)
     }
     return this.cacheContactRawPayload.has(contactId)
   }
 
-  public getContactCount (): number {
+  public async getContactCount (): Promise<number> {
     if (!this.cacheContactRawPayload) {
       throw new Error(`${PRE} getContactCount() has no cache.`)
     }
@@ -133,49 +142,53 @@ export class CacheManager {
    * Room Section
    * --------------------------------
    */
-  public getRoom (
+  public async getRoom (
     roomId: string,
-  ): PadproRoomPayload | undefined {
+  ): Promise<PadproRoomPayload | undefined> {
     if (!this.cacheRoomRawPayload) {
       throw new Error(`${PRE} getRoom() has no cache.`)
     }
     return this.cacheRoomRawPayload.get(roomId)
   }
 
-  public setRoom (
+  public async setRoom (
     roomId: string,
     payload: PadproRoomPayload
-  ): void {
+    ): Promise<void> {
     if (!this.cacheRoomRawPayload) {
       throw new Error(`${PRE} setRoom() has no cache.`)
     }
-    this.cacheRoomRawPayload.set(roomId, payload)
+    await this.cacheRoomRawPayload.set(roomId, payload)
   }
 
-  public deleteRoom (
+  public async deleteRoom (
     roomId: string,
-  ): void {
+  ): Promise<void> {
     if (!this.cacheRoomRawPayload) {
       throw new Error(`${PRE} setRoom() has no cache.`)
     }
-    this.cacheRoomRawPayload.delete(roomId)
+    await this.cacheRoomRawPayload.delete(roomId)
   }
 
-  public getRoomIds (): string[] {
+  public async getRoomIds (): Promise<string[]> {
     if (!this.cacheRoomRawPayload) {
       throw new Error(`${PRE} getRoomIds() has no cache.`)
     }
-    return [...this.cacheRoomRawPayload.keys()]
+    const result: string[] = []
+    for await (const key of this.cacheRoomRawPayload.keys()) {
+      result.push(key)
+    }
+    return result
   }
 
-  public getRoomCount (): number {
+  public async getRoomCount (): Promise<number> {
     if (!this.cacheRoomRawPayload) {
       throw new Error(`${PRE} getRoomCount() has no cache.`)
     }
     return this.cacheRoomRawPayload.size
   }
 
-  public hasRoom (roomId: string): boolean {
+  public async hasRoom (roomId: string): Promise<boolean> {
     if (!this.cacheRoomRawPayload) {
       throw new Error(`${PRE} hasRoom() has no cache.`)
     }
@@ -186,32 +199,32 @@ export class CacheManager {
    * Room Member Section
    * --------------------------------
    */
-  public getRoomMember (
+  public async getRoomMember (
     roomId: string,
-  ): { [contactId: string]: PadproRoomMemberPayload } | undefined {
+  ): Promise<{ [contactId: string]: PadproRoomMemberPayload } | undefined> {
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error(`${PRE} getRoomMember() has no cache.`)
     }
     return this.cacheRoomMemberRawPayload.get(roomId)
   }
 
-  public setRoomMember (
+  public async setRoomMember (
     roomId: string,
     payload: { [contactId: string]: PadproRoomMemberPayload }
-  ): void {
+  ): Promise<void> {
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error(`${PRE} setRoomMember() has no cache.`)
     }
-    this.cacheRoomMemberRawPayload.set(roomId, payload)
+    await this.cacheRoomMemberRawPayload.set(roomId, payload)
   }
 
-  public deleteRoomMember (
+  public async deleteRoomMember (
     roomId: string,
-  ): void {
+  ): Promise<void> {
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error(`${PRE} deleteRoomMember() has no cache.`)
     }
-    this.cacheRoomMemberRawPayload.delete(roomId)
+    await this.cacheRoomMemberRawPayload.delete(roomId)
   }
 
   /**
@@ -219,32 +232,32 @@ export class CacheManager {
    * Room Invitation Section
    * --------------------------------
    */
-  public getRoomInvitation (
+  public async getRoomInvitation (
     messageId: string,
-  ): PadproRoomInvitationPayload | undefined {
+  ): Promise<PadproRoomInvitationPayload | undefined> {
     if (!this.cacheRoomInvitationRawPayload) {
       throw new Error(`${PRE} getRoomInvitationRawPayload() has no cache.`)
     }
     return this.cacheRoomInvitationRawPayload.get(messageId)
   }
 
-  public setRoomInvitation (
+  public async setRoomInvitation (
     messageId: string,
     payload: PadproRoomInvitationPayload,
-  ): void {
+  ): Promise<void> {
     if (!this.cacheRoomInvitationRawPayload) {
       throw new Error(`${PRE} setRoomInvitationRawPayload() has no cache.`)
     }
-    this.cacheRoomInvitationRawPayload.set(messageId, payload)
+    await this.cacheRoomInvitationRawPayload.set(messageId, payload)
   }
 
-  public deleteRoomInvitation (
+  public async deleteRoomInvitation (
     messageId: string,
-  ): void {
+  ): Promise<void> {
     if (!this.cacheRoomInvitationRawPayload) {
       throw new Error(`${PRE} deleteRoomInvitation() has no cache.`)
     }
-    this.cacheRoomInvitationRawPayload.delete(messageId)
+    await this.cacheRoomInvitationRawPayload.delete(messageId)
   }
 
   /**
@@ -252,14 +265,14 @@ export class CacheManager {
    * CDN File Cache Section
    * --------------------------------
    */
-  public getFileCache (
+  public async getFileCache (
     fileId: string
-  ): FileCache | undefined {
+  ): Promise<FileCache | undefined> {
     if (!this.cacheFile) {
       throw new Error(`${PRE} getFileCache() has no cache.`)
     }
 
-    const fileCache = this.cacheFile.get(fileId)
+    const fileCache = await this.cacheFile.get(fileId)
 
     if (!fileCache) {
       return fileCache
@@ -268,15 +281,15 @@ export class CacheManager {
     return this.parseJSON(JSON.stringify(fileCache))
   }
 
-  public setFileCache (
+  public async setFileCache (
     fileId: string,
     cache: FileCache
-  ): void {
+  ): Promise<void> {
     if (!this.cacheFile) {
       throw new Error(`${PRE} setFileCache() has no cache.`)
     }
     log.silly(PRE, `setFileCache(${fileId}, ${JSON.stringify(cache)})`)
-    this.cacheFile.set(fileId, cache)
+    await this.cacheFile.set(fileId, cache)
   }
 
   /**
@@ -336,22 +349,26 @@ export class CacheManager {
       await fs.mkdirp(baseDir)
     }
 
-    this.cacheContactRawPayload        = new FlashStoreSync(path.join(baseDir, 'contact-raw-payload'))
-    this.cacheRoomMemberRawPayload     = new FlashStoreSync(path.join(baseDir, 'room-member-raw-payload'))
-    this.cacheRoomRawPayload           = new FlashStoreSync(path.join(baseDir, 'room-raw-payload'))
-    this.cacheRoomInvitationRawPayload = new FlashStoreSync(path.join(baseDir, 'room-invitation-raw-payload'))
-    this.cacheFile                     = new FlashStoreSync(path.join(baseDir, 'file-cache'))
+    this.cacheContactRawPayload        = new FlashStore(path.join(baseDir, 'contact-raw-payload'))
+    this.cacheRoomMemberRawPayload     = new FlashStore(path.join(baseDir, 'room-member-raw-payload'))
+    this.cacheRoomRawPayload           = new FlashStore(path.join(baseDir, 'room-raw-payload'))
+    this.cacheRoomInvitationRawPayload = new FlashStore(path.join(baseDir, 'room-invitation-raw-payload'))
+    this.cacheFile                     = new FlashStore(path.join(baseDir, 'file-cache'))
 
-    await Promise.all([
-      this.cacheContactRawPayload.ready(),
-      this.cacheRoomMemberRawPayload.ready(),
-      this.cacheRoomRawPayload.ready(),
-      this.cacheRoomInvitationRawPayload.ready(),
-      this.cacheFile.ready(),
-    ])
+    // await Promise.all([
+    //   this.cacheContactRawPayload.(),
+    //   this.cacheRoomMemberRawPayload.ready(),
+    //   this.cacheRoomRawPayload.ready(),
+    //   this.cacheRoomInvitationRawPayload.ready(),
+    //   this.cacheFile.ready(),
+    // ])
 
-    const roomMemberTotal = [...this.cacheRoomMemberRawPayload.values()].reduce(
-      (acc, cur) => acc + Object.keys(cur).length, 0
+    const memberCounts: number[] = []
+    for await (const value of this.cacheRoomMemberRawPayload.values()) {
+      memberCounts.push(Object.keys(value).length)
+    }
+    const roomMemberTotal = memberCounts.reduce(
+      (acc, cur) => acc + cur, 0
     )
 
     const contactTotal = this.cacheContactRawPayload.size

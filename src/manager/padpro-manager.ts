@@ -201,7 +201,7 @@ export class PadproManager extends PadproGrpc {
       }
 
       if (this.userId) {
-        this.setContactAndRoomData()
+        await this.setContactAndRoomData()
       }
     })
 
@@ -212,15 +212,15 @@ export class PadproManager extends PadproGrpc {
     })
   }
 
-  private setContactAndRoomData () {
+  private async setContactAndRoomData () {
     log.silly(PRE, `setContactAndRoomData()`)
     if (!this.cacheManager) {
       log.verbose(PRE, `setContactAndRoomData() can not proceed due to no cache.`)
       return
     }
-    const contactTotal = this.cacheManager.getContactCount()
-    const roomTotal = this.cacheManager.getRoomCount()
-    const friendTotal = this.cacheManager.getAllContacts().filter(contact => {
+    const contactTotal = await this.cacheManager.getContactCount()
+    const roomTotal = await this.cacheManager.getRoomCount()
+    const friendTotal = (await this.cacheManager.getAllContacts()).filter(contact => {
       isStrangerV1(contact.stranger)
     }).length
     const now = new Date().getTime()
@@ -629,7 +629,7 @@ export class PadproManager extends PadproGrpc {
             log.verbose(PRE, `processMessages() in off state, skip processing message.`)
             return
           }
-          const savedRoom = this.cacheManager.getRoom(room.UserName)
+          const savedRoom = await this.cacheManager.getRoom(room.UserName)
           const newRoom = convertRoom(room)
           if (newRoom.memberCount === 0) {
             return
@@ -639,11 +639,11 @@ export class PadproManager extends PadproGrpc {
             if (Object.keys(roomMemberDict).length === 0) {
               log.verbose(PRE, `syncContactsAndRooms() got deleted room: ${room.UserName}`)
               if (savedRoom) {
-                this.roomRawPayloadDirty(room.UserName)
-                this.roomMemberRawPayloadDirty(room.UserName)
+                await this.roomRawPayloadDirty(room.UserName)
+                await this.roomMemberRawPayloadDirty(room.UserName)
               }
             } else {
-              this.cacheManager.setRoom(room.UserName, convertRoom(room))
+              await this.cacheManager.setRoom(room.UserName, convertRoom(room))
             }
           }
 
@@ -651,14 +651,14 @@ export class PadproManager extends PadproGrpc {
             log.verbose(PRE, `processMessages() in off state, skip processing message.`)
             return
           }
-          this.cacheManager.setRoom(newRoom.chatroomId, newRoom)
+          await this.cacheManager.setRoom(newRoom.chatroomId, newRoom)
         } else {
           if (this.state.off()) {
             log.verbose(PRE, `processMessages() in off state, skip processing message.`)
             return
           }
           const contact = contactOrRoom as GrpcContactRawPayload
-          this.cacheManager.setContact(contact.UserName, convertContact(contact))
+          await this.cacheManager.setContact(contact.UserName, convertContact(contact))
         }
 
         return
@@ -668,10 +668,10 @@ export class PadproManager extends PadproGrpc {
         const payload = m as GrpcDeletedPayload
         const contactOrRoomId = payload.Username
         if (isRoomId(contactOrRoomId)) {
-          CacheManager.Instance.deleteRoom(contactOrRoomId)
-          CacheManager.Instance.deleteRoomMember(contactOrRoomId)
+          await CacheManager.Instance.deleteRoom(contactOrRoomId)
+          await CacheManager.Instance.deleteRoomMember(contactOrRoomId)
         } else {
-          CacheManager.Instance.deleteContact(contactOrRoomId)
+          await CacheManager.Instance.deleteContact(contactOrRoomId)
         }
         return
       }
@@ -686,7 +686,7 @@ export class PadproManager extends PadproGrpc {
         this.selfContact.Sex = payload.Sex
         this.selfContact.Signature = payload.Signature
         this.selfContact.UserName = payload.UserName
-        this.tryEmitLogin()
+        await this.tryEmitLogin()
         return
       }
 
@@ -699,7 +699,7 @@ export class PadproManager extends PadproGrpc {
            */
           this.selfContact.BigHeadImgUrl = payload.SmallHeadImgUrl
           this.selfContact.SmallHeadImgUrl = payload.BigHeadImgUrl
-          this.tryEmitLogin()
+          await this.tryEmitLogin()
         }
         return
       }
@@ -731,7 +731,7 @@ export class PadproManager extends PadproGrpc {
             const aesKey = appPayload.appattach && appPayload.appattach.aeskey
 
             if (fileId && aesKey) {
-              CacheManager.Instance.setFileCache(fileId, {
+              await CacheManager.Instance.setFileCache(fileId, {
                 fileId,
                 aesKey: Buffer.from(aesKey, 'hex'),
                 timestamp: new Date().getTime(),
@@ -744,7 +744,7 @@ export class PadproManager extends PadproGrpc {
     })
   }
 
-  private tryEmitLogin () {
+  private async tryEmitLogin () {
     if (this.selfContact.UserName !== ''
       && this.selfContact.BigHeadImgUrl !== 'null'
       && this.selfContact.SmallHeadImgUrl !== 'null'
@@ -753,7 +753,7 @@ export class PadproManager extends PadproGrpc {
       if (!this.cacheManager) {
         throw Error(`${PRE} tryEmitLogin() has no contact cache.`)
       }
-      this.cacheManager.setContact(this.selfContact.UserName, convertContact(this.selfContact))
+      await this.cacheManager.setContact(this.selfContact.UserName, convertContact(this.selfContact))
       this.userId = this.selfContact.UserName
       this.emit('login', this.selfContact.UserName)
       this.releaseBufferedMessage()
@@ -861,29 +861,29 @@ export class PadproManager extends PadproGrpc {
     )
   }
 
-  public getContactIdList (): string[] {
+  public async getContactIdList (): Promise<string[]> {
     log.verbose(PRE, 'getContactIdList()')
     if (!this.cacheManager) {
       throw new Error(`${PRE} getContactIdList() cache not initialized`)
     }
-    const contactIdList = this.cacheManager.getContactIds()
+    const contactIdList = await this.cacheManager.getContactIds()
     log.silly(PRE, `getContactIdList() = ${contactIdList.length}`)
     return contactIdList
   }
 
-  public getRoomIdList (): string[] {
+  public async getRoomIdList (): Promise<string[]> {
     log.verbose(PRE, 'getRoomIdList()')
     if (!this.cacheManager) {
       throw new Error('cache not initialized')
     }
-    const roomIdList = this.cacheManager.getRoomIds()
+    const roomIdList = await this.cacheManager.getRoomIds()
     log.verbose(PRE, `getRoomIdList() = ${roomIdList.length}`)
     return roomIdList
   }
 
-  public roomMemberRawPayloadDirty (
+  public async roomMemberRawPayloadDirty (
     roomId: string,
-  ): void {
+  ): Promise<void> {
     log.verbose(PRE, `roomMemberRawPayloadDirty(${roomId})`)
     if (this.state.off()) {
       log.verbose(PRE, `roomMemberRawPayloadDirty() in off state, skip processing message.`)
@@ -892,7 +892,7 @@ export class PadproManager extends PadproGrpc {
     if (!this.cacheManager) {
       throw new Error('cache not initialized')
     }
-    this.cacheManager.deleteRoomMember(roomId)
+    await this.cacheManager.deleteRoomMember(roomId)
   }
 
   public async getRoomMemberIdList (
@@ -905,7 +905,7 @@ export class PadproManager extends PadproGrpc {
     }
 
     if (dirty) {
-      this.roomMemberRawPayloadDirty(roomId)
+      await this.roomMemberRawPayloadDirty(roomId)
     }
 
     const memberRawPayloadDict = this.cacheManager.getRoomMember(roomId)
@@ -921,9 +921,9 @@ export class PadproManager extends PadproGrpc {
     return memberIdList
   }
 
-  public roomRawPayloadDirty (
+  public async roomRawPayloadDirty (
     roomId: string,
-  ): void {
+  ): Promise<void> {
     log.verbose(PRE, `roomRawPayloadDirty(${roomId})`)
     if (this.state.off()) {
       log.verbose(PRE, `roomRawPayloadDirty() in off state, skip processing message.`)
@@ -932,7 +932,7 @@ export class PadproManager extends PadproGrpc {
     if (!this.cacheManager) {
       throw new Error('cache not inited' )
     }
-    this.cacheManager.deleteRoom(roomId)
+    await this.cacheManager.deleteRoom(roomId)
   }
 
   public async roomMemberRawPayload (roomId: string): Promise<{ [contactId: string]: PadproRoomMemberPayload }> {
@@ -942,7 +942,7 @@ export class PadproManager extends PadproGrpc {
       throw new Error(`${PRE} roomMemberRawPayload() cache not inited.`)
     }
 
-    const memberRawPayloadDict = this.cacheManager.getRoomMember(roomId)
+    const memberRawPayloadDict = await this.cacheManager.getRoomMember(roomId)
                                 || await this.syncRoomMember(roomId)
 
     if (!memberRawPayloadDict) {
@@ -960,8 +960,8 @@ export class PadproManager extends PadproGrpc {
     const memberRawPayload = await this.GrpcGetChatRoomMember(roomId)
 
     if (!memberRawPayload || !('ChatroomUsername' in memberRawPayload)) {
-      this.roomMemberRawPayloadDirty(roomId)
-      this.roomRawPayloadDirty(roomId)
+      await this.roomMemberRawPayloadDirty(roomId)
+      await this.roomRawPayloadDirty(roomId)
 
       return {}
     }
@@ -988,17 +988,17 @@ export class PadproManager extends PadproGrpc {
       const contactId  = memberPayload.Username
       const contact = convertMemberToContact(memberPayload)
       if (!this.cacheManager.hasContact(contactId)) {
-        this.cacheManager.setContact(contactId, contact)
+        await this.cacheManager.setContact(contactId, contact)
       }
       memberDict[contactId] = convertRoomMember(memberPayload)
     }
 
-    const oldMemberDict = this.cacheManager.getRoomMember(roomId)
+    const oldMemberDict = await this.cacheManager.getRoomMember(roomId)
     const newMemberDict = {
       ...oldMemberDict,
       ...memberDict,
     }
-    this.cacheManager.setRoomMember(roomId, newMemberDict)
+    await this.cacheManager.setRoomMember(roomId, newMemberDict)
 
     return newMemberDict
   }
@@ -1015,7 +1015,7 @@ export class PadproManager extends PadproGrpc {
     if (!this.cacheManager) {
       throw new Error('cache not inited' )
     }
-    const previous = this.cacheManager.getContact(contactId)
+    const previous = await this.cacheManager.getContact(contactId)
     if (!previous) {
       log.verbose(PRE, `contactRawPayloadDirty() trying to dirty a contact that does not exist in cache.`)
       return
@@ -1023,10 +1023,10 @@ export class PadproManager extends PadproGrpc {
     const current = await this.GrpcGetContactPayload(contactId, forceCall)
     if (current === null) {
       log.verbose(PRE, `contactRawPayloadDirty() found invalid contact, remove it from cache.`)
-      this.cacheManager.deleteContact(contactId)
+      await this.cacheManager.deleteContact(contactId)
     } else {
       const updatedContact = updateContact(previous, current)
-      this.cacheManager.setContact(contactId, updatedContact)
+      await this.cacheManager.setContact(contactId, updatedContact)
     }
   }
 
@@ -1046,7 +1046,7 @@ export class PadproManager extends PadproGrpc {
 
       if (tryRawPayload && tryRawPayload.UserName) {
         const payload = convertContact(tryRawPayload)
-        this.cacheManager.setContact(contactId, payload)
+        await this.cacheManager.setContact(contactId, payload)
         return payload
       } else if (tryRawPayload) {
         // If the payload is valid but we don't have UserName inside it,
@@ -1079,7 +1079,7 @@ export class PadproManager extends PadproGrpc {
 
       if (tryRawPayload /* && tryRawPayload.user_name */) {
         const payload = convertRoom(tryRawPayload)
-        this.cacheManager.setRoom(id, payload)
+        await this.cacheManager.setRoom(id, payload)
         return payload
       }
       return retryException(new Error('tryRawPayload empty'))
@@ -1122,7 +1122,7 @@ export class PadproManager extends PadproGrpc {
     if (!this.cacheManager) {
       throw new Error(`${PRE} saveRoomInvitationRawPayload() has no cache.`)
     }
-    this.cacheManager.setRoomInvitation(msgId, {
+    await this.cacheManager.setRoomInvitation(msgId, {
       fromUser,
       id: msgId,
       roomName,
