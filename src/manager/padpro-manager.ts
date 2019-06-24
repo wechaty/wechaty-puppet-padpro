@@ -279,7 +279,7 @@ export class PadproManager extends PadproGrpc {
           throw new Error(`${PRE} initDataInternalLoop() has no cache.`)
         }
 
-        log.info(PRE, `initData() finished with contacts: ${this.cacheManager.getContactCount()}, rooms: ${this.cacheManager.getRoomCount()}`)
+        log.info(PRE, `initData() finished with contacts: ${await this.cacheManager.getContactCount()}, rooms: ${await this.cacheManager.getRoomCount()}`)
         return
       } else {
         await this.processMessages(data)
@@ -908,7 +908,7 @@ export class PadproManager extends PadproGrpc {
       await this.roomMemberRawPayloadDirty(roomId)
     }
 
-    const memberRawPayloadDict = this.cacheManager.getRoomMember(roomId)
+    const memberRawPayloadDict = await this.cacheManager.getRoomMember(roomId)
                                 || await this.syncRoomMember(roomId)
 
     if (!memberRawPayloadDict) {
@@ -987,7 +987,7 @@ export class PadproManager extends PadproGrpc {
     for (const memberPayload of memberList) {
       const contactId  = memberPayload.Username
       const contact = convertMemberToContact(memberPayload)
-      if (!this.cacheManager.hasContact(contactId)) {
+      if (await !this.cacheManager.hasContact(contactId)) {
         await this.cacheManager.setContact(contactId, contact)
       }
       memberDict[contactId] = convertRoomMember(memberPayload)
