@@ -9,17 +9,22 @@
 
 import {
   PuppetPadpro,
+  VERSION,
 }                 from 'wechaty-puppet-padpro'
 
 async function main () {
+  if (VERSION === '0.0.0') {
+    throw new Error('version should be set before publishing')
+  }
+
   const puppet = new PuppetPadpro()
-  console.log(`Puppet v${puppet.version()} smoke testing passed.`)
+  console.info(`Puppet v${puppet.version()} smoke testing passed.`)
   return 0
 }
 
 main()
-.then(process.exit)
-.catch(e => {
-  console.error(e)
-  process.exit(1)
-})
+  .then(process.exit)
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })
