@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
-NPM_TAG=latest
-if [ ./development-release.ts ]; then
+VERSION=$(npx pkg-jq -r .version)
+
+if npx --package @chatie/semver semver-is-prod $VERSION; then
+  NPM_TAG=latest
+else
   NPM_TAG=next
 fi
 
@@ -18,9 +21,9 @@ cd $TMPDIR
 npm init -y
 npm install --production \
   *-*.*.*.tgz \
+  @chatie/tsconfig \
   @babel/runtime@7.0.0-beta.39 \
   @types/quick-lru \
-  @types/node \
   @types/normalize-package-data \
   @types/xml2js \
   clone-class \
@@ -33,7 +36,6 @@ npm install --production \
   normalize-package-data \
   rx-queue \
   state-switch \
-  typescript \
   "wechaty-puppet@$NPM_TAG" \
   watchdog \
   qr-image \
