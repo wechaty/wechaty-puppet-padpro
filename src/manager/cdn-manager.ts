@@ -70,7 +70,7 @@ export class CDNManager {
    */
   public async getCDNServerIP () {
     log.silly(PRE, `getCDNServerIP()`)
-    const ip = process.env.PADPRO_IP || await publicIp.v4()
+    const ip = process.env.PADPRO_IP || await publicIp.v4({ https: true })
     const result: GrpcGetCdnDnsPayload = await this.wechatGateway.callApi('GrpcGetCdnDns', { ip })
     this.cdnInfo = {
       authKey: Buffer.from(result.dnsCdn.aesKey, 'base64'),
