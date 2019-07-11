@@ -1,9 +1,9 @@
-import {
-  MessagePayload,
-  MessageType,
-}                         from 'wechaty-puppet'
-
 import { appMessageParser } from '.'
+import { messageFileName } from './message-file-name'
+import { recalledPayloadParser } from './message-recalled-payload-parser'
+import { messageSourceParser } from './message-source-parser'
+import { messageType } from './message-type'
+import { log } from '../config'
 
 import {
   PadproMessagePayload,
@@ -14,22 +14,11 @@ import {
   isContactId,
   isRoomId,
 }                         from './is-type'
-import {
-  messageFileName,
-}                         from './message-file-name'
-import {
-  recalledPayloadParser
-}                         from './message-recalled-payload-parser'
-import {
-  messageSourceParser
-}                         from './message-source-parser'
-import {
-  messageType,
-}                         from './message-type'
 
 import {
-  log,
-}                         from '../config'
+  MessagePayload,
+  MessageType,
+}                         from 'wechaty-puppet'
 
 const PRE = 'messageRawPayloadParser'
 
@@ -56,7 +45,7 @@ export async function messageRawPayloadParser (
     filename? : string,
   }
 
-  if (   type === MessageType.Image
+  if (type === MessageType.Image
       || type === MessageType.Audio
       || type === MessageType.Video
       || type === MessageType.Attachment
@@ -140,7 +129,7 @@ export async function messageRawPayloadParser (
     const recalledPayload = await recalledPayloadParser(rawPayload)
     const pattern = [
       /"(.+)" 撤回了一条消息/,
-      /"(.+)" has recalled a message./
+      /"(.+)" has recalled a message./,
     ]
     if (recalledPayload) {
       const isRecalled = pattern.some(regex => regex.test(recalledPayload.replaceMsg))

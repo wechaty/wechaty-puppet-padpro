@@ -154,7 +154,7 @@ export class CacheManager {
   public async setRoom (
     roomId: string,
     payload: PadproRoomPayload
-    ): Promise<void> {
+  ): Promise<void> {
     if (!this.cacheRoomRawPayload) {
       throw new Error(`${PRE} setRoom() has no cache.`)
     }
@@ -302,12 +302,12 @@ export class CacheManager {
     log.silly(PRE, `parseJSON(${payload})`)
     return JSON.parse(payload, (_, v) => {
       if (
-        v !== null            &&
-        typeof v === 'object' &&
-        'type' in v           &&
-        v.type === 'Buffer'   &&
-        'data' in v           &&
-        Array.isArray(v.data)
+        v !== null
+        && typeof v === 'object'
+        && 'type' in v
+        && v.type === 'Buffer'
+        && 'data' in v
+        && Array.isArray(v.data)
       ) {
         return Buffer.from(v.data)
       }
@@ -321,7 +321,7 @@ export class CacheManager {
   ): Promise<void> {
     log.verbose(PRE, 'initCache(%s, %s)', token, userId)
 
-    if (   this.cacheContactRawPayload
+    if (this.cacheContactRawPayload
         || this.cacheRoomMemberRawPayload
         || this.cacheRoomRawPayload
         || this.cacheRoomInvitationRawPayload
@@ -380,7 +380,7 @@ export class CacheManager {
   private async releaseCache () {
     log.verbose(PRE, 'releaseCache()')
 
-    if (   this.cacheContactRawPayload
+    if (this.cacheContactRawPayload
         && this.cacheRoomMemberRawPayload
         && this.cacheRoomRawPayload
         && this.cacheRoomInvitationRawPayload
@@ -393,7 +393,7 @@ export class CacheManager {
         this.cacheRoomMemberRawPayload.close(),
         this.cacheRoomRawPayload.close(),
         this.cacheRoomInvitationRawPayload.close(),
-        this.cacheFile.close()
+        this.cacheFile.close(),
       ])
 
       this.cacheContactRawPayload    = undefined

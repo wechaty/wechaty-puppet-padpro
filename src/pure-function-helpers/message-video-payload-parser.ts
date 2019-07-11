@@ -61,17 +61,17 @@ export async function videoPayloadParser (
     const result: PadproVideoMessagePayload = {
       aesKey: data.aeskey,
       cdnThumbAesKey: data.cdnthumbaeskey,
-      cdnVideoUrl: data.cdnvideourl,
-      cdnThumbUrl: data.cdnthumburl,
-      length: parseInt(data.length, 10),
-      playLength: parseInt(data.playlength, 10),
-      cdnThumbLength: parseInt(data.cdnthumblength, 10),
-      cdnThumbWidth: parseInt(data.cdnthumbwidth, 10),
       cdnThumbHeight: parseInt(data.cdnthumbheight, 10),
+      cdnThumbLength: parseInt(data.cdnthumblength, 10),
+      cdnThumbUrl: data.cdnthumburl,
+      cdnThumbWidth: parseInt(data.cdnthumbwidth, 10),
+      cdnVideoUrl: data.cdnvideourl,
       fromUsername: data.fromusername,
+      isAd: data.isad === '1',
+      length: parseInt(data.length, 10),
       md5: data.md5,
       newMd5: data.newmd5,
-      isAd: data.isad === '1',
+      playLength: parseInt(data.playlength, 10),
     }
 
     return result

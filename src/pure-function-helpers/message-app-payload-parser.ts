@@ -63,13 +63,22 @@ export async function appMessageParser (rawPayload: PadproMessagePayload): Promi
         cdnattachurl  : tmp.cdnattachurl,
         cdnthumbaeskey: tmp.cdnthumbaeskey,
         emoticonmd5   : tmp.emoticonmd5,
-        encryver      : tmp.encryver && parseInt(tmp.encryver, 10) || 0,
+        encryver      : (tmp.encryver && parseInt(tmp.encryver, 10)) || 0,
         fileext       : tmp.fileext,
-        totallen      : tmp.totallen && parseInt(tmp.totallen, 10) || 0,
-        islargefilemsg: tmp.islargefilemsg && parseInt(tmp.islargefilemsg, 10) || 0,
+        islargefilemsg: (tmp.islargefilemsg && parseInt(tmp.islargefilemsg, 10)) || 0,
+        totallen      : (tmp.totallen && parseInt(tmp.totallen, 10)) || 0,
       }
     }
-    return { title, des, url, thumburl, md5, type: parseInt(type, 10), appattach, recorditem }
+    return {
+      appattach,
+      des,
+      md5,
+      recorditem,
+      thumburl,
+      title,
+      type: parseInt(type, 10),
+      url,
+    }
   } catch (e) {
     log.verbose(e.stack)
     return null

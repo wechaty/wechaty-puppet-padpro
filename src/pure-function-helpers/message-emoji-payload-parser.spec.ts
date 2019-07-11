@@ -1,7 +1,5 @@
 import test from 'blue-tape'
-import {
-  emojiPayloadParser
-} from './message-emoji-payload-parser'
+import { emojiPayloadParser } from './message-emoji-payload-parser'
 
 import { PadproMessagePayload } from '../schemas'
 

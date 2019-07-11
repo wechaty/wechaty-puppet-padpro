@@ -122,6 +122,7 @@ const PRE = 'PuppetPadpro'
 // const getWavInfoFromBuffer = promisify(wavFileInfo.infoByBuffer)
 
 export class PuppetPadpro extends Puppet {
+
   public static readonly VERSION = VERSION
 
   private padproCounter: number
@@ -139,10 +140,10 @@ export class PuppetPadpro extends Puppet {
     })
 
     const lruOptions: LRU.Options<string, PadproMessagePayload> = {
-      max: MESSAGE_CACHE_MAX,
       dispose (key: string, val: any) {
         log.silly(PRE, `constructor() lruOptions.dispose(${key}, ${JSON.stringify(val)})`)
       },
+      max: MESSAGE_CACHE_MAX,
       maxAge: MESSAGE_CACHE_AGE,
     }
 
@@ -171,7 +172,6 @@ export class PuppetPadpro extends Puppet {
       return
     }
     this.padproManager.ding(data)
-    return
   }
 
   public startWatchdog (): void {
@@ -329,7 +329,7 @@ export class PuppetPadpro extends Puppet {
       case PadproMessageType.Sys:
         await Promise.all([
           this.onPadproMessageFriendshipEvent(rawPayload),
-          ////////////////////////////////////////////////
+          /* ----------------------------------------- */
           this.onPadproMessageRoomEventJoin(rawPayload),
           this.onPadproMessageRoomEventLeave(rawPayload),
           this.onPadproMessageRoomEventTopic(rawPayload),
@@ -350,7 +350,6 @@ export class PuppetPadpro extends Puppet {
       case PadproMessageType.Image:
       case PadproMessageType.MicroVideo:
       case PadproMessageType.Video:
-
       default:
         this.emit('message', messageId)
         break
@@ -361,7 +360,7 @@ export class PuppetPadpro extends Puppet {
     log.verbose(PRE, `onPadproMessageRecalled(%s)`, rawPayload)
     const pattern = [
       /"(.+)" 撤回了一条消息/,
-      /"(.+)" has recalled a message/
+      /"(.+)" has recalled a message/,
     ]
     const isRecalled = pattern.some(regex => regex.test(rawPayload.content))
     if (isRecalled) {
@@ -546,7 +545,7 @@ export class PuppetPadpro extends Puppet {
      */
     const friendshipVerifyContactId = friendshipVerifyEventMessageParser(rawPayload)
 
-    if (   friendshipConfirmContactId
+    if (friendshipConfirmContactId
         || friendshipReceiveContactId
         || friendshipVerifyContactId
     ) {
@@ -627,8 +626,6 @@ export class PuppetPadpro extends Puppet {
 
     await this.padproManager.GrpcSetContactAlias(contactId, alias || '')
     await this.contactPayloadDirty(contactId, true)
-
-    return
   }
 
   public async contactValidate (contactId: string): Promise<boolean> {
@@ -662,10 +659,7 @@ export class PuppetPadpro extends Puppet {
   public async contactAvatar (contactId: string, file: FileBox) : Promise<void>
 
   public async contactAvatar (contactId: string, file?: FileBox): Promise<void | FileBox> {
-    log.verbose(PRE, 'contactAvatar(%s%s)',
-                                  contactId,
-                                  file ? (', ' + file.name) : '',
-                )
+    log.verbose(PRE, 'contactAvatar(%s%s)', contactId, file ? (', ' + file.name) : '')
 
     /**
      * 1. set avatar for user self
@@ -736,7 +730,7 @@ export class PuppetPadpro extends Puppet {
         log.verbose(PRE, `contactQrcode(${contactId}) get qrcode , this should happen very rare`)
         throw Error('Unable to get qrcode for self, Please try , this issue usually won\'t happen frequently, retry should fix it. If not, please open an issue on https://github.com/lijiarui/wechaty-puppet-padpro')
       }
-      return this.getQRCode(manager, contactName, contactId, ++ counter)
+      return this.getQRCode(manager, contactName, contactId, ++counter)
     }
   }
 
@@ -958,10 +952,9 @@ export class PuppetPadpro extends Puppet {
 
       default:
         log.warn(PRE, 'messageFile(%s) un-support type: %s(%s) because it is not fully implemented yet, PR is welcome.',
-                                  messageId,
-                                  PadproMessageType[rawPayload.messageType],
-                                  rawPayload.messageType,
-                )
+          messageId,
+          PadproMessageType[rawPayload.messageType],
+          rawPayload.messageType,)
         const base64 = 'Tm90IFN1cHBvcnRlZCBBdHRhY2htZW50IEZpbGUgVHlwZSBpbiBNZXNzYWdlLgpTZWU6IGh0dHBzOi8vZ2l0aHViLmNvbS9DaGF0aWUvd2VjaGF0eS9pc3N1ZXMvMTI0OQo='
         filename = 'wechaty-puppet-padpro-message-attachment-' + messageId + '.txt'
 
@@ -1242,8 +1235,8 @@ export class PuppetPadpro extends Puppet {
     // } else if (payload.type === MessageType.Location) {
     //   await this.forwardLocation(receiver, messageId)
     } else if (
-      payload.type === MessageType.Attachment ||
-      payload.type === MessageType.ChatHistory
+      payload.type === MessageType.Attachment
+      || payload.type === MessageType.ChatHistory
     ) {
       await this.forwardAttachment(receiver, messageId)
     } else {
@@ -1547,10 +1540,8 @@ export class PuppetPadpro extends Puppet {
      * when we have to make sure the data is the latest.
      */
     await this.roomPayloadDirty(roomId)
-    await new Promise(r => setTimeout(r, 500))
+    await new Promise(resolve => setTimeout(resolve, 500))
     await this.roomPayload(roomId)
-
-    return
   }
 
   public async roomCreate (
@@ -1593,7 +1584,7 @@ export class PuppetPadpro extends Puppet {
   public async roomAnnounce (roomId: string, text: string) : Promise<void>
 
   public async roomAnnounce (roomId: string, text?: string): Promise<void | string> {
-    log.verbose(PRE, `roomAnnounce(${roomId}, ${text ? text : ''})`)
+    log.verbose(PRE, `roomAnnounce(${roomId}, ${text})`)
 
     if (!this.padproManager) {
       throw new Error('no padpro manager')
@@ -1622,7 +1613,7 @@ export class PuppetPadpro extends Puppet {
       roomMemberCount: 0,
       roomMemberIdList: [],
       roomTopic: rawPayload.roomName,
-      timestamp: rawPayload.timestamp
+      timestamp: rawPayload.timestamp,
     }
   }
 
@@ -1781,6 +1772,7 @@ export class PuppetPadpro extends Puppet {
     await this.padproManager.updateSelfSignature(signature)
     await this.contactPayloadDirty(this.selfId())
   }
+
 }
 
 export default PuppetPadpro

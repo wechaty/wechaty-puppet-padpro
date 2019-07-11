@@ -159,7 +159,7 @@ export class GrpcGateway extends EventEmitter {
             const payload = Buffer.from(response.getPayload_asU8())
             const commandUrl = response.getCommandurl()
             this.cleanUpErrorCounter()
-            resolve({ payload, commandUrl })
+            resolve({ commandUrl, payload })
           }
         }
       )
@@ -274,11 +274,12 @@ export class GrpcGateway extends EventEmitter {
      * Retry rpc call
      */
     try {
-      await new Promise(r => setTimeout(r, 1000))
+      await new Promise(resolve => setTimeout(resolve, 1000))
       const result = await callback()
       return result
     } catch (e) {
       return this.processError(e, callback, --retryLeft)
     }
   }
+
 }

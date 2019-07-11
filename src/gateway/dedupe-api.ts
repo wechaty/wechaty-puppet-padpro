@@ -34,6 +34,7 @@ const PRE = 'DedupeApi'
  * Only api calls in the DEDUPE_API list will be affected.
  */
 export class DedupeApi {
+
   private pool: {
     [key: string]: ApiCall
   }
@@ -138,4 +139,5 @@ export class DedupeApi {
   private getKey (apiName: string, params?: ApiParams) {
     return `${apiName}-${params ? JSON.stringify(params) : ''}`
   }
+
 }

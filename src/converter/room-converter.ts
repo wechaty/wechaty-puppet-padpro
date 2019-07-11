@@ -1,10 +1,8 @@
-import {
-  log
-} from '../config'
+import { log } from '../config'
 
 import {
   GrpcRoomRawPayload,
-  PadproRoomPayload
+  PadproRoomPayload,
 } from '../schemas'
 
 const PRE = 'RoomConverter'

@@ -48,7 +48,7 @@ const ROOM_JOIN_BOT_INVITE_OTHER_REGEX_LIST_EN = [
   /^" ?(.+)" joined group chat via the QR code you shared/,
 ]
 
-////////////////////////////////////////////////////
+/* ----------------------------------------------- */
 
 const ROOM_JOIN_OTHER_INVITE_BOT_REGEX_LIST_ZH = [
   /^"([^"]+?)"邀请你加入了群聊/,
@@ -60,7 +60,7 @@ const ROOM_JOIN_OTHER_INVITE_BOT_REGEX_LIST_EN = [
   /^(.+) invited you and (.+) to the group chat/,
 ]
 
-////////////////////////////////////////////////////
+/* ----------------------------------------------- */
 
 const ROOM_JOIN_OTHER_INVITE_OTHER_REGEX_LIST_ZH = [
   /^"(.+)"邀请"(.+)"加入了群聊/,
@@ -70,7 +70,7 @@ const ROOM_JOIN_OTHER_INVITE_OTHER_REGEX_LIST_EN = [
   /^(.+?) invited (.+?) to (the|a) group chat/,
 ]
 
-////////////////////////////////////////////////////
+/* ----------------------------------------------- */
 
 const ROOM_JOIN_OTHER_INVITE_OTHER_QRCODE_REGEX_LIST_ZH = [
   /^" (.+)"通过扫描"(.+)"分享的二维码加入群聊/,
@@ -139,7 +139,6 @@ export async function roomJoinEventMessageParser (
       }
     } catch (e) {
       console.error(e)
-      console.log('jsonPayload:', jsonPayload)
       throw e
     }
   }

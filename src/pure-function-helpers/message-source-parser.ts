@@ -1,3 +1,4 @@
+/* eslint camelcase: 0 */
 import { log } from '../config'
 import { PadproMessageSource } from '../schemas'
 import { xmlToJson } from './xml-to-json'
@@ -18,7 +19,7 @@ export async function messageSourceParser (messageSource: string): Promise<Padpr
     }
   }
 
-  const tryXmlText = `<?xml version=\"1.0\"?>\n${messageSource}`.replace(/^[^\n]+\n/, '')
+  const tryXmlText = `<?xml version="1.0"?>\n${messageSource}`.replace(/^[^\n]+\n/, '')
 
   try {
     const jsonPayload: XmlSchema = await xmlToJson(tryXmlText)

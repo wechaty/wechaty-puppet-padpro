@@ -2,6 +2,7 @@ import { PadproAutoLoginErrorType, PadproErrorType } from './padpro-enums'
 import { PadproError } from './padpro-error'
 
 export class PadproAutoLoginError extends PadproError {
+
   public readonly subType: PadproAutoLoginErrorType
 
   constructor (
@@ -18,4 +19,5 @@ export class PadproAutoLoginError extends PadproError {
   protected toSubString () {
     return `${PadproErrorType.LOGIN} ${this.subType} ${this.message}`
   }
+
 }

@@ -1,0 +1,5 @@
+src/gateway/proto-ts/*
+
+src/gateway/proto/*
+
+# bin/store-dumper.ts

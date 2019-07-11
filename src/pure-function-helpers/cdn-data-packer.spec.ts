@@ -1,7 +1,9 @@
 import test  from 'blue-tape'
 
 import {
-  convertStr, packCdnData, unpackCdnData
+  convertStr,
+  packCdnData,
+  unpackCdnData,
 } from './cdn-data-packer'
 
 test('convertStr should be able to convert in the right way', async t => {
@@ -23,8 +25,8 @@ test('packCdnData should be able to pack cdn data correctly', async t => {
 
 test('packCdnData should be able to pack null data and string', async t => {
   const input = {
-    string: 'string',
     null: null,
+    string: 'string',
   }
   const expectedRes = Buffer.from('00000006737472696e6700000006737472696e67000000046e756c6c00000000', 'hex')
   t.deepEqual(packCdnData(input), expectedRes)
@@ -32,8 +34,8 @@ test('packCdnData should be able to pack null data and string', async t => {
 
 test('packCdnData should pack data into different res based on key order', async t => {
   const input1 = {
-    string: 'string',
     null: null,
+    string: 'string',
   }
   const input2 = {
     null: null,
@@ -49,7 +51,7 @@ test('packCdnData should pack data into different res based on key order', async
 
 test('packCdnData should be able to pack buffer data', async t => {
   const input = {
-    buffer: Buffer.from('I am a buffer', 'utf-8')
+    buffer: Buffer.from('I am a buffer', 'utf-8'),
   }
   const expectedRes = Buffer.from('000000066275666665720000000d4920616d206120627566666572', 'hex')
   t.deepEqual(packCdnData(input), expectedRes)
@@ -58,7 +60,7 @@ test('packCdnData should be able to pack buffer data', async t => {
 test('unpackCdnData should be able to unpack buffer data', async t => {
   const input = Buffer.from('000000066275666665720000000d4920616d206120627566666572', 'hex')
   const expectedRes = {
-    buffer: Buffer.from('I am a buffer', 'utf-8')
+    buffer: Buffer.from('I am a buffer', 'utf-8'),
   }
   t.deepEqual(unpackCdnData(input), expectedRes)
 })
@@ -75,8 +77,8 @@ test('unpackCdnData should be able to unpack buffer data', async t => {
 test('unpackCdnData should be able to unpack buffer data', async t => {
   const input = Buffer.from('00000006737472696e6700000006737472696e67000000046e756c6c00000000', 'hex')
   const expectedRes = {
-    string: Buffer.from('string'),
     null: Buffer.from(''),
+    string: Buffer.from('string'),
   }
   t.deepEqual(unpackCdnData(input), expectedRes)
 })

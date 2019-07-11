@@ -39,7 +39,7 @@ test('roomJoinEventMessageParser() not detected', async t => {
   )
 
   t.equal(
-    await roomJoinEventMessageParser({ content: 'fsdfsfsdfasfas' } as PadproMessagePayload ),
+    await roomJoinEventMessageParser({ content: 'fsdfsfsdfasfas' } as PadproMessagePayload),
     null,
     'should return null for PadproMessagePayload with unknown content',
   )

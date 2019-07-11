@@ -45,8 +45,8 @@ export function roomTopicEventMessageParser (
   let matchesForOther:  null | string[] = []
   let matchesForYou:    null | string[] = []
 
-  ROOM_TOPIC_OTHER_REGEX_LIST .some(regex => !!(matchesForOther = content.match(regex)))
-  ROOM_TOPIC_YOU_REGEX_LIST   .some(regex => !!(matchesForYou   = content.match(regex)))
+  ROOM_TOPIC_OTHER_REGEX_LIST.some(regex => !!(matchesForOther = content.match(regex)))
+  ROOM_TOPIC_YOU_REGEX_LIST.some(regex => !!(matchesForYou   = content.match(regex)))
 
   const matches: Array<string | YOU> = matchesForOther || matchesForYou
   if (!matches) {
@@ -56,7 +56,7 @@ export function roomTopicEventMessageParser (
   let   changerName = matches[1]
   const topic       = matches[2] as string
 
-  if (matchesForYou && changerName === '你' || changerName === 'You') {
+  if ((matchesForYou && changerName === '你') || changerName === 'You') {
     changerName = YOU
   }
 

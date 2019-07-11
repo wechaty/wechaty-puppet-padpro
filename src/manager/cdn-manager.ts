@@ -1,3 +1,4 @@
+/* eslint  promise/param-names: 0 */
 import http, { ClientRequest, IncomingMessage, RequestOptions } from 'http'
 import md5 from 'md5'
 import publicIp from 'public-ip'
@@ -74,10 +75,10 @@ export class CDNManager {
     const result: GrpcGetCdnDnsPayload = await this.wechatGateway.callApi('GrpcGetCdnDns', { ip })
     this.cdnInfo = {
       authKey: Buffer.from(result.dnsCdn.aesKey, 'base64'),
+      clientVersion: result.clientVersion,
       serverIP: result.dnsCdn.ip,
       uin: parseInt(result.dnsCdn.uin, 10),
       version: parseInt(result.dnsCdn.ver, 10),
-      clientVersion: result.clientVersion,
     }
   }
 
@@ -94,7 +95,7 @@ export class CDNManager {
         new Promise((_, reject) => {
           const timeoutTimer = setTimeout(() => {
             clearTimeout(timeoutTimer)
-            reject(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
+            reject(new Error(`${PRE} sendFile() failed, Can not get CDN info: timeout.`))
           }, 20000)
         }),
       ])
@@ -147,9 +148,9 @@ export class CDNManager {
         if (response.fileid) {
           fileid = response.fileid
           await this.cacheManager.setFileCache(fileid, {
-            fileId: fileid,
             aesKey,
-            timestamp: new Date().getTime()
+            fileId: fileid,
+            timestamp: new Date().getTime(),
           })
         }
         curIndex = endIndex
@@ -163,19 +164,19 @@ export class CDNManager {
     log.silly(PRE, `Aeskey ${JSON.stringify(aesKey.toString('hex'))}`)
 
     const finalPayload = {
-      title: fileName,
-      url: '',
       appattach: {
-        totallen: rawTotalSize,
-        attachid: `@cdn_${fileid}_${aesKey.toString('hex')}_1`,
-        fileext: fileExt,
-        cdnattachurl: fileid,
         aeskey: aesKey.toString('hex'),
+        attachid: `@cdn_${fileid}_${aesKey.toString('hex')}_1`,
+        cdnattachurl: fileid,
         encryver: 1,
+        fileext: fileExt,
         islargefilemsg: 0, // TODO: we need to test when this is not 0
+        totallen: rawTotalSize,
       },
-      type: WechatAppMessageType.Attach,
       md5: fileMd5,
+      title: fileName,
+      type: WechatAppMessageType.Attach,
+      url: '',
     }
 
     log.silly(PRE, JSON.stringify(finalPayload))
@@ -202,7 +203,7 @@ export class CDNManager {
         new Promise((_, reject) => {
           const timeoutTimer = setTimeout(() => {
             clearTimeout(timeoutTimer)
-            reject(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
+            reject(new Error(`${PRE} sendFile() failed, Can not get CDN info: timeout.`))
           }, 20000)
         }),
       ])
@@ -215,7 +216,7 @@ export class CDNManager {
 
       result = Buffer.concat([
         result,
-        data
+        data,
       ])
       dataLen = response.totalsize || dataLen
       curIndex += data.length
@@ -237,27 +238,27 @@ export class CDNManager {
       throw new Error(`${PRE} _downloadFIle() failed, no CDN info yet, can not download file.`)
     }
     const request: CDNDownloadDataRequest = {
+      acceptdupack: 1,
+      authkey: this.cdnInfo.authKey,
+      clientostype: CLIENT_OS_TYPE,
+      clientversion: this.cdnInfo.clientVersion,
+      downpicformat: 1,
+      fileid: fileId,
+      filetype: fileType,
+      ipseq: 0,
+      largesvideo: 0,
+      lastretcode: 0,
+      nettype: 1,
+      rangeend: endIndex,
+      rangestart: startIndex,
+      safeproto: 1,
+      seq,
+      sourceflag: 0,
       ver: this.cdnInfo.version,
       weixinnum: this.cdnInfo.uin,
-      seq,
-      clientversion: this.cdnInfo.clientVersion,
-      clientostype: CLIENT_OS_TYPE,
-      authkey: this.cdnInfo.authKey,
-      nettype: 1,
-      acceptdupack: 1,
-      safeproto: 1,
-      filetype: fileType,
-      wxchattype: 0,
-      fileid: fileId,
-      lastretcode: 0,
-      ipseq: 0,
-      wxmsgflag: null,
       wxautostart: 0,
-      downpicformat: 1,
-      largesvideo: 0,
-      sourceflag: 0,
-      rangestart: startIndex,
-      rangeend: endIndex,
+      wxchattype: 0,
+      wxmsgflag: null,
     }
     const data = packDownloadRequest(request)
     let response: Buffer
@@ -281,22 +282,22 @@ export class CDNManager {
     }
     const touser = '@cdn_' + encryptUser(toId, CDN_USER_MD5_KEY)
     const request: CDNCheckMd5Request = {
-      ver: this.cdnInfo.version,
-      weixinnum: this.cdnInfo.uin,
-      seq,
-      clientversion: this.cdnInfo.clientVersion,
-      clientostype: CLIENT_OS_TYPE,
-      authkey: this.cdnInfo.authKey,
-      nettype: 1,
       acceptdupack: 1,
-      filetype: CDNFileType.ATTACHMENT,
-      safeproto: 1,
+      advideoflag: 0,
+      authkey: this.cdnInfo.authKey,
+      clientostype: CLIENT_OS_TYPE,
+      clientversion: this.cdnInfo.clientVersion,
       enablehit: 1,
       filemd5,
+      filetype: CDNFileType.ATTACHMENT,
       largesvideo: 0,
-      wxchattype: 0,
-      advideoflag: 0,
+      nettype: 1,
+      safeproto: 1,
+      seq,
       touser,
+      ver: this.cdnInfo.version,
+      weixinnum: this.cdnInfo.uin,
+      wxchattype: 0,
     }
 
     const data = packCheckMd5Request(request)
@@ -330,44 +331,44 @@ export class CDNManager {
 
     const fileDataMd5 = md5(fileData)
     const request: CDNUploadDataRequest = {
+      acceptdupack: 1,
+      advideoflag: 0,
+      apptype: 0,
+      authkey: this.cdnInfo.authKey,
+      blockmd5: fileDataMd5,
+      clientostype: CLIENT_OS_TYPE,
+      clientversion: this.cdnInfo.clientVersion,
+      compresstype: 0,
+      enablehit: 1,
+      encthumbcrc: 0,
+      existancecheck: 0,
+      filedata: fileData,
+      filedatamd5: fileDataMd5,
+      filekey: fileKey,
+      filemd5: fileMd5,
+      filetype: CDNFileType.ATTACHMENT,
+      hasthumb: 0,
+      ipseq: 0,
+      largesvideo: 0,
+      lastretcode: 0,
+      localname: encodeURIComponent(fileName),
+      nettype: 1,
+      nocheckaeskey: 1,
+      rangeend: endIndex,
+      rangestart: startIndex,
+      rawfilemd5: fileMd5,
+      rawthumbmd5: null,
+      rawthumbsize: 0,
+      rawtotalsize: rawTotalSize,
+      safeproto: 1,
+      seq,
+      sourceflag: 0,
+      thumbtotalsize: 0,
+      totalsize: totalSize,
+      touser: toUser,
       ver: this.cdnInfo.version,
       weixinnum: this.cdnInfo.uin,
-      seq,
-      clientversion: this.cdnInfo.clientVersion,
-      clientostype: CLIENT_OS_TYPE,
-      authkey: this.cdnInfo.authKey,
-      nettype: 1,
-      acceptdupack: 1,
-      safeproto: 1,
-      filetype: CDNFileType.ATTACHMENT,
       wxchattype: 0,
-      lastretcode: 0,
-      ipseq: 0,
-      hasthumb: 0,
-      touser: toUser,
-      compresstype: 0,
-      nocheckaeskey: 1,
-      enablehit: 1,
-      existancecheck: 0,
-      apptype: 0,
-      filekey: fileKey,
-      totalsize: totalSize,
-      rawtotalsize: rawTotalSize,
-      localname: encodeURIComponent(fileName),
-      thumbtotalsize: 0,
-      rawthumbsize: 0,
-      rawthumbmd5: null,
-      encthumbcrc: 0,
-      largesvideo: 0,
-      sourceflag: 0,
-      advideoflag: 0,
-      rangestart: startIndex,
-      rangeend: endIndex,
-      filedatamd5: fileDataMd5,
-      filemd5: fileMd5,
-      rawfilemd5: fileMd5,
-      blockmd5: fileDataMd5,
-      filedata: fileData,
     }
     const data = packUploadRequest(request)
     let response: Buffer
@@ -393,7 +394,7 @@ export class CDNManager {
       } catch (e) {
         tryCount++
         log.verbose(PRE, `_sendCdnRequest() the ${tryCount} try failed for reason: \n${e}`)
-        await new Promise(r => setTimeout(r, 1000 * tryCount * tryCount))
+        await new Promise(resolve => setTimeout(resolve, 1000 * tryCount * tryCount))
       }
     }
     throw new Error(`${PRE} sendCdnRequest failed. Retried ${tryCount} times.`)
@@ -426,7 +427,7 @@ export class CDNManager {
         let dataLen = 0
 
         if (response.statusCode !== 200) {
-          reject(`sendCdnRequest failed, status code: ${response.statusCode}, status message: ${response.statusMessage}`)
+          reject(new Error(`sendCdnRequest failed, status code: ${response.statusCode}, status message: ${response.statusMessage}`))
         }
         response.on('data', (chunk: any) => {
           rawData.push(chunk)
@@ -448,10 +449,11 @@ export class CDNManager {
       })
       req.on('timeout', () => {
         req.abort()
-        reject(`TIMEOUT`)
+        reject(new Error(`TIMEOUT`))
       })
       req.write(data)
       req.end()
     })
   }
+
 }

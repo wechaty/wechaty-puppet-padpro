@@ -74,7 +74,13 @@ export async function emojiPayloadParser (rawPayload: PadproMessagePayload): Pro
     const height = parseInt(jsonPayload.msg.emoji.$.height, 10) || 0
     const cdnurl = jsonPayload.msg.emoji.$.cdnurl
 
-    return { type, len, width, height, cdnurl }
+    return {
+      cdnurl,
+      height,
+      len,
+      type,
+      width,
+    }
   } catch (e) {
     return null
   }

@@ -53,10 +53,10 @@ export async function recalledPayloadParser (
   try {
     const jsonPayload: XmlSchema = await xmlToJson(text)
     const result: PadproRecalledMessagePayload = {
-      session: jsonPayload.sysmsg.revokemsg.session,
       msgId: jsonPayload.sysmsg.revokemsg.msgid,
       newMsgId: jsonPayload.sysmsg.revokemsg.newmsgid,
       replaceMsg: jsonPayload.sysmsg.revokemsg.replacemsg,
+      session: jsonPayload.sysmsg.revokemsg.session,
     }
 
     return result
