@@ -21,11 +21,6 @@ export enum CheckQRCodeStatus {
   Cancel      = 4,
 }
 
-export enum SearchContactTypeStatus {
-  Searchable   = 0,
-  UnSearchable = -24,
-}
-
 export enum RoomAddTypeStatus {
   Done          = 0,
   NeedInvite    = -2012,
@@ -49,6 +44,8 @@ export enum RoomAddTypeStatus {
  * 30 - 通过二维码方式
  */
 export enum SearchContactTypeStatus {
+  Searchable     = 0,
+  UnSearchable   = -24,
   EMAIL          = 2,    // search by email
   WXID           = 3,    // search by wxid
   VERIFY_NOREPLY = 5,    // search by friend verify without reply(朋友验证消息)

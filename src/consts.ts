@@ -6,7 +6,7 @@ export const SPECIALUSERS = ['newsapp', 'fmessage', 'filehelper', 'weibo', 'qqma
   'readerapp', 'blogapp', 'facebookapp', 'masssendapp', 'meishiapp', 'feedsapp', 'voip',
   'blogappweixin', 'weixin', 'brandsessionholder', 'weixinreminder', 'wxid_novlwrv3lqwv11',
   'gh_22b87fa7cb3c', 'officialaccounts', 'notification_messages', 'wxid_novlwrv3lqwv11',
-  'gh_22b87fa7cb3c', 'wxitil', 'userexperience_alarm', 'notification_messages'
+  'gh_22b87fa7cb3c', 'wxitil', 'userexperience_alarm', 'notification_messages',
 ]
 
 export const CLIENT_OS_TYPE = 'iPad iPhone OS9.3.3'

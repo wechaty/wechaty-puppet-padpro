@@ -39,7 +39,7 @@ test('roomTopicEventMessageParser() not detected', async t => {
   )
 
   t.equal(
-    roomTopicEventMessageParser({ content: 'fsdfsfsdfasfas' } as PadproMessagePayload ),
+    roomTopicEventMessageParser({ content: 'fsdfsfsdfasfas' } as PadproMessagePayload),
     null,
     'should return null for PadproMessagePayload with unknown content',
   )

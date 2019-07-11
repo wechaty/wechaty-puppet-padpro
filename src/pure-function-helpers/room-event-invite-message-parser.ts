@@ -54,19 +54,19 @@ import { isPayload } from './is-type'
 */
 
 const ROOM_OTHER_INVITE_TITLE_ZH = [
-  /邀请你加入群聊/
+  /邀请你加入群聊/,
 ]
 
 const ROOM_OTHER_INVITE_TITLE_EN = [
-  /Group Chat Invitation/
+  /Group Chat Invitation/,
 ]
 
 const ROOM_OTHER_INVITE_LIST_ZH = [
-  /^"(.+)"邀请你加入群聊(.+)，进入可查看详情。/
+  /^"(.+)"邀请你加入群聊(.+)，进入可查看详情。/,
 ]
 
 const ROOM_OTHER_INVITE_LIST_EN = [
-  /"(.+)" invited you to join the group chat "(.+)"\. Enter to view details\./
+  /"(.+)" invited you to join the group chat "(.+)"\. Enter to view details\./,
 ]
 
 export const roomInviteEventMessageParser = async (

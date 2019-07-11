@@ -1,6 +1,7 @@
 import { PadproErrorType } from './padpro-enums'
 
 export abstract class PadproError extends Error {
+
   public readonly type: PadproErrorType
 
   constructor (
@@ -17,4 +18,5 @@ export abstract class PadproError extends Error {
   }
 
   protected abstract toSubString (): string
+
 }

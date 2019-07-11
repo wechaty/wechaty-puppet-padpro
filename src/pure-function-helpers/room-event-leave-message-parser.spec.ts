@@ -39,7 +39,7 @@ test('roomLeaveEventMessageParser() not detected', async t => {
   )
 
   t.equal(
-    roomLeaveEventMessageParser({ content: 'fsdfsfsdfasfas' } as PadproMessagePayload ),
+    roomLeaveEventMessageParser({ content: 'fsdfsfsdfasfas' } as PadproMessagePayload),
     null,
     'should return null for PadproMessagePayload with unknown content',
   )

@@ -209,15 +209,15 @@ export class WechatGateway extends EventEmitter {
 
       longSocket.once('error', (e) => {
         log.error(PRE, `initLongSocket() Promise() longSocket.on(error) ${e}`)
-        return reject('ERROR')
+        return reject(new Error('ERROR'))
       })
       longSocket.once('close', () => {
         log.silly(PRE, 'initLongSocket() Promise() longSocket.on(close)')
-        return reject('CLOSE')
+        return reject(new Error('CLOSE'))
       })
       longSocket.once('timeout', () => {
         log.silly(PRE, `initLongSocket() Promise() longSocket.on(timeout)`)
-        return reject('TIMEOUT')
+        return reject(new Error('TIMEOUT'))
       })
     })
 
@@ -259,7 +259,7 @@ export class WechatGateway extends EventEmitter {
     if (!this.apiCounter[apiName]) {
       this.apiCounter[apiName] = 0
     }
-    this.apiCounter[apiName] ++
+    this.apiCounter[apiName]++
     log.silly(PRE, `_callApi(${apiName}, ${JSON.stringify(params)}) the ${this.apiCounter[apiName]} times, booted ${(new Date().getTime() - this.bootTime) / 1000} seconds since boot.`)
     const option = ApiOptions[apiName]
     if (!option) {
@@ -336,7 +336,7 @@ export class WechatGateway extends EventEmitter {
         let dataLen = 0
 
         if (response.statusCode !== 200) {
-          reject(`sendShort failed, status code: ${response.statusCode}, status message: ${response.statusMessage}`)
+          reject(new Error(`sendShort failed, status code: ${response.statusCode}, status message: ${response.statusMessage}`))
         }
         response.on('data', (chunk: any) => {
           rawData.push(chunk)
@@ -355,7 +355,7 @@ export class WechatGateway extends EventEmitter {
               this.emit('reset')
             } else if (judgeFlag !== 191) {
               log.warn(`sendShort receive unknown package: [${judgeFlag}] ${buffer.toString('hex')} ${buffer.toString()}]`)
-              reject('UNKNOWN_PACKAGE')
+              reject(new Error('UNKNOWN_PACKAGE'))
             }
           }
           resolve(buffer)
@@ -367,7 +367,7 @@ export class WechatGateway extends EventEmitter {
       })
       req.on('timeout', () => {
         req.abort()
-        reject(`TIMEOUT`)
+        reject(new Error(`TIMEOUT`))
       })
       req.write(res.payload)
       req.end()
@@ -389,7 +389,7 @@ export class WechatGateway extends EventEmitter {
             this.emit('reset')
           } else if (judgeFlag !== 191) {
             log.warn(`sendLong receive unknown package: [${judgeFlag}] ${buffer.toString('hex')}]`)
-            reject('UNKNOWN_PACKAGE')
+            reject(new Error('UNKNOWN_PACKAGE'))
           }
         }
         delete this.backs[reqSeq]
@@ -452,10 +452,9 @@ export class WechatGateway extends EventEmitter {
       } else {
         this.emit('newMessage', bys)
       }
-    } else if (bys.length >= 16 && bys[16] !== 191 &&
-      !(bys[3] === 58 && bys[5] === 16 && bys[7] === 1 && bys.length === 58) &&
-      !(bys[3] === 47 && bys[5] === 16 && bys[7] === 1 && bys.length === 47)) {
-      return
+    } else if (bys.length >= 16 && bys[16] !== 191
+      && !(bys[3] === 58 && bys[5] === 16 && bys[7] === 1 && bys.length === 58)
+      && !(bys[3] === 47 && bys[5] === 16 && bys[7] === 1 && bys.length === 47)) {
     } else {
       const seq = this.bufferToInt(bys, 12) // 12 - 16 sequence number
       this.backs[seq] && this.backs[seq](bys)
@@ -465,4 +464,5 @@ export class WechatGateway extends EventEmitter {
   private bufferToInt (buffer: Buffer, offset = 0): number {
     return buffer.readUIntBE(offset, 4)
   }
+
 }

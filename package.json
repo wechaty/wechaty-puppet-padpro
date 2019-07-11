@@ -1,6 +1,6 @@
 {
   "name": "wechaty-puppet-padpro",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Padpro Puppet for Wechaty",
   "directories": {
     "example": "examples"
@@ -17,7 +17,7 @@
     "lint": "npm run lint:es && npm run lint:ts && npm run lint:md",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tsc --noEmit",
-    "lint:es": "eslint 'bin/**/*.ts' 'src/**/*.ts' 'tests/**/*.spec.ts' --ignore-pattern tests/fixtures/",
+    "lint:es": "eslint 'src/**/*.ts' 'tests/**/*.spec.ts' --ignore-pattern tests/fixtures/",
     "test": "npm run lint && npm run test:unit && npm run test:int",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\"",

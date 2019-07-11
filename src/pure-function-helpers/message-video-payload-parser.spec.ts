@@ -12,7 +12,7 @@ const sampleVideoMessage: PadproMessagePayload = {
   messageType: 43,
   status: 3,
   timestamp: 1545964345,
-  toUser: 'wxid_x01jgln69ath22'
+  toUser: 'wxid_x01jgln69ath22',
 }
 
 test('Should parse emoji message correctly', async (t) => {
@@ -20,17 +20,17 @@ test('Should parse emoji message correctly', async (t) => {
   const expectedResult = {
     aesKey: 'c5dc4bd564d4fcf986df91662da79fe5',
     cdnThumbAesKey: 'c5dc4bd564d4fcf986df91662da79fe5',
-    cdnVideoUrl: '304d020100044630440201000204d8e50c6e02032f4f560204d27ac2dc02045c258b39041f777869645f7830316a676c6e36396174683232355f313534353936343334340204010400040201000400',
-    cdnThumbUrl: '304d020100044630440201000204d8e50c6e02032f4f560204d27ac2dc02045c258b39041f777869645f7830316a676c6e36396174683232355f313534353936343334340204010400040201000400',
-    length: 588978,
-    playLength: 8,
-    cdnThumbLength: 13558,
-    cdnThumbWidth: 68,
     cdnThumbHeight: 120,
+    cdnThumbLength: 13558,
+    cdnThumbUrl: '304d020100044630440201000204d8e50c6e02032f4f560204d27ac2dc02045c258b39041f777869645f7830316a676c6e36396174683232355f313534353936343334340204010400040201000400',
+    cdnThumbWidth: 68,
+    cdnVideoUrl: '304d020100044630440201000204d8e50c6e02032f4f560204d27ac2dc02045c258b39041f777869645f7830316a676c6e36396174683232355f313534353936343334340204010400040201000400',
     fromUsername: 'lylezhuifeng',
+    isAd: false,
+    length: 588978,
     md5: '3ef2c2ffcb53784f8352f0cdb891f851',
     newMd5: '',
-    isAd: false
+    playLength: 8,
   }
 
   t.deepEqual(payload, expectedResult)

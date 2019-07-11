@@ -1,3 +1,4 @@
+/* eslint camelcase: 0 */
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *

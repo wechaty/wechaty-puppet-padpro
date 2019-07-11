@@ -107,7 +107,10 @@ export class PadproGrpc extends EventEmitter {
      */
     if (result.status === -301) {
       log.silly(PRE, `GrpcAutoLogin() redirect host ${JSON.stringify(result)}`)
-      this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
+      this.wechatGateway.switchHost({
+        longHost: result.longHost,
+        shortHost: result.shortHost,
+      })
       // Max gap between the first and the redirect login api is 30 seconds
       try {
         result = await this.wechatGateway.callApi('GrpcAutoLogin')
@@ -182,12 +185,21 @@ export class PadproGrpc extends EventEmitter {
 
   public async GrpcQRCodeLogin (userName: string, password: string): Promise<string> {
     log.info(PRE, `GrpcQRCodeLogin(${userName}, ${password})`)
-    let result = await this.wechatGateway.callApi('GrpcQRCodeLogin', { userName, password })
+    let result = await this.wechatGateway.callApi('GrpcQRCodeLogin', {
+      password,
+      userName,
+    })
 
     if (result.status === -301) {
-      this.wechatGateway.switchHost({ shortHost: result.shortHost, longHost: result.longHost })
+      this.wechatGateway.switchHost({
+        longHost: result.longHost,
+        shortHost: result.shortHost,
+      })
       log.silly(PRE, 'GrpcQRCodeLogin() Redirect to long connection')
-      result = await await this.wechatGateway.callApi('GrpcQRCodeLogin', { userName, password })
+      result = await await this.wechatGateway.callApi('GrpcQRCodeLogin', {
+        password,
+        userName,
+      })
     }
 
     return result.userName
@@ -299,7 +311,7 @@ export class PadproGrpc extends EventEmitter {
     let result: GrpcRoomMemberRawPayload
     try {
       result = await this.wechatGateway.callApi('GrpcGetChatRoomMember', {
-        Chatroom: roomId
+        Chatroom: roomId,
       })
       return result
     } catch (e) {
@@ -315,7 +327,7 @@ export class PadproGrpc extends EventEmitter {
     try {
       await this.wechatGateway.callApi('GrpcLogout')
     } catch (e) {
-      return
+      log.error(`error message is ${e}`)
     }
   }
 
@@ -536,14 +548,14 @@ export class PadproGrpc extends EventEmitter {
   ) {
     log.silly(PRE, `GrpcSendVideo()`)
     await this.wechatGateway.callApi('GrpcSendVideo',  {
-      ToUserName: contactId,
-      ThumbTotalLen: videoPayload.cdnThumbLength,
-      ThumbStartPos: videoPayload.cdnThumbLength,
-      VideoTotalLen: videoPayload.length,
-      VideoStartPos: videoPayload.length,
-      PlayLength: videoPayload.playLength,
       AESKey: videoPayload.aesKey,
       CDNVideoUrl: videoPayload.cdnVideoUrl,
+      PlayLength: videoPayload.playLength,
+      ThumbStartPos: videoPayload.cdnThumbLength,
+      ThumbTotalLen: videoPayload.cdnThumbLength,
+      ToUserName: contactId,
+      VideoStartPos: videoPayload.length,
+      VideoTotalLen: videoPayload.length,
     })
   }
 
@@ -692,7 +704,7 @@ export class PadproGrpc extends EventEmitter {
   ) {
     log.silly(PRE, `GrpcCreateRoom(${JSON.stringify(contactIdList)})`)
     const result: GrpcCreateRoomPayload = await this.wechatGateway.callApi('GrpcCreateRoom', {
-      Membernames: contactIdList.join(',')
+      Membernames: contactIdList.join(','),
     })
     return result
   }
@@ -840,8 +852,8 @@ export class PadproGrpc extends EventEmitter {
   ) {
     log.silly(PRE, `GrpcModifyLabelList(${contactId}, ${labelIds})`)
     return this.wechatGateway.callApi('GrpcModifyLabelList', {
-      Username: contactId,
       Labelids: labelIds.join(','),
+      Username: contactId,
     })
   }
 
@@ -861,4 +873,5 @@ export class PadproGrpc extends EventEmitter {
     }
     await this.wechatGateway.callApi('GrpcContactOperation', params)
   }
+
 }

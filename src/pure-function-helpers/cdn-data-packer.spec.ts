@@ -1,7 +1,10 @@
+/* eslint sort-keys: 0 */
 import test  from 'blue-tape'
 
 import {
-  convertStr, packCdnData, unpackCdnData
+  convertStr,
+  packCdnData,
+  unpackCdnData,
 } from './cdn-data-packer'
 
 test('convertStr should be able to convert in the right way', async t => {
@@ -49,7 +52,7 @@ test('packCdnData should pack data into different res based on key order', async
 
 test('packCdnData should be able to pack buffer data', async t => {
   const input = {
-    buffer: Buffer.from('I am a buffer', 'utf-8')
+    buffer: Buffer.from('I am a buffer', 'utf-8'),
   }
   const expectedRes = Buffer.from('000000066275666665720000000d4920616d206120627566666572', 'hex')
   t.deepEqual(packCdnData(input), expectedRes)
@@ -58,7 +61,7 @@ test('packCdnData should be able to pack buffer data', async t => {
 test('unpackCdnData should be able to unpack buffer data', async t => {
   const input = Buffer.from('000000066275666665720000000d4920616d206120627566666572', 'hex')
   const expectedRes = {
-    buffer: Buffer.from('I am a buffer', 'utf-8')
+    buffer: Buffer.from('I am a buffer', 'utf-8'),
   }
   t.deepEqual(unpackCdnData(input), expectedRes)
 })

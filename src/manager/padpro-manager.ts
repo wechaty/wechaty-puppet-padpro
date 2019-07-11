@@ -7,8 +7,6 @@ import {
 import { Subscription }       from 'rxjs'
 import { StateSwitch }        from 'state-switch'
 
-import uuid = require('uuid')
-
 import {
   AutoLoginError,
   CheckQRCodeStatus,
@@ -59,6 +57,8 @@ import {
   convertRoomMember,
 } from '../converter'
 import { CacheManager } from './cache-manager'
+
+import uuid = require('uuid')
 
 export interface ManagerOptions {
   token    : string,
@@ -111,9 +111,9 @@ export class PadproManager extends PadproGrpc {
 
     this.messageBuffer = []
 
-    this.wechatGateway.on('newMessage', () => {
+    this.wechatGateway.on('newMessage', async () => {
       if (this.userId) {
-        void this.syncMessage()
+        await this.syncMessage()
       }
     })
 
@@ -290,7 +290,7 @@ export class PadproManager extends PadproGrpc {
       } else {
         log.verbose(PRE, `initDataInternalLoop() encounter error when sync message: ${e.stack}`)
       }
-      await new Promise(r => setTimeout(r, 1000))
+      await new Promise(resolve => setTimeout(resolve, 1000))
     }
 
     this.initDataTimer = setTimeout(async () => {
@@ -324,8 +324,8 @@ export class PadproManager extends PadproGrpc {
 
   private releaseQueue (): void {
     log.silly(PRE, `releaseQueue()`)
-    if (!this.throttleQueueSubscription ||
-        !this.debounceQueueSubscription
+    if (!this.throttleQueueSubscription
+      || !this.debounceQueueSubscription
     ) {
       log.verbose(PRE, `releaseQueue() subscriptions have been released.`)
     } else {
@@ -417,7 +417,7 @@ export class PadproManager extends PadproGrpc {
      */
     await CacheManager.init(this.options.token, userId)
     this.cacheManager = CacheManager.Instance
-
+    /* eslint-disable-next-line */
     void this.initData()
   }
 
@@ -483,6 +483,7 @@ export class PadproManager extends PadproGrpc {
         waitUserResponse = false
       }
 
+      /* eslint no-unmodified-loop-condition: 0 */
       while (waitUserResponse) {
         const result = await this.GrpcCheckQRCode()
 
@@ -539,25 +540,23 @@ export class PadproManager extends PadproGrpc {
             break
         }
 
-        await new Promise(r => setTimeout(r, 1000))
+        await new Promise(resolve => setTimeout(resolve, 1000))
       }
 
       this.loginScanTimer = setTimeout(async () => {
         this.loginScanTimer = undefined
         await checkScanInternalLoop()
       }, 1000)
-
-      return
     }
 
     checkScanInternalLoop()
-    .then(() => {
-      log.silly(PRE, `startCheckScan() checkScanInternalLoop() resolved`)
-    })
-    .catch(e => {
-      log.verbose(PRE, `startCheckScan() checkScanLoop() exception: ${e.stack}`)
-      this.reset('startCheckScan() checkScanLoop() exception')
-    })
+      .then(() => {
+        return log.silly(PRE, `startCheckScan() checkScanInternalLoop() resolved`)
+      })
+      .catch(e => {
+        log.verbose(PRE, `startCheckScan() checkScanLoop() exception: ${e.stack}`)
+        this.reset('startCheckScan() checkScanLoop() exception')
+      })
 
     log.silly(PRE, `startCheckScan() checkScanInternalLoop() set`)
   }
@@ -577,7 +576,7 @@ export class PadproManager extends PadproGrpc {
       }
 
       // Keep retry qrcode login until logged in
-      await new Promise(r => setTimeout(r, 3000))
+      await new Promise(resolve => setTimeout(resolve, 3000))
       if (this.state.on()) {
         return this.qrCodeLogin(userName, password)
       } else {
@@ -732,8 +731,8 @@ export class PadproManager extends PadproGrpc {
 
             if (fileId && aesKey) {
               await CacheManager.Instance.setFileCache(fileId, {
-                fileId,
                 aesKey: Buffer.from(aesKey, 'hex'),
+                fileId,
                 timestamp: new Date().getTime(),
               })
             }
@@ -830,7 +829,7 @@ export class PadproManager extends PadproGrpc {
       }
 
       // Keep retry auto login until logged in
-      await new Promise(r => setTimeout(r, 5000))
+      await new Promise(resolve => setTimeout(resolve, 5000))
       if (this.state.on()) {
         return this.tryAutoLogin()
       } else {
@@ -930,7 +929,7 @@ export class PadproManager extends PadproGrpc {
       return
     }
     if (!this.cacheManager) {
-      throw new Error('cache not inited' )
+      throw new Error('cache not inited')
     }
     await this.cacheManager.deleteRoom(roomId)
   }
@@ -987,7 +986,7 @@ export class PadproManager extends PadproGrpc {
     for (const memberPayload of memberList) {
       const contactId  = memberPayload.Username
       const contact = convertMemberToContact(memberPayload)
-      if (await !this.cacheManager.hasContact(contactId)) {
+      if (!await this.cacheManager.hasContact(contactId)) {
         await this.cacheManager.setContact(contactId, contact)
       }
       memberDict[contactId] = convertRoomMember(memberPayload)
@@ -1013,7 +1012,7 @@ export class PadproManager extends PadproGrpc {
   ): Promise<void> {
     log.verbose(PRE, `contactRawPayloadDirty(${contactId})`)
     if (!this.cacheManager) {
-      throw new Error('cache not inited' )
+      throw new Error('cache not inited')
     }
     const previous = await this.cacheManager.getContact(contactId)
     if (!previous) {
@@ -1038,7 +1037,7 @@ export class PadproManager extends PadproGrpc {
         throw new Error('no cache')
       }
 
-      if (this.cacheManager.hasContact(contactId)) {
+      if (await this.cacheManager.hasContact(contactId)) {
         return this.cacheManager.getContact(contactId)
       }
 
@@ -1071,7 +1070,7 @@ export class PadproManager extends PadproGrpc {
         throw new Error('no cache')
       }
 
-      if (this.cacheManager.hasRoom(id)) {
+      if (await this.cacheManager.hasRoom(id)) {
         return this.cacheManager.getRoom(id)
       }
 

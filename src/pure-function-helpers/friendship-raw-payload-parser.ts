@@ -1,8 +1,6 @@
 import { xmlToJson } from './xml-to-json'
 
-import {
-  FriendshipType
-}                       from 'wechaty-puppet'
+import { FriendshipType } from 'wechaty-puppet'
 
 import {
   FriendshipPayload,

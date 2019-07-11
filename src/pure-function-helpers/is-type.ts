@@ -39,9 +39,7 @@ export function isStrangerV2 (strangerId?: string): boolean {
 }
 
 export function isPayload (payload: object): boolean {
-  if (   payload
-      && Object.keys(payload).length > 0
-  ) {
+  if (payload && Object.keys(payload).length > 0) {
     return true
   }
   return false

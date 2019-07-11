@@ -1,10 +1,10 @@
 // package: GrpcPadchat
 // file: PadchatGrpc.proto
 
-/* tslint:disable */
+/* eslint:disable */
 
-import * as grpc from "grpc";
-import * as PadchatGrpc_pb from "./PadchatGrpc_pb";
+import * as grpc from 'grpc';
+import * as PadchatGrpc_pb from './PadchatGrpc_pb';
 
 interface IPadchatGrpcService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
     packLong: IPadchatGrpcService_IPackLong;

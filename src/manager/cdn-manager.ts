@@ -1,3 +1,5 @@
+/* eslint  promise/param-names: 0 */
+/* eslint sort-keys: 0 */
 import http, { ClientRequest, IncomingMessage, RequestOptions } from 'http'
 import md5 from 'md5'
 import publicIp from 'public-ip'
@@ -74,10 +76,10 @@ export class CDNManager {
     const result: GrpcGetCdnDnsPayload = await this.wechatGateway.callApi('GrpcGetCdnDns', { ip })
     this.cdnInfo = {
       authKey: Buffer.from(result.dnsCdn.aesKey, 'base64'),
+      clientVersion: result.clientVersion,
       serverIP: result.dnsCdn.ip,
       uin: parseInt(result.dnsCdn.uin, 10),
       version: parseInt(result.dnsCdn.ver, 10),
-      clientVersion: result.clientVersion,
     }
   }
 
@@ -94,7 +96,7 @@ export class CDNManager {
         new Promise((_, reject) => {
           const timeoutTimer = setTimeout(() => {
             clearTimeout(timeoutTimer)
-            reject(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
+            reject(new Error(`${PRE} sendFile() failed, Can not get CDN info: timeout.`))
           }, 20000)
         }),
       ])
@@ -147,9 +149,9 @@ export class CDNManager {
         if (response.fileid) {
           fileid = response.fileid
           await this.cacheManager.setFileCache(fileid, {
-            fileId: fileid,
             aesKey,
-            timestamp: new Date().getTime()
+            fileId: fileid,
+            timestamp: new Date().getTime(),
           })
         }
         curIndex = endIndex
@@ -202,7 +204,7 @@ export class CDNManager {
         new Promise((_, reject) => {
           const timeoutTimer = setTimeout(() => {
             clearTimeout(timeoutTimer)
-            reject(`${PRE} sendFile() failed, Can not get CDN info: timeout.`)
+            reject(new Error(`${PRE} sendFile() failed, Can not get CDN info: timeout.`))
           }, 20000)
         }),
       ])
@@ -215,7 +217,7 @@ export class CDNManager {
 
       result = Buffer.concat([
         result,
-        data
+        data,
       ])
       dataLen = response.totalsize || dataLen
       curIndex += data.length
@@ -393,7 +395,7 @@ export class CDNManager {
       } catch (e) {
         tryCount++
         log.verbose(PRE, `_sendCdnRequest() the ${tryCount} try failed for reason: \n${e}`)
-        await new Promise(r => setTimeout(r, 1000 * tryCount * tryCount))
+        await new Promise(resolve => setTimeout(resolve, 1000 * tryCount * tryCount))
       }
     }
     throw new Error(`${PRE} sendCdnRequest failed. Retried ${tryCount} times.`)
@@ -426,7 +428,7 @@ export class CDNManager {
         let dataLen = 0
 
         if (response.statusCode !== 200) {
-          reject(`sendCdnRequest failed, status code: ${response.statusCode}, status message: ${response.statusMessage}`)
+          reject(new Error(`sendCdnRequest failed, status code: ${response.statusCode}, status message: ${response.statusMessage}`))
         }
         response.on('data', (chunk: any) => {
           rawData.push(chunk)
@@ -448,10 +450,11 @@ export class CDNManager {
       })
       req.on('timeout', () => {
         req.abort()
-        reject(`TIMEOUT`)
+        reject(new Error(`TIMEOUT`))
       })
       req.write(data)
       req.end()
     })
   }
+
 }

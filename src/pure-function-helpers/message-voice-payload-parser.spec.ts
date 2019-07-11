@@ -4,7 +4,7 @@ import { PadproMessagePayload } from '../schemas'
 import { voicePayloadParser } from './message-voice-payload-parser'
 
 const sampleImageMessage: PadproMessagePayload = {
-  content      : '<msg><voicemsg endflag=\"1\" length=\"4717\" voicelength=\"2940\" clientmsgid=\"49241db6222faf921440323412e3e046wxid_e2lc33auu61g2294_1542698594\" fromusername=\"lylezhuifeng\" downcount=\"0\" cancelflag=\"0\" voiceformat=\"4\" forwardflag=\"0\" bufid=\"361243502115160428\" /></msg>',
+  content      : '<msg><voicemsg endflag="1" length="4717" voicelength="2940" clientmsgid="49241db6222faf921440323412e3e046wxid_e2lc33auu61g2294_1542698594" fromusername="lylezhuifeng" downcount="0" cancelflag="0" voiceformat="4" forwardflag="0" bufid="361243502115160428" /></msg>',
   fromUser     : 'lylezhuifeng',
   messageId    : '1001921437',
   messageSource: '<msgsource />\n',
@@ -26,7 +26,7 @@ test('Should parse emoji message correctly', async (t) => {
     fromUsername: 'lylezhuifeng',
     length: 4717,
     voiceFormat: 4,
-    voiceLength: 2940
+    voiceLength: 2940,
   }
 
   t.deepEqual(payload, expectedResult)

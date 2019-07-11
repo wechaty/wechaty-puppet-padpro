@@ -1,3 +1,4 @@
+/* eslint sort-keys: 0 */
 import {
   CDNCheckMd5Request,
   CDNCheckMd5Response,

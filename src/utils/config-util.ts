@@ -1,9 +1,9 @@
-import { FileBox } from 'file-box'
-import promiseRetry = require('promise-retry')
 import qrImage from 'qr-image'
 import { OperationOptions } from 'retry'
-
 import { log } from '../config'
+
+import { FileBox } from 'file-box'
+import promiseRetry = require('promise-retry')
 
 export const padproToken = () => {
   const token = process.env.WECHATY_PUPPET_PADPRO_TOKEN as string

@@ -18,27 +18,27 @@ test('isRoomId()', async t => {
   const ROOM_ID     = 'xxx@chatroom'
   const NOT_ROOM_ID = 'xxxxxxx'
 
-  t.equal(isRoomId(ROOM_ID)     , true, 'should return true for ROOM_ID')
-  t.equal(isRoomId(NOT_ROOM_ID) , false, 'should return false for ROOM_ID')
-  t.equal(isRoomId(undefined)   , false, 'should return false for undifined')
+  t.equal(isRoomId(ROOM_ID), true, 'should return true for ROOM_ID')
+  t.equal(isRoomId(NOT_ROOM_ID), false, 'should return false for ROOM_ID')
+  t.equal(isRoomId(undefined), false, 'should return false for undifined')
 })
 
 test('isContactId()', async t => {
   const CONTACT_ID     = 'sxxfdsa'
   const NOT_CONTACT_ID = 'fdsafasd@chatroom'
 
-  t.equal(isContactId(CONTACT_ID)     , true, 'should return true for CONTACT_ID')
-  t.equal(isContactId(NOT_CONTACT_ID) , false, 'should return false for CONTACT_ID')
-  t.equal(isContactId(undefined)      , false , 'should return false for undifined')
+  t.equal(isContactId(CONTACT_ID), true, 'should return true for CONTACT_ID')
+  t.equal(isContactId(NOT_CONTACT_ID), false, 'should return false for CONTACT_ID')
+  t.equal(isContactId(undefined), false, 'should return false for undifined')
 })
 
 test('isContactOfficialId()', async t => {
   const OFFICIAL_CONTACT_ID     = 'gh_sxxfdsa'
   const NOT_OFFICIAL_CONTACT_ID = 'fdsafasd@chatroom'
 
-  t.equal(isContactOfficialId(OFFICIAL_CONTACT_ID)    , true, 'should return true for OFFICIAL_CONTACT_ID')
+  t.equal(isContactOfficialId(OFFICIAL_CONTACT_ID), true, 'should return true for OFFICIAL_CONTACT_ID')
   t.equal(isContactOfficialId(NOT_OFFICIAL_CONTACT_ID), false, 'should return false for NOT_OFFICIAL_CONTACT_ID')
-  t.equal(isContactOfficialId(undefined)              , false, 'should return false for undifined')
+  t.equal(isContactOfficialId(undefined), false, 'should return false for undifined')
 })
 
 test('isStrangerV1()', async t => {
@@ -58,8 +58,8 @@ test('isStrangerV2()', async t => {
 })
 
 test('isPayload()', async t => {
-  t.equal(isPayload(undefined as any) , false, 'undefined is not payload')
-  t.equal(isPayload(null as any)      , false, 'null is not payload')
-  t.equal(isPayload({})               , false, '{} is not payload')
-  t.equal(isPayload({ a: 42 })          , true, 'valid payload')
+  t.equal(isPayload(undefined as any), false, 'undefined is not payload')
+  t.equal(isPayload(null as any), false, 'null is not payload')
+  t.equal(isPayload({}), false, '{} is not payload')
+  t.equal(isPayload({ a: 42 }), true, 'valid payload')
 })
