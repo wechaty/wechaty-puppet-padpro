@@ -1,3 +1,4 @@
+/* eslint sort-keys: 0 */
 import test  from 'blue-tape'
 
 import {
@@ -25,8 +26,8 @@ test('packCdnData should be able to pack cdn data correctly', async t => {
 
 test('packCdnData should be able to pack null data and string', async t => {
   const input = {
-    null: null,
     string: 'string',
+    null: null,
   }
   const expectedRes = Buffer.from('00000006737472696e6700000006737472696e67000000046e756c6c00000000', 'hex')
   t.deepEqual(packCdnData(input), expectedRes)
@@ -34,8 +35,8 @@ test('packCdnData should be able to pack null data and string', async t => {
 
 test('packCdnData should pack data into different res based on key order', async t => {
   const input1 = {
-    null: null,
     string: 'string',
+    null: null,
   }
   const input2 = {
     null: null,
@@ -77,8 +78,8 @@ test('unpackCdnData should be able to unpack buffer data', async t => {
 test('unpackCdnData should be able to unpack buffer data', async t => {
   const input = Buffer.from('00000006737472696e6700000006737472696e67000000046e756c6c00000000', 'hex')
   const expectedRes = {
-    null: Buffer.from(''),
     string: Buffer.from('string'),
+    null: Buffer.from(''),
   }
   t.deepEqual(unpackCdnData(input), expectedRes)
 })
