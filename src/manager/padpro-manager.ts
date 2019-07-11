@@ -417,8 +417,8 @@ export class PadproManager extends PadproGrpc {
      */
     await CacheManager.init(this.options.token, userId)
     this.cacheManager = CacheManager.Instance
-
-    await this.initData()
+    /* eslint-disable-next-line */
+    void this.initData()
   }
 
   public async logout (): Promise<void> {

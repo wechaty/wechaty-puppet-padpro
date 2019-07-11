@@ -1,9 +1,7 @@
-import { appMessageParser } from '.'
-import { messageFileName } from './message-file-name'
-import { recalledPayloadParser } from './message-recalled-payload-parser'
-import { messageSourceParser } from './message-source-parser'
-import { messageType } from './message-type'
-import { log } from '../config'
+import {
+  MessagePayload,
+  MessageType,
+}                         from 'wechaty-puppet'
 
 import {
   PadproMessagePayload,
@@ -15,10 +13,12 @@ import {
   isRoomId,
 }                         from './is-type'
 
-import {
-  MessagePayload,
-  MessageType,
-}                         from 'wechaty-puppet'
+import { appMessageParser } from '.'
+import { messageFileName } from './message-file-name'
+import { recalledPayloadParser } from './message-recalled-payload-parser'
+import { messageSourceParser } from './message-source-parser'
+import { messageType } from './message-type'
+import { log } from '../config'
 
 const PRE = 'messageRawPayloadParser'
 

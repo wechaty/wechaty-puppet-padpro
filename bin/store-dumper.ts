@@ -54,52 +54,152 @@ async function main () {
   )
 
   log.warn('Dumper', 'main() Store status: contact: %d, room: %d, room members: %d',
-    cacheContactRawPayload.size,
-    cacheRoomRawPayload.size,
-    roomMemberTotalNum,
-  )
+                      cacheContactRawPayload.size,
+                      cacheRoomRawPayload.size,
+                      roomMemberTotalNum,
+          )
 
   dumpHtml()
 
 }
 
 function dumpHtml () {
+
+  console.log(`
+    <html>
+    <head>
+      <style>
+        table, th, td {
+          border: 1px solid black;
+        }
+      </style>
+    </head>
+    <body>
+  `)
+
   // dumpRooms()
   dumpRoomMembers()
   // dumpContacts()
+
+  console.log(`
+    </body>
+    </html>
+  `)
 }
 
 /**
  * Cotnacts
  */
 export function dumpContacts () {
-  // let n = 0
+  let n = 0
+  console.log(`
+    <h2>Contacts</h2>
+    <table>
+      <tr>
+        <td>
+          #
+        </td>
+        <th>
+          Profile Photo
+        </th>
+        <th>
+          Wechat Name
+        </th>
+      </tr>
+  `)
 
   for (const payload of cacheContactRawPayload.values()) {
     if (!payload.userName) {
       continue
     }
+    console.log(`
+      <tr>
+        <td>
+          ${++n}
+        </td>
+        <td>
+          <image width="40" height="40" src=${payload.smallHeadUrl} />
+        </td>
+        <td>
+          ${payload.nickName}
+        </td>
+      </tr>
+    `)
   }
+
+  console.log(`
+    </table>
+  `)
 }
 
 /**
  * Rooms
  */
 export function dumpRooms () {
-  // let n = 0
+  let n = 0
+  console.log(`
+    <h2>Rooms</h2>
+    <table>
+      <tr>
+        <td>
+          #
+        </td>
+        <th>
+          Room Topic
+        </th>
+        <th>
+          Members Number
+        </th>
+      </tr>
+  `)
 
   for (const payload of cacheRoomRawPayload.values()) {
     if (!payload.chatroomId) {
       continue
     }
+    console.log(`
+      <tr>
+        <td>
+          ${++n}
+        </td>
+        <td>
+          ${payload.nickName}
+        </td>
+        <td>
+          ${payload.memberCount}
+        </td>
+      </tr>
+    `)
   }
+
+  console.log(`
+    </table>
+  `)
 }
 
 /**
  * Room Members
  */
 export function dumpRoomMembers () {
-  // let n = 0
+  let n = 0
+  console.log(`
+  <h2>Room Members</h2>
+  <table>
+    <tr>
+      <th>
+        #
+      </th>
+      <th>
+        Room Topic
+      </th>
+      <th>
+        Member Photo
+      </th>
+      <th>
+        Member Name
+      </th>
+    </tr>
+  `)
 
   for (const [roomid, memberDictPayload] of cacheRoomMemberRawPayload) {
     const roomPayload = cacheRoomRawPayload.get(roomid)
@@ -113,9 +213,26 @@ export function dumpRoomMembers () {
       if (!memberPayload.contactId) {
         continue
       }
+
+      console.log(`
+        <tr>
+          <td>
+            ${++n}
+          </td>
+          <td>
+            ${roomPayload.nickName}
+          </td>
+          <td>
+            <img width="40" height="40" src="${memberPayload.smallHeadUrl}" />
+          </td>
+          <td>
+            ${memberPayload.nickName}
+          </td>
+        </tr>
+      `)
     }
   }
 }
 
 main()
-  .catch(console.error)
+.catch(console.error)
