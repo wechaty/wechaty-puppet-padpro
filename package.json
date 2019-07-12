@@ -90,7 +90,7 @@
     "promise-retry": "^1.1.1",
     "public-ip": "^3.0.0",
     "qr-image": "^3.2.0",
-    "qrcode": "^1.2.2",
+    "qrcode": "^1.4.0",
     "request": "^2.87.0",
     "request-promise": "^4.2.2",
     "rx-queue": "^0.8.1",
