@@ -238,6 +238,7 @@ export async function messageRawPayloadParser (
           payload.type = MessageType.ChatHistory
           break
         case WechatAppMessageType.MiniProgram:
+        case WechatAppMessageType.MiniProgramApp:
           payload.type = MessageType.MiniProgram
           break
         case WechatAppMessageType.RedEnvelopes:
