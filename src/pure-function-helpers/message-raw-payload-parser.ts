@@ -222,6 +222,11 @@ export async function messageRawPayloadParser (
     const appPayload = await appMessageParser(rawPayload)
     if (appPayload) {
       switch (appPayload.type) {
+        case WechatAppMessageType.Text:
+          payload.type = MessageType.Text
+          payload.text = appPayload.title
+          payload.filename = undefined
+          break
         case WechatAppMessageType.Url:
           payload.type = MessageType.Url
           break
