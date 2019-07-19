@@ -1000,10 +1000,6 @@ export class PuppetPadpro extends Puppet {
       const appPayload = await appMessageParser(rawPayload)
       if (appPayload) {
         return {
-          description: appPayload.des,
-          thumbnailUrl: appPayload.thumburl,
-          title: appPayload.title,
-          url: appPayload.url,
         }
       } else {
         throw new Error('Can not parse miniProgram message payload')

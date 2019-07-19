@@ -24,63 +24,63 @@ export const generateAppXMLMessage = ({ title, description, url, thumbnailUrl }:
   + `</appmsg>`
 }
 
-export const generateMiniProgramXMLMessage = ({ title, url }: MiniProgramPayload): string => {
+export const generateMiniProgramXMLMessage = (payload: MiniProgramPayload): string => {
   return `
   <appmsg appid="" sdkver="0">
-    <title>${title}</title>
-    <des />
-    <action />
+    <title>${payload.title}</title>
+    <des>${payload.description}</des>
+    <action/>
     <type>33</type>
     <showtype>0</showtype>
     <soundtype>0</soundtype>
-    <mediatagname />
-    <messageext />
-    <messageaction />
-    <content />
+    <mediatagname/>
+    <messageext/>
+    <messageaction/>
+    <content/>
     <contentattr>0</contentattr>
-    <url>https://mp.weixin.qq.com/mp/waerrpage?appid=wxe638e634ed8b3907&amp;type=upgrade&amp;upgradetype=3#wechat_redirect</url>
-    <lowurl />
-    <dataurl />
-    <lowdataurl />
+    <url>https://mp.weixin.qq.com/mp/waerrpage?appid=${payload.appid}&amp;type=upgrade&amp;upgradetype=3#wechat_redirect</url>
+    <lowurl/>
+    <dataurl/>
+    <lowdataurl/>
     <appattach>
       <totallen>0</totallen>
-      <attachid />
-      <emoticonmd5 />
-      <fileext />
-      <cdnthumburl>30590201000452305002010002043591c1e102032f4f5602041b7ac2dc02045d1dc42d042b777875706c6f61645f383339373434323337394063686174726f6f6d313535325f313536323233313835330204010400030201000400</cdnthumburl>
-      <cdnthumbmd5>505a8043e37721525b04b6b5ce104071</cdnthumbmd5>
-      <cdnthumblength>48115</cdnthumblength>
-      <cdnthumbwidth>720</cdnthumbwidth>
-      <cdnthumbheight>576</cdnthumbheight>
-      <cdnthumbaeskey>db57f89df26242846a1da1adbc9d8291</cdnthumbaeskey>
-      <aeskey>db57f89df26242846a1da1adbc9d8291</aeskey>
+      <attachid/>
+      <emoticonmd5/>
+      <fileext/>
+      <cdnthumburl></cdnthumburl>
+      <cdnthumbmd5></cdnthumbmd5>
+      <cdnthumblength></cdnthumblength>
+      <cdnthumbwidth></cdnthumbwidth>
+      <cdnthumbheight></cdnthumbheight>
+      <cdnthumbaeskey></cdnthumbaeskey>
+      <aeskey></aeskey>
       <encryver>0</encryver>
-      <filekey>8397442379@chatroom1617_1562232039</filekey>
+      <filekey></filekey>
     </appattach>
-    <extinfo />
-    <sourceusername>gh_a1cd71094745@app</sourceusername>
-    <sourcedisplayname>毛豆课堂</sourcedisplayname>
-    <thumburl />
-    <md5 />
-    <statextstr />
+    <extinfo/>
+    <sourceusername>${payload.username}@app</sourceusername>
+    <sourcedisplayname>${payload.description}</sourcedisplayname>
+    <thumburl/>
+    <md5/>
+    <statextstr/>
     <weappinfo>
-      <username><![CDATA[gh_a1cd71094745@app]]></username>
-      <appid><![CDATA[wxe638e634ed8b3907]]></appid>
+      <username><![CDATA[${payload.username}@app]]></username>
+      <appid><![CDATA[${payload.appid}]]></appid>
       <type>2</type>
-      <version>19</version>
-      <weappiconurl><![CDATA[http://mmbiz.qpic.cn/mmbiz_png/5lFWgxHFPzeu01RyEibY7vb5iceGcpBu9mReAHiaiaoXF7BicEYNSM2HretSX7DUa9CmASvspmiaSPDhIWm4w7nibXlQw/640?wx_fmt=png&wxfrom=200]]></weappiconurl>
-      <pagepath><![CDATA[pages/course/detail/detail.html?id=${url}&userId=5cff40a739b221001136af8a]]></pagepath>
-      <shareId><![CDATA[0_wxe638e634ed8b3907_898744801_1562231852_0]]></shareId>
+      <version></version>
+      <weappiconurl><![CDATA[]]></weappiconurl>
+      <pagepath><![CDATA[${payload.pagepath}]]></pagepath>
+      <shareId><![CDATA[0_${payload.appid}_858901320_1563444358_0]]></shareId>
       <appservicetype>0</appservicetype>
     </weappinfo>
   </appmsg>
-  <fromusername>akae_teacher_li</fromusername>
+  <fromusername></fromusername>
   <scene>0</scene>
   <appinfo>
     <version>1</version>
-    <appname></appname>
+    <appname/>
   </appinfo>
-  <commenturl></commenturl>`
+  <commenturl/>`
 }
 
 export const generateAttachmentXMLMessageFromRaw = (payload: PadproAppMessagePayload): string => {
