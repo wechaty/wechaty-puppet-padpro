@@ -65,11 +65,11 @@
     "qrcode-terminal": "^0.12.0",
     "shx": "^0.3.1",
     "tstest": "^0.4.2",
-    "wechaty-puppet": "^0.15.21"
+    "wechaty-puppet": "^0.15.25"
   },
   "peerDependencies": {
     "file-box": "^0.8.27",
-    "wechaty-puppet": "^0.15.1"
+    "wechaty-puppet": "^0.15.25"
   },
   "homepage": "https://github.com/botorange/wechaty-puppet-padpro#readme",
   "dependencies": {
