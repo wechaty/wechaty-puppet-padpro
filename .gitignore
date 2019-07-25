@@ -65,3 +65,5 @@ typings/
 /*.png
 /*.html
 /*.memory-card.json
+
+.idea

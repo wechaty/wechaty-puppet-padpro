@@ -43,6 +43,7 @@ import {
   RoomPayload,
 
   UrlLinkPayload,
+  MiniProgramPayload,
 }                                 from 'wechaty-puppet'
 
 import {
@@ -59,6 +60,7 @@ import {
   friendshipVerifyEventMessageParser,
 
   generateAppXMLMessage,
+  generateMiniProgramXMLMessage,
   generateAttachmentXMLMessageFromRaw,
 
   imagePayloadParser,
@@ -987,6 +989,27 @@ export class PuppetPadpro extends Puppet {
     }
   }
 
+  public async messageMiniProgram (messageId: string): Promise<MiniProgramPayload> {
+
+    const rawPayload = await this.messageRawPayload(messageId)
+    const payload = await this.messagePayload(messageId)
+
+    if (payload.type !== MessageType.MiniProgram) {
+      throw new Error('Can not get miniProgram from non miniProgram payload')
+    } else {
+      const appPayload = await appMessageParser(rawPayload)
+      if (appPayload) {
+        return {
+          description   : appPayload.des,
+          title         : appPayload.title,
+          // TODO: add miniProgram support in appMessageParser()
+        }
+      } else {
+        throw new Error('Can not parse miniProgram message payload')
+      }
+    }
+  }
+
   public async messageRawPayload (id: string): Promise<PadproMessagePayload> {
     const rawPayload = this.cachePadproMessagePayload.get(id)
 
@@ -1177,6 +1200,26 @@ export class PuppetPadpro extends Puppet {
     await this.padproManager.GrpcSendApp(id, generateAppXMLMessage(urlLinkPayload))
   }
 
+  public async messageSendMiniProgram (
+    receiver: Receiver,
+    miniProgramPayload: MiniProgramPayload
+  ): Promise<void> {
+    log.verbose(PRE, `messageSendMiniProgram("${JSON.stringify(receiver)}", ${JSON.stringify(miniProgramPayload)})`)
+
+    if (!this.padproManager) {
+      throw new Error('no padpro manager')
+    }
+
+    // Send to the Room if there's a roomId
+    const id = receiver.roomId || receiver.contactId
+
+    if (!id) {
+      throw Error('no id')
+    }
+
+    await this.padproManager.GrpcSendApp(id, generateMiniProgramXMLMessage(miniProgramPayload))
+  }
+
   public async messageForward (
     receiver  : Receiver,
     messageId : string,
@@ -1228,6 +1271,12 @@ export class PuppetPadpro extends Puppet {
       await this.messageSendUrl(
         receiver,
         await this.messageUrl(messageId)
+      )
+    } else if (payload.type === MessageType.MiniProgram) {
+      // TODO: currently this strips out the app information
+      await this.messageSendMiniProgram(
+        receiver,
+        await this.messageMiniProgram(messageId)
       )
     } else if (payload.type === MessageType.Video) {
       await this.forwardVideo(receiver, messageId)

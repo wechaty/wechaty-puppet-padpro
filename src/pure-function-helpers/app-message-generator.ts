@@ -1,4 +1,4 @@
-import { UrlLinkPayload } from 'wechaty-puppet'
+import { UrlLinkPayload, MiniProgramPayload } from 'wechaty-puppet'
 import { PadproAppMessagePayload, PadproLocationMessagePayload, WechatAppMessageType } from '../schemas'
 
 export const generateLocationMessage = (payload: PadproLocationMessagePayload): string => {
@@ -22,6 +22,65 @@ export const generateAppXMLMessage = ({ title, description, url, thumbnailUrl }:
   + `<contentattr>0</contentattr>`
   + `${thumbnailUrl ? '<thumburl>' + thumbnailUrl.replace(/&/g, '&amp;') + '</thumburl>' : ''}`
   + `</appmsg>`
+}
+
+export const generateMiniProgramXMLMessage = (payload: MiniProgramPayload): string => {
+  return `
+  <appmsg appid="" sdkver="0">
+    <title>${payload.title}</title>
+    <des>${payload.description}</des>
+    <action/>
+    <type>33</type>
+    <showtype>0</showtype>
+    <soundtype>0</soundtype>
+    <mediatagname/>
+    <messageext/>
+    <messageaction/>
+    <content/>
+    <contentattr>0</contentattr>
+    <url>https://mp.weixin.qq.com/mp/waerrpage?appid=${payload.appid}&amp;type=upgrade&amp;upgradetype=3#wechat_redirect</url>
+    <lowurl/>
+    <dataurl/>
+    <lowdataurl/>
+    <appattach>
+      <totallen>0</totallen>
+      <attachid/>
+      <emoticonmd5/>
+      <fileext/>
+      <cdnthumburl></cdnthumburl>
+      <cdnthumbmd5></cdnthumbmd5>
+      <cdnthumblength></cdnthumblength>
+      <cdnthumbwidth></cdnthumbwidth>
+      <cdnthumbheight></cdnthumbheight>
+      <cdnthumbaeskey></cdnthumbaeskey>
+      <aeskey></aeskey>
+      <encryver>0</encryver>
+      <filekey></filekey>
+    </appattach>
+    <extinfo/>
+    <sourceusername>${payload.username}@app</sourceusername>
+    <sourcedisplayname>${payload.description}</sourcedisplayname>
+    <thumburl/>
+    <md5/>
+    <statextstr/>
+    <weappinfo>
+      <username><![CDATA[${payload.username}@app]]></username>
+      <appid><![CDATA[${payload.appid}]]></appid>
+      <type>2</type>
+      <version></version>
+      <weappiconurl><![CDATA[]]></weappiconurl>
+      <pagepath><![CDATA[${payload.pagepath}]]></pagepath>
+      <shareId><![CDATA[0_${payload.appid}_858901320_1563444358_0]]></shareId>
+      <appservicetype>0</appservicetype>
+    </weappinfo>
+  </appmsg>
+  <fromusername></fromusername>
+  <scene>0</scene>
+  <appinfo>
+    <version>1</version>
+    <appname/>
+  </appinfo>
+  <commenturl/>`
 }
 
 export const generateAttachmentXMLMessageFromRaw = (payload: PadproAppMessagePayload): string => {
