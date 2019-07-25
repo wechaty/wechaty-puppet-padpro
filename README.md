@@ -58,9 +58,9 @@ bot
 
 [https://docs.chatie.io/wechaty](https://docs.chatie.io/wechaty)
 
-## 获取Token
+## 购买Token
 
-![contact](./image/contact.gif)
+[点击购买](https://token.juzi.bot/info)
 
 [了解更多Token 相关内容](https://github.com/lijiarui/wechaty-puppet-padchat/wiki/%E8%B4%AD%E4%B9%B0token)
 
