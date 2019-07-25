@@ -1000,6 +1000,9 @@ export class PuppetPadpro extends Puppet {
       const appPayload = await appMessageParser(rawPayload)
       if (appPayload) {
         return {
+          description   : appPayload.des,
+          title         : appPayload.title,
+          // TODO: add miniProgram support in appMessageParser()
         }
       } else {
         throw new Error('Can not parse miniProgram message payload')
