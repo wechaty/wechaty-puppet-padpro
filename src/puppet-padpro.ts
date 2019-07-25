@@ -1201,7 +1201,7 @@ export class PuppetPadpro extends Puppet {
     receiver: Receiver,
     miniProgramPayload: MiniProgramPayload
   ): Promise<void> {
-    log.verbose(PRE, `messageSendLink("${JSON.stringify(receiver)}", ${JSON.stringify(miniProgramPayload)})`)
+    log.verbose(PRE, `messageSendMiniProgram("${JSON.stringify(receiver)}", ${JSON.stringify(miniProgramPayload)})`)
 
     if (!this.padproManager) {
       throw new Error('no padpro manager')
