@@ -209,7 +209,7 @@ export class CDNManager {
         }),
       ])
     }
-    while (curIndex + 1 < dataLen) {
+    while (curIndex < dataLen) {
       const endIndex = dataLen > curIndex + MAX_TRUNK_SIZE ? curIndex + MAX_TRUNK_SIZE : dataLen
       const response: CDNDownloadDataResponse = await this._downloadFile(seqNum, fileId, curIndex, endIndex, fileType)
 
