@@ -159,6 +159,8 @@ export interface PadproRoomMemberListPayload {
 export interface PadproRoomInvitationPayload {
   id       : string,
   fromUser : string,
+  avatar   : string,
+  toUser   : string,
   roomName : string,
   timestamp: number,
   url      : string,
@@ -279,6 +281,8 @@ export interface PadproRequestTokenPayload {
 
 export interface PadproRoomInviteEvent {
   fromUser: string,
+  avatar: string,
+  toUser: string,
   msgId: string,
   roomName: string,
   timestamp: number,
