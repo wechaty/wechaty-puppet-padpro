@@ -1024,6 +1024,14 @@ export class PuppetPadpro extends Puppet {
     log.verbose(PRE, 'messageRawPayloadParser({messageId="%s"})', rawPayload.messageId)
 
     const payload: MessagePayload = await messageRawPayloadParser(rawPayload)
+    /**
+     * Process special logic for room announcement
+     */
+    if (payload.mentionIdList && payload.mentionIdList.length === 1 && payload.mentionIdList[0] === 'announcement@all') {
+      const memberIds = await this.roomMemberList(payload.roomId!)
+      payload.mentionIdList = memberIds.filter(m => m !== payload.fromId)
+      payload.text = `@所有人\n${payload.text || ''}`
+    }
 
     log.silly(PRE, 'messagePayload(%s)', JSON.stringify(payload))
     return payload
