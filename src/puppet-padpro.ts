@@ -1673,6 +1673,8 @@ export class PuppetPadpro extends Puppet {
   public async roomInvitationRawPayloadParser (rawPayload: PadproRoomInvitationPayload): Promise<RoomInvitationPayload> {
     return {
       id: rawPayload.id,
+      avatar: rawPayload.avatar,
+      toId: rawPayload.toUser,
       inviterId: rawPayload.fromUser,
       roomMemberCount: 0,
       roomMemberIdList: [],
@@ -1716,6 +1718,34 @@ export class PuppetPadpro extends Puppet {
       throw new Error('LIMIT: The room member count has reached the limit.')
     } else if (res.indexOf('该群因违规已被限制使用，无法添加群成员') !== -1) {
       throw new Error('INVALID: This room has been mal used, can not add new members.')
+    }
+  }
+
+  public async roomInvitationSerialize (roomInvitationId: string): Promise<string> {
+    if (!this.padproManager) {
+      throw new Error('no padpro manager')
+    }
+
+    const payload = await this.padproManager.roomInvitationRawPayload(roomInvitationId)
+    return JSON.stringify(payload);
+  }
+
+  public async roomInvitationDeserialize (payloadString: string): Promise<RoomInvitationPayload> {
+    try {
+      const payload: PadproRoomInvitationPayload = JSON.parse(payloadString)
+      if (!payload.id) {
+        throw new Error(`Invalid payload string, no id found.`)
+      }
+      if (!payload.url) {
+        throw new Error(`Invalid payload string, no url found.`)
+      }
+      if (!this.padproManager) {
+        throw new Error(`Padpro manager is not available`)
+      }
+      await this.padproManager.loadRoomInvitationRawPayload(payload)
+      return this.roomInvitationPayload(payload.id);
+    } catch (e) {
+      throw new Error(`Can not deserialize room invitation:\n ${e.stack}`)
     }
   }
 
