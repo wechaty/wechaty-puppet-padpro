@@ -1749,10 +1749,11 @@ export class PuppetPadpro extends Puppet {
       throw new Error('stranger neither v1 nor v2!')
     }
 
+    const isPhoneNumber = contactId.match(/^(?=\d{11}$)^1(?:3\d|4[57]|5[^4\D]|66|7[^249\D]|8\d|9[89])\d{8}$/)
     await this.padproManager.GrpcAddFriend(
       strangerV1 || '',
       strangerV2 || '',
-      SearchContactTypeStatus.WXID, // default
+      isPhoneNumber ? SearchContactTypeStatus.MOBILE : SearchContactTypeStatus.WXID, // default to wxid
       hello,
     )
   }
