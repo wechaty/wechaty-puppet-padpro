@@ -20,9 +20,9 @@ export interface CDNDownloadDataRequest {
   ipseq: number,
   wxmsgflag: number | null,
   wxautostart: number,
-  downpicformat: number,
-  largesvideo: number,
-  sourceflag: number,
+  downpicformat?: number,
+  largesvideo?: number,
+  sourceflag?: number,
   rangestart: number,
   rangeend: number,
 }

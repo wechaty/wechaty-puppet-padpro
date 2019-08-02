@@ -890,15 +890,22 @@ export class PuppetPadpro extends Puppet {
             return FileBox.fromBase64('', filename)
           }
         }
+        if (!this.cdnManager) {
+          throw new Error(`CDN manager not exist`)
+        }
         if (imagePayload.hdLength) {
-          if (!this.cdnManager) {
-            throw new Error(`CDN manager not exist`)
-          }
           result = (await this.cdnManager.downloadFile(
             imagePayload.cdnBigImgUrl!,
             imagePayload.aesKey,
             imagePayload.hdLength,
             CDNFileType.IMAGE,
+          )).toString('base64')
+        } else if (imagePayload.cdnMidImgUrl) {
+          result = (await this.cdnManager.downloadFile(
+            imagePayload.cdnMidImgUrl,
+            imagePayload.aesKey,
+            imagePayload.length || 0,
+            CDNFileType.MID_IMAGE,
           )).toString('base64')
         } else {
           result = await this.padproManager.GrpcGetMsgImage(

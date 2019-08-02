@@ -211,6 +211,7 @@ export enum GrpcSelfAvatarType {
 
 export enum CDNFileType {
   IMAGE = 1,
+  MID_IMAGE = 2,
   VIDEO_THUMBNAIL = 3,
   VIDEO = 4,
   ATTACHMENT = 5,
