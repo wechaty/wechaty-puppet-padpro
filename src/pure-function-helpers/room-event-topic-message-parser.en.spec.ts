@@ -31,6 +31,7 @@ test('roomTopicEventMessageParser() EN-other-modify-topic', async t => {
     changerName : '李卓桓',
     roomId      : '5354656522@chatroom',
     topic       : '新群名',
+    timestamp   : 1528656400,
   }
 
   const event = roomTopicEventMessageParser(MESSAGE_PAYLOAD)
@@ -52,6 +53,7 @@ test('roomTopicEventMessageParser() EN-bot-modify-topic', async t => {
     changerName : YOU,
     roomId      : '5354656522@chatroom',
     topic       : 'morning',
+    timestamp   : 1528750817,
   }
 
   const event = roomTopicEventMessageParser(MESSAGE_PAYLOAD)

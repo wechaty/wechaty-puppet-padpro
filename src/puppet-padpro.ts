@@ -399,6 +399,7 @@ export class PuppetPadpro extends Puppet {
       const inviteeNameList = roomJoinEvent.inviteeNameList
       const inviterName     = roomJoinEvent.inviterName
       const roomId          = roomJoinEvent.roomId
+      const timestamp       = roomJoinEvent.timestamp
       log.silly(PRE, 'onPadproMessageRoomEventJoin() roomJoinEvent="%s"', JSON.stringify(roomJoinEvent))
 
       const inviteeIdList = await retry(async (retryException, attempt) => {
@@ -448,7 +449,7 @@ export class PuppetPadpro extends Puppet {
       await this.roomMemberPayloadDirty(roomId)
       await this.roomPayloadDirty(roomId)
 
-      this.emit('room-join', roomId, inviteeIdList,  inviterId)
+      this.emit('room-join', roomId, timestamp, inviteeIdList,  inviterId)
     }
   }
 
@@ -464,6 +465,7 @@ export class PuppetPadpro extends Puppet {
       const leaverNameList = roomLeaveEvent.leaverNameList
       const removerName    = roomLeaveEvent.removerName
       const roomId         = roomLeaveEvent.roomId
+      const timestamp      = roomLeaveEvent.timestamp
       log.silly(PRE, 'onPadproMessageRoomEventLeave() roomLeaveEvent="%s"', JSON.stringify(roomLeaveEvent))
 
       const leaverIdList = flatten<string>(
@@ -491,7 +493,7 @@ export class PuppetPadpro extends Puppet {
       await this.roomMemberPayloadDirty(roomId)
       await this.roomPayloadDirty(roomId)
 
-      this.emit('room-leave',  roomId, leaverIdList, removerId)
+      this.emit('room-leave', roomId, timestamp, leaverIdList, removerId)
     }
   }
 
@@ -507,6 +509,7 @@ export class PuppetPadpro extends Puppet {
       const changerName = roomTopicEvent.changerName
       const newTopic    = roomTopicEvent.topic
       const roomId      = roomTopicEvent.roomId
+      const timestamp   = roomTopicEvent.timestamp
       log.silly(PRE, 'onPadproMessageRoomEventTopic() roomTopicEvent="%s"', JSON.stringify(roomTopicEvent))
 
       const roomOldPayload = await this.roomPayload(roomId)
@@ -528,7 +531,7 @@ export class PuppetPadpro extends Puppet {
        */
       await this.roomPayloadDirty(roomId)
 
-      this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
+      this.emit('room-topic', roomId, timestamp, newTopic, oldTopic, changerId)
     }
   }
 

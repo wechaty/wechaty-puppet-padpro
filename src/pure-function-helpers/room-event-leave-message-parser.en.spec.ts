@@ -31,6 +31,7 @@ test('roomLeaveEventMessageParser() EN-bot-delete-other', async t => {
     leaverNameList : ['李卓桓'],
     removerName    : YOU,
     roomId         : '6061139518@chatroom',
+    timestamp      : 1528751382,
   }
 
   const payload = roomLeaveEventMessageParser(MESSAGE_PAYLOAD)
@@ -58,6 +59,7 @@ test('roomLeaveEventMessageParser() EN-other-delete-bot', async t => {
     leaverNameList : [YOU],
     removerName    : '李卓桓',
     roomId         : '3453262102@chatroom',
+    timestamp      : 1528653673,
   }
 
   const roomLeaveEvent = roomLeaveEventMessageParser(MESSAGE_PAYLOAD)

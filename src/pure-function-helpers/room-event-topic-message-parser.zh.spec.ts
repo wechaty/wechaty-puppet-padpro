@@ -32,6 +32,7 @@ test('roomTopicEventMessageParser() ZH-bot-modify-topic', async t => {
     changerName : YOU,
     roomId      : '5354656522@chatroom',
     topic       : '新群名',
+    timestamp   : 1528657193,
   }
 
   const payload = roomTopicEventMessageParser(PADCHAT_MESSAGE_PAYLOAD_ROOM_TOPIC)
@@ -55,6 +56,7 @@ test('roomTopicEventMessageParser() ZH-other-modify-topic', async t => {
     changerName : '李卓桓',
     roomId      : '5354656522@chatroom',
     topic       : '新群名',
+    timestamp   : 1528656552,
   }
 
   const event = roomTopicEventMessageParser(MESSAGE_PAYLOAD)
