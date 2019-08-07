@@ -337,17 +337,23 @@ export class WechatGateway extends EventEmitter {
 
         if (response.statusCode === 302) {
           const location = response.headers.location || res.commandUrl
-          const restUrl = location.split('//')[1]
-          const index = restUrl.indexOf('/')
-          const hostname = restUrl.slice(0, index)
-          const path = restUrl.slice(index)
-          if (location.indexOf('//') !== -1) {
+          log.info(PRE, '302 location', location)
+          let hostname: string | undefined
+          if (/^(http|https):\/\//.test(location)) {
+            const hostnameReg = new RegExp(/(?<=\/\/).*?(?=\/)/)
+            const hostnameBody = location.match(hostnameReg)
+            hostname = hostnameBody ? hostnameBody[0] : location
+            log.info(PRE, 'hostname', hostname)
+            const pathReg = new RegExp('/(?<=' + hostname + ').*/')
+            const path = location.match(pathReg)![0]
             res.commandUrl = path
-            await this._sendShort(res, noParse, hostname)
+            log.info(PRE, 'path', path)
           } else {
-            res.commandUrl = path
-            await this._sendShort(res, noParse)
+            res.commandUrl = location
           }
+          await this._sendShort(res, noParse, hostname)
+        } else if (response.statusCode === 301) {
+          log.info(PRE, '301 location', response.headers.location)
         } else if (response.statusCode !== 200) {
           reject(new Error(`sendShort failed, status code: ${response.statusCode}, status message: ${response.statusMessage}`))
         }
