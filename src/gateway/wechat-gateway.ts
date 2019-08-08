@@ -343,11 +343,11 @@ export class WechatGateway extends EventEmitter {
             const hostnameReg = new RegExp(/(?<=\/\/).*?(?=\/)/)
             const hostnameBody = location.match(hostnameReg)
             hostname = hostnameBody ? hostnameBody[0] : location
-            log.info(PRE, 'hostname', hostname)
+            log.silly(PRE, 'hostname', hostname)
             const pathReg = new RegExp('/(?<=' + hostname + ').*/')
             const path = location.match(pathReg)![0]
             res.commandUrl = path
-            log.info(PRE, 'path', path)
+            log.silly(PRE, 'path', path)
           } else {
             res.commandUrl = location
           }
