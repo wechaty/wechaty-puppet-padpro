@@ -312,7 +312,7 @@ export class WechatGateway extends EventEmitter {
     }
   }
 
-  private async _sendShort (res: PackShortRes, noParse?: boolean): Promise<Buffer> {
+  private async _sendShort (res: PackShortRes, noParse?: boolean, hostname?: string): Promise<Buffer> {
     log.silly(PRE, `sendShort() res: commandUrl: ${res.commandUrl}`)
     const options: RequestOptions = {
       headers: {
@@ -320,7 +320,7 @@ export class WechatGateway extends EventEmitter {
         'Content-Type'  : 'application/x-www-form-urlencoded',
         'User-Agent'    : 'MicroMessenger Client',
       },
-      hostname: this.shortHost,
+      hostname: hostname || this.shortHost,
       method: 'POST',
       path: res.commandUrl,
       port: 80,
@@ -335,7 +335,26 @@ export class WechatGateway extends EventEmitter {
         const rawData: any = []
         let dataLen = 0
 
-        if (response.statusCode !== 200) {
+        if (response.statusCode === 302) {
+          const location = response.headers.location || res.commandUrl
+          log.info(PRE, '302 location', location)
+          let hostname: string | undefined
+          if (/^(http|https):\/\//.test(location)) {
+            const hostnameReg = new RegExp(/(?<=\/\/).*?(?=\/)/)
+            const hostnameBody = location.match(hostnameReg)
+            hostname = hostnameBody ? hostnameBody[0] : location
+            log.silly(PRE, 'hostname', hostname)
+            const pathReg = new RegExp('/(?<=' + hostname + ').*/')
+            const path = location.match(pathReg)![0]
+            res.commandUrl = path
+            log.silly(PRE, 'path', path)
+          } else {
+            res.commandUrl = location
+          }
+          await this._sendShort(res, noParse, hostname)
+        } else if (response.statusCode === 301) {
+          log.info(PRE, '301 location', response.headers.location)
+        } else if (response.statusCode !== 200) {
           reject(new Error(`sendShort failed, status code: ${response.statusCode}, status message: ${response.statusMessage}`))
         }
         response.on('data', (chunk: any) => {
