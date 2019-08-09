@@ -449,7 +449,7 @@ export class PuppetPadpro extends Puppet {
       await this.roomMemberPayloadDirty(roomId)
       await this.roomPayloadDirty(roomId)
 
-      this.emit('room-join', roomId, timestamp, inviteeIdList,  inviterId)
+      this.emit('room-join', roomId, inviteeIdList,  inviterId, timestamp)
     }
   }
 
@@ -493,7 +493,7 @@ export class PuppetPadpro extends Puppet {
       await this.roomMemberPayloadDirty(roomId)
       await this.roomPayloadDirty(roomId)
 
-      this.emit('room-leave', roomId, timestamp, leaverIdList, removerId)
+      this.emit('room-leave', roomId, leaverIdList, removerId, timestamp)
     }
   }
 
@@ -531,7 +531,7 @@ export class PuppetPadpro extends Puppet {
        */
       await this.roomPayloadDirty(roomId)
 
-      this.emit('room-topic', roomId, timestamp, newTopic, oldTopic, changerId)
+      this.emit('room-topic', roomId, newTopic, oldTopic, changerId, timestamp)
     }
   }
 
