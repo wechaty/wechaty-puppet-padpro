@@ -64,8 +64,8 @@ export function roomTopicEventMessageParser (
   const roomTopicEvent: PuppetRoomTopicEvent = {
     changerName,
     roomId,
-    topic,
     timestamp,
+    topic,
   }
 
   return roomTopicEvent
