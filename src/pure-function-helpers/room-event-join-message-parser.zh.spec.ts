@@ -31,6 +31,7 @@ test('roomJoinEventMessageParser() ZH-other-invite-other', async t => {
     inviteeNameList: ['Huan LI++'],
     inviterName: '李卓桓',
     roomId: '5354656522@chatroom',
+    timestamp: 1528657265,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -58,6 +59,7 @@ test('roomJoinEventMessageParser() ZH-other-invite-bot', async t => {
     inviteeNameList : [YOU],
     inviterName     : '李佳芮',
     roomId          : '8083065140@chatroom',
+    timestamp       : 1526984649,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -79,6 +81,7 @@ test('roomJoinEventMessageParser() ZH-other-invite-bot-with-other', async t => {
     inviteeNameList : [YOU, 'Huan LI++'],
     inviterName     : '李卓桓',
     roomId          : '5178377660@chatroom',
+    timestamp       : 1528751621,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -100,6 +103,7 @@ test('roomJoinEventMessageParser() ZH-bot-invite-one', async t => {
     inviteeNameList : ['Huan LI++'],
     inviterName     : YOU,
     roomId          : '5354656522@chatroom',
+    timestamp       : 1528657265,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -124,6 +128,7 @@ test('roomJoinEventMessageParser() ZH-bot-invite-three-bot-is-owner', async t =>
     inviteeNameList : ['李卓桓', '李佳芮', '桔小秘'],
     inviterName     : YOU,
     roomId          : '6350854677@chatroom',
+    timestamp       : 1528828692,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -145,6 +150,7 @@ test('roomJoinEventMessageParser() ZH-bot-invite-three-bot-is-not-owner', async 
     inviteeNameList : ['卓桓', 'Zhuohuan', '太阁_传话助手', '桔小秘'],
     inviterName     : YOU,
     roomId          : '12740017638@chatroom',
+    timestamp       : 1528829561,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -166,6 +172,7 @@ test('roomJoinEventMessageParser() ZH-other-invite-bot-and-two', async t => {
     inviteeNameList : [YOU],
     inviterName     : '李佳芮-哈哈哈啊哈哈',
     roomId          : '5616634434@chatroom',
+    timestamp       : 1528830037,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -187,6 +194,7 @@ test('roomJoinEventMessageParser() ZH-scan-qrcode-shared-by-bot-when-bot-not-own
     inviteeNameList : ['李佳芮'],
     inviterName     : YOU,
     roomId          : '9967013206@chatroom',
+    timestamp       : 1528830363,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -208,6 +216,7 @@ test('roomJoinEventMessageParser() ZH-scan-qrcode-shared-by-bot-when-bot-is-owne
     inviteeNameList : ['李佳芮'],
     inviterName     : YOU,
     roomId          : '5616634434@chatroom',
+    timestamp       : 1528830493,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -229,6 +238,7 @@ test('roomJoinEventMessageParser() ZH-scan-qrcode-shared-by-other-when-bot-no-ow
     inviteeNameList : ['卓桓', 'Zhuohuan'],
     inviterName     : '李佳芮',
     roomId          : '9967013206@chatroom',
+    timestamp       : 1528830692,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -250,6 +260,7 @@ test('roomJoinEventMessageParser() ZH-scan-qrcode-shared-by-other-when-bot-is-ow
     inviteeNameList : ['卓桓', 'Zhuohuan'],
     inviterName     : '李佳芮',
     roomId          : '5616634434@chatroom',
+    timestamp       : 1528830737,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)
@@ -279,6 +290,7 @@ test('roomJoinEventMessageParser() ZH-other-invite-other-with-emoji-in-name', as
     inviteeNameList : ['<span class="emoji emoji1f338"></span>YYY'],
     inviterName     : 'XXX',
     roomId          : '5616634434@chatroom',
+    timestamp       : 1528830737,
   }
 
   const event = await roomJoinEventMessageParser(MESSAGE_PAYLOAD)

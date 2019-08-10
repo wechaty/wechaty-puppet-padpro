@@ -30,6 +30,7 @@ test('roomTopicEventMessageParser() EN-other-modify-topic', async t => {
   const EXPECTED_EVENT: PuppetRoomTopicEvent = {
     changerName : '李卓桓',
     roomId      : '5354656522@chatroom',
+    timestamp   : 1528656400,
     topic       : '新群名',
   }
 
@@ -51,6 +52,7 @@ test('roomTopicEventMessageParser() EN-bot-modify-topic', async t => {
   const EXPECTED_EVENT: PuppetRoomTopicEvent = {
     changerName : YOU,
     roomId      : '5354656522@chatroom',
+    timestamp   : 1528750817,
     topic       : 'morning',
   }
 

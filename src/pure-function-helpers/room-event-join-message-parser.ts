@@ -93,6 +93,8 @@ export async function roomJoinEventMessageParser (
     return null
   }
 
+  const timestamp = rawPayload.timestamp
+
   let content = rawPayload.content
 
   /**
@@ -229,6 +231,7 @@ export async function roomJoinEventMessageParser (
       inviteeNameList,
       inviterName,
       roomId,
+      timestamp,
     }
     return joinEvent
 
@@ -256,6 +259,7 @@ export async function roomJoinEventMessageParser (
       inviteeNameList,
       inviterName,
       roomId,
+      timestamp,
     }
     return joinEvent
 
@@ -284,6 +288,7 @@ export async function roomJoinEventMessageParser (
       inviteeNameList,
       inviterName,
       roomId,
+      timestamp,
     }
     return joinEvent
 
@@ -310,6 +315,7 @@ export async function roomJoinEventMessageParser (
       inviteeNameList,
       inviterName,
       roomId,
+      timestamp,
     }
     return joinEvent
 

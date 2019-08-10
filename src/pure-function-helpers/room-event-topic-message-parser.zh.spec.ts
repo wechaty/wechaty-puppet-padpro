@@ -31,6 +31,7 @@ test('roomTopicEventMessageParser() ZH-bot-modify-topic', async t => {
   const EXPECTED_MESSAGE_PAYLOAD_ROOM_TOPIC: PuppetRoomTopicEvent = {
     changerName : YOU,
     roomId      : '5354656522@chatroom',
+    timestamp   : 1528657193,
     topic       : '新群名',
   }
 
@@ -54,6 +55,7 @@ test('roomTopicEventMessageParser() ZH-other-modify-topic', async t => {
   const EXPECTED_MESSAGE_PAYLOAD_ROOM_TOPIC: PuppetRoomTopicEvent = {
     changerName : '李卓桓',
     roomId      : '5354656522@chatroom',
+    timestamp   : 1528656552,
     topic       : '新群名',
   }
 

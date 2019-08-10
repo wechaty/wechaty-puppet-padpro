@@ -37,6 +37,7 @@ export function roomTopicEventMessageParser (
 
   const roomId  = rawPayload.fromUser
   const content = rawPayload.content
+  const timestamp = rawPayload.timestamp
 
   if (!isRoomId(roomId)) {
     return null
@@ -63,6 +64,7 @@ export function roomTopicEventMessageParser (
   const roomTopicEvent: PuppetRoomTopicEvent = {
     changerName,
     roomId,
+    timestamp,
     topic,
   }
 

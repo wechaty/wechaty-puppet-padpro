@@ -290,6 +290,7 @@ export interface FriendshipPayloadBase {
 
   contactId : string,
   hello?    : string,
+  timestamp : number,
 }
 
 export type FriendshipPayloadConfirm = FriendshipPayloadBase & {

@@ -50,6 +50,7 @@ async function friendshipRawPayloadParserConfirm (
   const payload: FriendshipPayloadConfirm = {
     contactId : rawPayload.fromUser,
     id        : rawPayload.messageId,
+    timestamp : rawPayload.timestamp,
     type      : FriendshipType.Confirm,
   }
   return payload
@@ -61,6 +62,7 @@ function friendshipRawPayloadParserVerify (
   const payload: FriendshipPayloadVerify = {
     contactId : rawPayload.fromUser,
     id        : rawPayload.messageId,
+    timestamp : rawPayload.timestamp,
     type      : FriendshipType.Verify,
   }
   return payload
@@ -90,6 +92,7 @@ async function friendshipRawPayloadParserReceive (
     id        : rawPayload.messageId,
     stranger  : padchatFriendshipPayload.encryptusername,
     ticket    : padchatFriendshipPayload.ticket,
+    timestamp : rawPayload.timestamp,
     type      : FriendshipType.Receive,
   }
 

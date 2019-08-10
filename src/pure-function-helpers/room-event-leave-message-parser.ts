@@ -47,6 +47,7 @@ export function roomLeaveEventMessageParser (
 
   const roomId  = rawPayload.fromUser
   const content = rawPayload.content
+  const timestamp = rawPayload.timestamp
 
   if (!isRoomId(roomId)) {
     return null
@@ -88,6 +89,7 @@ export function roomLeaveEventMessageParser (
     leaverNameList  : [leaverName],
     removerName,
     roomId,
+    timestamp,
   }
   return roomLeaveEvent
 }
