@@ -56,7 +56,9 @@ bot
 
 ## 文档
 
-[https://docs.chatie.io/wechaty](https://docs.chatie.io)
+[https://docs.chatie.io 英文版](https://docs.chatie.io)
+
+[https://docs.chatie.io 中文版](https://docs.chatie.io/v/zh/)
 
 ## Token 相关
 
