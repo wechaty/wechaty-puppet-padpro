@@ -265,7 +265,7 @@ export class WechatGateway extends EventEmitter {
     if (!option) {
       throw new Error(`Unknown API name: ${apiName}`)
     }
-    const { noParse } = option
+    const { noParse, useProxy } = option
     let { longRequest } = option
     if (forceLongOrShort !== undefined) {
       longRequest = forceLongOrShort
@@ -278,7 +278,7 @@ export class WechatGateway extends EventEmitter {
         return result
       } else {
         const res = await this.grpcGateway.packShort(apiName, params)
-        const wxResponse = await this.sendShort(res, noParse)
+        const wxResponse = await this.sendShort(res, useProxy, noParse)
         const result = noParse ? wxResponse : await this.grpcGateway.parse(apiName, wxResponse)
         return result
       }
@@ -298,21 +298,21 @@ export class WechatGateway extends EventEmitter {
     return wechatConnection && this.grpcGateway.isAlive()
   }
 
-  private async sendShort (res: PackShortRes, noParse?: boolean, retry = SEND_SHORT_RETRY_COUNT): Promise<Buffer> {
+  private async sendShort (res: PackShortRes, useProxy?: boolean, noParse?: boolean, retry = SEND_SHORT_RETRY_COUNT): Promise<Buffer> {
     try {
-      const result = await this._sendShort(res, noParse)
+      const result = await this._sendShort(res, useProxy, noParse)
       return result
     } catch (e) {
       if (retry > 0 && e !== 'UNKNOWN_PACKAGE') {
         log.info(PRE, `sendShort() failed for error: ${e}, retry the api.`)
-        return this.sendShort(res, noParse, retry - 1)
+        return this.sendShort(res, useProxy, noParse, retry - 1)
       } else {
         throw e
       }
     }
   }
 
-  private async _sendShort (res: PackShortRes, noParse?: boolean, hostname?: string): Promise<Buffer> {
+  private async _sendShort (res: PackShortRes, useProxy?: boolean, noParse?: boolean, hostname?: string): Promise<Buffer> {
     log.silly(PRE, `sendShort() res: commandUrl: ${res.commandUrl}`)
     const options: RequestOptions = {
       headers: {
@@ -326,7 +326,7 @@ export class WechatGateway extends EventEmitter {
       port: 80,
     }
 
-    if (this.proxyAgent) {
+    if (useProxy && this.proxyAgent) {
       options.agent = this.proxyAgent
     }
 
@@ -351,7 +351,7 @@ export class WechatGateway extends EventEmitter {
           } else {
             res.commandUrl = location
           }
-          await this._sendShort(res, noParse, hostname)
+          await this._sendShort(res, useProxy, noParse, hostname)
         } else if (response.statusCode === 301) {
           log.info(PRE, '301 location', response.headers.location)
         } else if (response.statusCode !== 200) {
