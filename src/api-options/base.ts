@@ -8,15 +8,15 @@ export const GrpcHeartBeat: ApiOption = {
 }
 
 export const GrpcGetQRCode: ApiOption = {
-  longRequest: true,
+  useProxy: true,
 }
 
 export const GrpcCheckQRCode: ApiOption = {
-  longRequest: true,
+  useProxy: true,
 }
 
 export const GrpcQRCodeLogin: ApiOption = {
-  longRequest: true,
+  useProxy: true,
 }
 
 export const GrpcAutoLogin: ApiOption = {

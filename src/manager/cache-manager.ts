@@ -336,8 +336,6 @@ export class CacheManager {
       '.wechaty',
       'puppet-padpro-cache',
       path.sep,
-      'flash-store-v0.14',
-      path.sep,
       token,
       path.sep,
       userId,

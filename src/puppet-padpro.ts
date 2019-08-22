@@ -88,6 +88,7 @@ import {
   SELF_QRCODE_MAX_RETRY,
   VERSION,
   WECHATY_PUPPET_PADPRO_ENDPOINT,
+  WECHATY_PUPPET_PADPRO_PROXY,
 }                   from './config'
 
 import {
@@ -217,8 +218,9 @@ export class PuppetPadpro extends Puppet {
     this.state.on('pending')
 
     await WechatGateway.init(
-      this.options.token     || padproToken(),
-      this.options.endpoint  || WECHATY_PUPPET_PADPRO_ENDPOINT,
+      this.options.token        || padproToken(),
+      this.options.endpoint     || WECHATY_PUPPET_PADPRO_ENDPOINT,
+      this.options.proxy as any || WECHATY_PUPPET_PADPRO_PROXY,
     )
 
     const manager = this.padproManager = new PadproManager({
