@@ -49,7 +49,7 @@ bot
 
 ## Token
 
-* [Buy](https://token.juzi.bot/info)
+* We stop selling the token service, only provide technical support to our partner. If you have any needs, please [click here to get alpha test](https://github.com/Chatie/wechaty/issues/1846).
 
 ## LICENSE
 
