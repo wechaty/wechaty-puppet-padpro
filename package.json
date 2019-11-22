@@ -88,7 +88,7 @@
     "lru-cache": "^5.1.1",
     "md5": "^2.2.1",
     "promise-retry": "^1.1.1",
-    "public-ip": "^3.0.0",
+    "public-ip": "^4.0.0",
     "qr-image": "^3.2.0",
     "qrcode": "^1.4.0",
     "request": "^2.87.0",
