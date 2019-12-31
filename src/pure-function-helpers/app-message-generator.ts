@@ -69,7 +69,7 @@ export const generateMiniProgramXMLMessage = (payload: MiniProgramPayload): stri
       <type>2</type>
       <version></version>
       <weappiconurl><![CDATA[]]></weappiconurl>
-      <pagepath><![CDATA[${payload.pagepath}]]></pagepath>
+      <pagepath><![CDATA[${payload.pagePath}]]></pagepath>
       <shareId><![CDATA[0_${payload.appid}_858901320_1563444358_0]]></shareId>
       <appservicetype>0</appservicetype>
     </weappinfo>

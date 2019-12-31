@@ -1022,6 +1022,13 @@ export class PuppetPadpro extends Puppet {
     }
   }
 
+  messageContact (messageId: string): Promise<string> {
+    throw new Error('Method not implemented. message id: ' + messageId)
+  }
+  messageRecall (messageId: string): Promise<boolean> {
+    throw new Error('Method not implemented. message id: ' + messageId)
+  }
+
   public async messageRawPayload (id: string): Promise<PadproMessagePayload> {
     const rawPayload = this.cachePadproMessagePayload.get(id)
 
