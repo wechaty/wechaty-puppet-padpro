@@ -1850,6 +1850,32 @@ export class PuppetPadpro extends Puppet {
     await this.contactPayloadDirty(this.selfId())
   }
 
+  tagContactAdd (id: string, contactId: string): Promise<void> {
+    throw new Error(`Method not implemented. id: ${id}, contactId: ${contactId}`)
+  }
+
+  tagContactRemove (id: string, contactId: string): Promise<void> {
+    throw new Error(`Method not implemented. id: ${id}, contactId: ${contactId}`)
+  }
+
+  tagContactDelete (id: string): Promise<void> {
+    throw new Error(`Method not implemented. id: ${id}`)
+  }
+
+  tagContactList (contactId: string): Promise<string[]>
+  tagContactList (): Promise<string[]>
+  tagContactList (contactId?: string): Promise<string[]> {
+    throw new Error(`Method not implemented. contactId: ${contactId}`)
+  }
+
+  friendshipSearchPhone (phone: string): Promise<string | null> {
+    throw new Error(`Method not implemented. phone: ${phone}`)
+  }
+
+  friendshipSearchWeixin (weixin: string): Promise<string | null> {
+    throw new Error(`Method not implemented. weixin: ${weixin}`)
+  }
+
 }
 
 export default PuppetPadpro
