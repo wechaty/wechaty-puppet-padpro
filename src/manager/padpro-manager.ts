@@ -1116,18 +1116,27 @@ export class PadproManager extends PadproGrpc {
 
   public async saveRoomInvitationRawPayload (roomInvitation: PadproRoomInviteEvent): Promise<void> {
     log.verbose(PRE, `saveRoomInvitationRawPayload(${JSON.stringify(roomInvitation)})`)
-    const { msgId, roomName, url, fromUser, timestamp } = roomInvitation
+    const { msgId, roomName, url, fromUser, timestamp, toUser, avatar } = roomInvitation
 
     if (!this.cacheManager) {
       throw new Error(`${PRE} saveRoomInvitationRawPayload() has no cache.`)
     }
     await this.cacheManager.setRoomInvitation(msgId, {
       fromUser,
+      avatar,
+      toUser,
       id: msgId,
       roomName,
       timestamp,
       url,
     })
+  }
+
+  public async loadRoomInvitationRawPayload (roomInvitation: PadproRoomInvitationPayload): Promise<void> {
+    if (!this.cacheManager) {
+      throw new Error(`${PRE} saveRoomInvitationRawPayload() has no cache.`)
+    }
+    await this.cacheManager.setRoomInvitation(roomInvitation.id, roomInvitation);
   }
 
   public ding (data?: string): void {

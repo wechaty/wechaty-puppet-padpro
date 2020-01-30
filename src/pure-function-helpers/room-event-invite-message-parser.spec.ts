@@ -25,6 +25,8 @@ test('roomInviteEventMessageParser() ZH', async t => {
 
   const EXPECTED_EVENT: PadproRoomInviteEvent = {
     fromUser: 'lylezhuifeng',
+    toUser: 'wxid_rdwh63c150bm12',
+    avatar: '',
     msgId: '7724778097781555979',
     roomName: 'Wechaty Developers\' Home 2',
     timestamp: 1532158619,
@@ -50,6 +52,8 @@ test('roomInviteEventMessageParser() EN', async t => {
 
   const EXPECTED_EVENT: PadproRoomInviteEvent = {
     fromUser: 'lylezhuifeng',
+    toUser: 'wxid_rdwh63c150bm12',
+    avatar: '',
     msgId: '7969935287794034973',
     roomName: '💃🏻这个群特别炸💃🏻',
     timestamp: 1532273578,
