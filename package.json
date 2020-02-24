@@ -96,7 +96,7 @@
     "rxjs": "^6.2.1",
     "socks5-client": "^1.2.6",
     "socks5-http-client": "^1.0.4",
-    "uuid": "^3.3.2",
+    "uuid": "^7.0.0",
     "xml2js": "^0.4.19"
   },
   "git": {
