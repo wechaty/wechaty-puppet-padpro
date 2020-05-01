@@ -21,7 +21,9 @@
     "test": "npm run lint && npm run test:unit && npm run test:int",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\"",
-    "test:int": "blue-tape -r ts-node/register \"src/*.spec.ts\" \"tests/**/*.spec.ts\""
+    "test:int": "blue-tape -r ts-node/register \"src/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -97,7 +99,8 @@
     "socks5-client": "^1.2.6",
     "socks5-http-client": "^1.0.4",
     "uuid": "^3.3.2",
-    "xml2js": "^0.4.19"
+    "xml2js": "^0.4.19",
+    "snyk": "^1.316.1"
   },
   "git": {
     "scripts": {
@@ -106,5 +109,6 @@
   },
   "publishConfig": {
     "tag": "next"
-  }
+  },
+  "snyk": true
 }
